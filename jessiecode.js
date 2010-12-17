@@ -1,5 +1,8 @@
-// Control structures and functions
 
+
+JXG.JessieCode = (function() {
+
+// Control structures and functions
 var
 
 //Structs
@@ -19,24 +22,6 @@ node = function(type, value, children) {
 },
 
 // Management functions
-
-/**
- * Create a new parse tree node. Basically the same as node(), but this builds
- * the children part out of an arbitrary number of parameters, instead of one
- * array parameter.
- * @param {String} type Type of node, e.g. node_op, node_var, or node_const
- * @param value The nodes value, e.g. a variables value or a functions body.
- * @param children Arbitrary number of parameters; define the child nodes.
- */
-createNode = function(type, value, children) {
-    var n = node(type, value, []),
-        i;
-    
-    for(i = 2; i < arguments.length; i++)
-        n.children.push( arguments[i] );
-        
-    return n;
-},
 
 // Parsed variables
 variables = {},
@@ -64,231 +49,259 @@ letvar = function(vname, value) {
 
 getvar = function(vname) {
     return variables[vname] || 0;
-},
-
-execute = function( node ) {
-    var ret = 0;
-    
-    if( !node )
-        return 0;
-
-    switch( node.type )
-    {
-        case 'node_op':
-            switch( node.value )
-            {
-                case 'op_none':
-                    if( node.children[0] )
-                        execute( node.children[0] );                    
-                    if( node.children[1] )
-                        ret = execute( node.children[1] );
-                    break;
-                case 'op_assign':
-                    letvar( node.children[0], execute( node.children[1] ) );
-                    break;
-                case 'op_noassign':
-                    execute(node.children[0]);
-                    break;
-                case 'op_if':
-                    if( execute( node.children[0] ) )
-                        execute( node.children[1] );
-                    break;
-                case 'op_if_else':
-                    if( execute( node.children[0] ) )
-                        execute( node.children[1] );
-                    else
-                        execute( node.children[2] );
-                    break;
-                case 'op_while':
-                    while( execute( node.children[0] ) )
-                        execute( node.children[1] );
-                    break;
-                case 'op_for':
-                    // todo
-                    do
-                        execute( node.children[0] )
-                    while( execute( node.children[1] ) );
-                    break;
-                case 'op_paramlst':
-                    if(node.children[0]) {
-                        execute(node.children[0]);
-                    }
-                    if(node.children[1]) {
-                        ret = execute(node.children[1]);
-                        stack.push(ret);
-                    }
-                    break;
-                case 'op_param':
-                    if( node.children[0] ) {
-                        ret = execute(node.children[0]);
-                        stack.push(ret);
-                    }
-                    break;
-                case 'op_paramdeflst':
-                    if(node.children[0]) {
-                        execute(node.children[0]);
-                    }
-                    if(node.children[1]) {
-                        ret = node.children[1];
-                        stack.push(ret);
-                    }
-                    break;
-                case 'op_paramdef':
-                    if( node.children[0] ) {
-                        ret = node.children[0];
-                        stack.push(ret);
-                    }
-                    break;
-                case 'op_function':
-                    execute(node.children[0]);
-                    _debug(stack);
-// TODO: PARAMETER HANDLING!
-                    ret = function() {
-                        execute(node.children[1]);
-                    }
-                    stack = [];
-                    break;
-                case 'op_create':
-                    execute(node.children[0]);
-                    ret = board.create(stack[0], stack.slice(1));
-                    stack = [];
-                    break;
-                case 'op_use':
-                    var found = false;
-                    for(var b in JXG.JSXGraph.boards) {
-                        if(JXG.JSXGraph.boards[b].container === node.children[0].toString()) {
-                            board = JXG.JSXGraph.boards[b];
-                            found = true;
-
-                            _debug('now using board ' + board.id);
-                        }
-                    }
-                    
-                    if(!found)
-                        alert(node.children[0].toString() + ' not found!');
-                    break;
-                case 'op_equ':
-                    ret = execute( node.children[0] ) == execute( node.children[1] );
-                    break;
-                case 'op_neq':
-                    ret = execute( node.children[0] ) != execute( node.children[1] );
-                    break;
-                case 'op_grt':
-                    ret = execute( node.children[0] ) > execute( node.children[1] );
-                    break;
-                case 'op_lot':
-                    ret = execute( node.children[0] ) < execute( node.children[1] );
-                    break;
-                case 'op_gre':
-                    ret = execute( node.children[0] ) >= execute( node.children[1] );
-                    break;
-                case 'op_loe':
-                    ret = execute( node.children[0] ) <= execute( node.children[1] );
-                    break;
-                case 'op_add':
-                    ret = execute( node.children[0] ) + execute( node.children[1] );
-                    break;
-                case 'op_sub':
-                    ret = execute( node.children[0] ) - execute( node.children[1] );
-                    break;
-                case 'op_div':
-                    ret = execute( node.children[0] ) / execute( node.children[1] );
-                    break;
-                case 'op_mul':
-                    ret = execute( node.children[0] ) * execute( node.children[1] );
-                    break;
-                case 'op_neg':
-                    ret = execute( node.children[0] ) * -1;
-                    break;
-            }
-            break;
-            
-        case 'node_var':
-            ret = getvar(node.value);
-            break;
-            
-        case 'node_const':
-            ret = Number(node.value);
-            break;
-        
-        case 'node_str':
-            ret = node.value;
-            break;
-        
-        case 'node_method':
-            switch(node.value) {
-                case 'x':
-                    if(!JXG.exists(variables[node.children[0]])) {
-                        _error(node.children[0] + ' is undefined.');
-                        ret = NaN;
-                    } else if(!JXG.exists(variables[node.children[0]].X)) {
-                        _error(node.children[0] + ' has no property \'X\'.');
-                        ret = NaN;
-                    } else
-                        ret = variables[node.children[0]].X();
-                    break;
-                case 'y':
-                    if(!JXG.exists(variables[node.children[0]])) {
-                        _error(node.children[0] + ' is undefined.');
-                        ret = NaN;
-                    } else if(!JXG.exists(variables[node.children[0]].Y)) {
-                        _error(node.children[0] + ' has no property \'Y\'.');
-                        ret = NaN;
-                    } else
-                        ret = variables[node.children[0]].Y();
-                    break;
-            }
-            break;
-    }
-    
-    return ret;
 };
+    return {
+        parse: function(code) {
+            var error_cnt = 0,
+                error_off = new Array(),
+                error_la = new Array();
+
+            if((error_cnt = JXG.JessieCode._parse(code, error_off, error_la)) > 0) {
+                for(i = 0; i < error_cnt; i++)
+                    alert("Parse error near >"  + code.substr( error_off[i], 30 ) + "<, expecting \"" + error_la[i].join() + "\"");
+            }
+        },
+        execute: function( node ) {
+            var ret = 0;
+    
+            if( !node )
+                return 0;
+
+_debug(node.type);
+_debug(node.value);
+
+            switch( node.type ) {
+                case 'node_op':
+                    switch( node.value ) {
+                        case 'op_none':
+                            if( node.children[0] )
+                                this.execute( node.children[0] );                    
+                            if( node.children[1] )
+                                ret = this.execute( node.children[1] );
+                            break;
+                        case 'op_assign':
+_debug(node);
+                            letvar( node.children[0], this.execute( node.children[1] ) );
+                            break;
+                        case 'op_noassign':
+                            this.execute(node.children[0]);
+                            break;
+                        case 'op_if':
+                            if( this.execute( node.children[0] ) )
+                                this.execute( node.children[1] );
+                            break;
+                        case 'op_if_else':
+                            if( this.execute( node.children[0] ) )
+                                this.execute( node.children[1] );
+                            else
+                                this.execute( node.children[2] );
+                            break;
+                        case 'op_while':
+                            while( this.execute( node.children[0] ) )
+                                this.execute( node.children[1] );
+                            break;
+                        case 'op_for':
+                            // todo
+                            do
+                                this.execute( node.children[0] )
+                            while( this.execute( node.children[1] ) );
+                            break;
+                        case 'op_paramlst':
+                            if(node.children[0]) {
+                                this.execute(node.children[0]);
+                            }
+                            if(node.children[1]) {
+                                ret = this.execute(node.children[1]);
+                                stack.push(ret);
+                            }
+                            break;
+                        case 'op_param':
+                            if( node.children[0] ) {
+                                ret = this.execute(node.children[0]);
+                                stack.push(ret);
+                            }
+                            break;
+                        case 'op_paramdeflst':
+                                if(node.children[0]) {
+                                this.execute(node.children[0]);
+                            }
+                            if(node.children[1]) {
+                                ret = node.children[1];
+                                stack.push(ret);
+                            }
+                            break;
+                        case 'op_paramdef':
+                            if( node.children[0] ) {
+                                ret = node.children[0];
+                                stack.push(ret);
+                            }
+                            break;
+                        case 'op_function':
+                            this.execute(node.children[0]);
+                            _debug(stack);
+// TODO:  PARAMETER HANDLING!
+                            ret = function() {
+                                this.execute(node.children[1]);
+                            }
+                            stack = [];
+                            break;
+                        case 'op_create':
+                            _debug('creating a ' + stack[0]);
+                            this.execute(node.children[0]);
+                            ret = board.create(stack[0], stack.slice(1));
+                            stack = [];
+                            break;
+                        case 'op_use':
+                            var found = false;
+                            for(var b in JXG.JSXGraph.boards) {
+                                if(JXG.JSXGraph.boards[b].container === node.children[0].toString()) {
+                                    board = JXG.JSXGraph.boards[b];
+                                    found = true;
+
+                                    _debug('now using board ' + board.id);
+                                }
+                            }
+                    
+                            if(!found)
+                                alert(node.children[0].toString() + ' not found!');
+                            break;
+                        case 'op_equ':
+                            ret = this.execute( node.children[0] ) == this.execute( node.children[1] );
+                            break;
+                        case 'op_neq':
+                            ret = this.execute( node.children[0] ) != this.execute( node.children[1] );
+                            break;
+                        case 'op_grt':
+                            ret = this.execute( node.children[0] ) > this.execute( node.children[1] );
+                            break;
+                        case 'op_lot':
+                            ret = this.execute( node.children[0] ) < this.execute( node.children[1] );
+                            break;
+                        case 'op_gre':
+                            ret = this.execute( node.children[0] ) >= this.execute( node.children[1] );
+                            break;
+                        case 'op_loe':
+                            ret = this.execute( node.children[0] ) <= this.execute( node.children[1] );
+                            break;
+                        case 'op_add':
+                            ret = this.execute( node.children[0] ) + this.execute( node.children[1] );
+                            break;
+                        case 'op_sub':
+                            ret = this.execute( node.children[0] ) - this.execute( node.children[1] );
+                            break;
+                        case 'op_div':
+                            ret = this.execute( node.children[0] ) / this.execute( node.children[1] );
+                            break;
+                        case 'op_mul':
+                            ret = this.execute( node.children[0] ) * this.execute( node.children[1] );
+                            break;
+                        case 'op_neg':
+                            ret = this.execute( node.children[0] ) * -1;
+                            break;
+                    }
+                    break;
+
+                case 'node_var':
+                    ret = getvar(node.value);
+                    break;
+
+                case 'node_const':
+                    ret = Number(node.value);
+                    break;
+
+                case 'node_str':
+                    ret = node.value;
+                    break;
+        
+                case 'node_method':
+                    switch(node.value) {
+                        case 'x':
+                            if(!JXG.exists(variables[node.children[0]])) {
+                                _error(node.children[0] + ' is undefined.');
+                                ret = NaN;
+                            } else if(!JXG.exists(variables[node.children[0]].X)) {
+                                _error(node.children[0] + ' has no property \'X\'.');
+                                ret = NaN;
+                            } else
+                                ret = variables[node.children[0]].X();
+                            break;
+                        case 'y':
+                            if(!JXG.exists(variables[node.children[0]])) {
+                                _error(node.children[0] + ' is undefined.');
+                                ret = NaN;
+                            } else if(!JXG.exists(variables[node.children[0]].Y)) {
+                                _error(node.children[0] + ' has no property \'Y\'.');
+                                ret = NaN;
+                            } else
+                                ret = variables[node.children[0]].Y();
+                            break;
+                    }
+                    break;
+            }
+
+            return ret;
+        },
+
+        /**
+         * Create a new parse tree node. Basically the same as node(), but this builds
+         * the children part out of an arbitrary number of parameters, instead of one
+         * array parameter.
+         * @param {String} type Type of node, e.g. node_op, node_var, or node_const
+         * @param value The nodes value, e.g. a variables value or a functions body.
+         * @param children Arbitrary number of parameters; define the child nodes.
+         */
+        createNode: function(type, value, children) {
+            var n = node(type, value, []),
+                i;
+    
+            for(i = 2; i < arguments.length; i++)
+                n.children.push( arguments[i] );
+
+            return n;
+        }
+    };
+
+})();
 
 /*
-	Default template driver for JS/CC generated parsers running as
-	browser-based JavaScript/ECMAScript applications.
-	
-	WARNING: 	This parser template will not run as console and has lesser
-				features for debugging than the console derivates for the
-				various JavaScript platforms.
-	
-	Features:
-	- Parser trace messages
-	- Integrated panic-mode error recovery
-	
-	Written 2007, 2008 by Jan Max Meyer, J.M.K S.F. Software Technologies
-	
-	This is in the public domain.
+    Default template driver for JS/CC generated parsers running as
+    browser-based JavaScript/ECMAScript applications.
+    
+    WARNING:     This parser template will only run together with JSXGraph on a website.
+    
+    Features:
+    - Parser trace messages
+    - Integrated panic-mode error recovery
+    
+    Written 2007, 2008 by Jan Max Meyer, J.M.K S.F. Software Technologies
+    
+    This is in the public domain.
 */
 
-var jessie_dbg_withtrace		= false;
-var jessie_dbg_string			= new String();
+JXG.JessieCode._dbg_withtrace = false;
+JXG.JessieCode._dbg_string = new String();
 
-function __jessiedbg_print( text )
-{
-	jessie_dbg_string += text + "\n";
-}
+JXG.JessieCode._dbg_print = function ( text ) {
+    JXG.JessieCode._dbg_string += text + "\n";
+};
 
-function __jessielex( info )
-{
-	var state		= 0;
-	var match		= -1;
-	var match_pos	= 0;
-	var start		= 0;
-	var pos			= info.offset + 1;
+JXG.JessieCode._lex = function(info) {
+    var state       = 0,
+        match       = -1,
+        match_pos   = 0,
+        start       = 0,
+        pos         = info.offset + 1;
 
-	do
-	{
-		pos--;
-		state = 0;
-		match = -2;
-		start = pos;
+    do {
+        pos--;
+        state = 0;
+        match = -2;
+        start = pos;
 
-		if( info.src.length <= start )
-			return 43;
+        if( info.src.length <= start )
+            return 43;
 
-		do
-		{
+        do {
 
 switch( state )
 {
@@ -737,19 +750,18 @@ switch( state )
 }
 
 
-			pos++;
+            pos++;
 
-		}
-		while( state > -1 );
+        }
+        while( state > -1 );
 
-	}
-	while( 1 > -1 && match == 1 );
+    }
+    while( 1 > -1 && match == 1 );
 
-	if( match > -1 )
-	{
-		info.att = info.src.substr( start, match_pos - start );
-		info.offset = match_pos;
-		
+    if( match > -1 ) {
+        info.att = info.src.substr( start, match_pos - start );
+        info.offset = match_pos;
+        
 switch( match )
 {
 	case 30:
@@ -762,29 +774,26 @@ switch( match )
 }
 
 
-	}
-	else
-	{
-		info.att = new String();
-		match = -1;
-	}
+    } else {
+        info.att = new String();
+        match = -1;
+    }
 
-	return match;
-}
+    return match;
+};
 
 
-function __jessieparse( src, err_off, err_la )
-{
-	var		sstack			= new Array();
-	var		vstack			= new Array();
-	var 	err_cnt			= 0;
-	var		act;
-	var		go;
-	var		la;
-	var		rval;
-	var 	parseinfo		= new Function( "", "var offset; var src; var att;" );
-	var		info			= new parseinfo();
-	
+JXG.JessieCode._parse = function(src, err_off, err_la) {
+    var sstack      = new Array(),
+        vstack      = new Array(),
+        err_cnt     = 0,
+        act,
+        go,
+        la,
+        rval,
+        parseinfo   = new Function( "", "var offset; var src; var att;" ),
+        info        = new parseinfo();
+    
 /* Pop-Table */
 var pop_tab = new Array(
 	new Array( 0/* Program' */, 1 ),
@@ -1067,151 +1076,151 @@ var labels = new Array(
 );
 
 
-	
-	info.offset = 0;
-	info.src = src;
-	info.att = new String();
-	
-	if( !err_off )
-		err_off	= new Array();
-	if( !err_la )
-	err_la = new Array();
-	
-	sstack.push( 0 );
-	vstack.push( 0 );
-	
-	la = __jessielex( info );
+    
+    info.offset = 0;
+    info.src = src;
+    info.att = new String();
+    
+    if( !err_off )
+        err_off    = new Array();
+    if( !err_la )
+    err_la = new Array();
+    
+    sstack.push( 0 );
+    vstack.push( 0 );
+    
+    la = JXG.JessieCode._lex( info );
 
-	while( true )
-	{
-		act = 89;
-		for( var i = 0; i < act_tab[sstack[sstack.length-1]].length; i+=2 )
-		{
-			if( act_tab[sstack[sstack.length-1]][i] == la )
-			{
-				act = act_tab[sstack[sstack.length-1]][i+1];
-				break;
-			}
-		}
+    while( true )
+    {
+        act = 89;
+        for( var i = 0; i < act_tab[sstack[sstack.length-1]].length; i+=2 )
+        {
+            if( act_tab[sstack[sstack.length-1]][i] == la )
+            {
+                act = act_tab[sstack[sstack.length-1]][i+1];
+                break;
+            }
+        }
 
-		if( jessie_dbg_withtrace && sstack.length > 0 )
-		{
-			__jessiedbg_print( "\nState " + sstack[sstack.length-1] + "\n" +
-							"\tLookahead: " + labels[la] + " (\"" + info.att + "\")\n" +
-							"\tAction: " + act + "\n" + 
-							"\tSource: \"" + info.src.substr( info.offset, 30 ) + ( ( info.offset + 30 < info.src.length ) ?
-									"..." : "" ) + "\"\n" +
-							"\tStack: " + sstack.join() + "\n" +
-							"\tValue stack: " + vstack.join() + "\n" );
-		}
-		
-			
-		//Panic-mode: Try recovery when parse-error occurs!
-		if( act == 89 )
-		{
-			if( jessie_dbg_withtrace )
-				__jessiedbg_print( "Error detected: There is no reduce or shift on the symbol " + labels[la] );
-			
-			err_cnt++;
-			err_off.push( info.offset - info.att.length );			
-			err_la.push( new Array() );
-			for( var i = 0; i < act_tab[sstack[sstack.length-1]].length; i+=2 )
-				err_la[err_la.length-1].push( labels[act_tab[sstack[sstack.length-1]][i]] );
-			
-			//Remember the original stack!
-			var rsstack = new Array();
-			var rvstack = new Array();
-			for( var i = 0; i < sstack.length; i++ )
-			{
-				rsstack[i] = sstack[i];
-				rvstack[i] = vstack[i];
-			}
-			
-			while( act == 89 && la != 43 )
-			{
-				if( jessie_dbg_withtrace )
-					__jessiedbg_print( "\tError recovery\n" +
-									"Current lookahead: " + labels[la] + " (" + info.att + ")\n" +
-									"Action: " + act + "\n\n" );
-				if( la == -1 )
-					info.offset++;
-					
-				while( act == 89 && sstack.length > 0 )
-				{
-					sstack.pop();
-					vstack.pop();
-					
-					if( sstack.length == 0 )
-						break;
-						
-					act = 89;
-					for( var i = 0; i < act_tab[sstack[sstack.length-1]].length; i+=2 )
-					{
-						if( act_tab[sstack[sstack.length-1]][i] == la )
-						{
-							act = act_tab[sstack[sstack.length-1]][i+1];
-							break;
-						}
-					}
-				}
-				
-				if( act != 89 )
-					break;
-				
-				for( var i = 0; i < rsstack.length; i++ )
-				{
-					sstack.push( rsstack[i] );
-					vstack.push( rvstack[i] );
-				}
-				
-				la = __jessielex( info );
-			}
-			
-			if( act == 89 )
-			{
-				if( jessie_dbg_withtrace )
-					__jessiedbg_print( "\tError recovery failed, terminating parse process..." );
-				break;
-			}
+        if( JXG.JessieCode._dbg_withtrace && sstack.length > 0 )
+        {
+            JXG.JessieCode._dbg_print( "\nState " + sstack[sstack.length-1] + "\n" +
+                            "\tLookahead: " + labels[la] + " (\"" + info.att + "\")\n" +
+                            "\tAction: " + act + "\n" + 
+                            "\tSource: \"" + info.src.substr( info.offset, 30 ) + ( ( info.offset + 30 < info.src.length ) ?
+                                    "..." : "" ) + "\"\n" +
+                            "\tStack: " + sstack.join() + "\n" +
+                            "\tValue stack: " + vstack.join() + "\n" );
+        }
+        
+            
+        //Panic-mode: Try recovery when parse-error occurs!
+        if( act == 89 )
+        {
+            if( JXG.JessieCode._dbg_withtrace )
+                JXG.JessieCode._dbg_print( "Error detected: There is no reduce or shift on the symbol " + labels[la] );
+            
+            err_cnt++;
+            err_off.push( info.offset - info.att.length );            
+            err_la.push( new Array() );
+            for( var i = 0; i < act_tab[sstack[sstack.length-1]].length; i+=2 )
+                err_la[err_la.length-1].push( labels[act_tab[sstack[sstack.length-1]][i]] );
+            
+            //Remember the original stack!
+            var rsstack = new Array();
+            var rvstack = new Array();
+            for( var i = 0; i < sstack.length; i++ )
+            {
+                rsstack[i] = sstack[i];
+                rvstack[i] = vstack[i];
+            }
+            
+            while( act == 89 && la != 43 )
+            {
+                if( JXG.JessieCode._dbg_withtrace )
+                    JXG.JessieCode._dbg_print( "\tError recovery\n" +
+                                    "Current lookahead: " + labels[la] + " (" + info.att + ")\n" +
+                                    "Action: " + act + "\n\n" );
+                if( la == -1 )
+                    info.offset++;
+                    
+                while( act == 89 && sstack.length > 0 )
+                {
+                    sstack.pop();
+                    vstack.pop();
+                    
+                    if( sstack.length == 0 )
+                        break;
+                        
+                    act = 89;
+                    for( var i = 0; i < act_tab[sstack[sstack.length-1]].length; i+=2 )
+                    {
+                        if( act_tab[sstack[sstack.length-1]][i] == la )
+                        {
+                            act = act_tab[sstack[sstack.length-1]][i+1];
+                            break;
+                        }
+                    }
+                }
+                
+                if( act != 89 )
+                    break;
+                
+                for( var i = 0; i < rsstack.length; i++ )
+                {
+                    sstack.push( rsstack[i] );
+                    vstack.push( rvstack[i] );
+                }
+                
+                la = JXG.JessieCode._lex( info );
+            }
+            
+            if( act == 89 )
+            {
+                if( JXG.JessieCode._dbg_withtrace )
+                    JXG.JessieCode._dbg_print( "\tError recovery failed, terminating parse process..." );
+                break;
+            }
 
 
-			if( jessie_dbg_withtrace )
-				__jessiedbg_print( "\tError recovery succeeded, continuing" );
-		}
-		
-		/*
-		if( act == 89 )
-			break;
-		*/
-		
-		
-		//Shift
-		if( act > 0 )
-		{			
-			if( jessie_dbg_withtrace )
-				__jessiedbg_print( "Shifting symbol: " + labels[la] + " (" + info.att + ")" );
-		
-			sstack.push( act );
-			vstack.push( info.att );
-			
-			la = __jessielex( info );
-			
-			if( jessie_dbg_withtrace )
-				__jessiedbg_print( "\tNew lookahead symbol: " + labels[la] + " (" + info.att + ")" );
-		}
-		//Reduce
-		else
-		{		
-			act *= -1;
-			
-			if( jessie_dbg_withtrace )
-				__jessiedbg_print( "Reducing by producution: " + act );
-			
-			rval = void(0);
-			
-			if( jessie_dbg_withtrace )
-				__jessiedbg_print( "\tPerforming semantic action..." );
-			
+            if( JXG.JessieCode._dbg_withtrace )
+                JXG.JessieCode._dbg_print( "\tError recovery succeeded, continuing" );
+        }
+        
+        /*
+        if( act == 89 )
+            break;
+        */
+        
+        
+        //Shift
+        if( act > 0 )
+        {            
+            if( JXG.JessieCode._dbg_withtrace )
+                JXG.JessieCode._dbg_print( "Shifting symbol: " + labels[la] + " (" + info.att + ")" );
+        
+            sstack.push( act );
+            vstack.push( info.att );
+            
+            la = JXG.JessieCode._lex( info );
+            
+            if( JXG.JessieCode._dbg_withtrace )
+                JXG.JessieCode._dbg_print( "\tNew lookahead symbol: " + labels[la] + " (" + info.att + ")" );
+        }
+        //Reduce
+        else
+        {        
+            act *= -1;
+            
+            if( JXG.JessieCode._dbg_withtrace )
+                JXG.JessieCode._dbg_print( "Reducing by producution: " + act );
+            
+            rval = void(0);
+            
+            if( JXG.JessieCode._dbg_withtrace )
+                JXG.JessieCode._dbg_print( "\tPerforming semantic action..." );
+            
 switch( act )
 {
 	case 0:
@@ -1221,7 +1230,7 @@ switch( act )
 	break;
 	case 1:
 	{
-		 execute( vstack[ vstack.length - 1 ] ); 
+		 JXG.JessieCode.execute( vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 2:
@@ -1231,7 +1240,7 @@ switch( act )
 	break;
 	case 3:
 	{
-		 rval = createNode('node_op', 'op_none', vstack[ vstack.length - 2 ], vstack[ vstack.length - 1 ] ); 
+		 rval = JXG.JessieCode.createNode('node_op', 'op_none', vstack[ vstack.length - 2 ], vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 4:
@@ -1241,22 +1250,22 @@ switch( act )
 	break;
 	case 5:
 	{
-		 rval = createNode('node_op', 'op_paramlst', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
+		 rval = JXG.JessieCode.createNode('node_op', 'op_paramlst', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 6:
 	{
-		 rval = createNode('node_op', 'op_param', vstack[ vstack.length - 1 ]); 
+		 rval = JXG.JessieCode.createNode('node_op', 'op_param', vstack[ vstack.length - 1 ]); 
 	}
 	break;
 	case 7:
 	{
-		 rval = createNode('node_op', 'op_paramdeflst', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
+		 rval = JXG.JessieCode.createNode('node_op', 'op_paramdeflst', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 8:
 	{
-		 rval = createNode('node_op', 'op_paramdef', vstack[ vstack.length - 1 ]); 
+		 rval = JXG.JessieCode.createNode('node_op', 'op_paramdef', vstack[ vstack.length - 1 ]); 
 	}
 	break;
 	case 9:
@@ -1266,37 +1275,37 @@ switch( act )
 	break;
 	case 10:
 	{
-		 rval = createNode('node_op', 'op_if', vstack[ vstack.length - 2 ], vstack[ vstack.length - 1 ] ); 
+		 rval = JXG.JessieCode.createNode('node_op', 'op_if', vstack[ vstack.length - 2 ], vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 11:
 	{
-		 rval = createNode('node_op', 'op_if_else', vstack[ vstack.length - 4 ], vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
+		 rval = JXG.JessieCode.createNode('node_op', 'op_if_else', vstack[ vstack.length - 4 ], vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 12:
 	{
-		 rval = createNode('node_op', 'op_while', vstack[ vstack.length - 2 ], vstack[ vstack.length - 0 ] ); 
+		 rval = JXG.JessieCode.createNode('node_op', 'op_while', vstack[ vstack.length - 2 ], vstack[ vstack.length - 0 ] ); 
 	}
 	break;
 	case 13:
 	{
-		 rval = createNode('node_op', 'op_for', vstack[ vstack.length - 4 ], vstack[ vstack.length - 2 ] ); 
+		 rval = JXG.JessieCode.createNode('node_op', 'op_for', vstack[ vstack.length - 4 ], vstack[ vstack.length - 2 ] ); 
 	}
 	break;
 	case 14:
 	{
-		 rval = createNode('node_op', 'op_use', vstack[ vstack.length - 2 ] ); 
+		 rval = JXG.JessieCode.createNode('node_op', 'op_use', vstack[ vstack.length - 2 ] ); 
 	}
 	break;
 	case 15:
 	{
-		 rval = createNode('node_op', 'op_assign', vstack[ vstack.length - 4 ], vstack[ vstack.length - 2 ] ); 
+		 rval = JXG.JessieCode.createNode('node_op', 'op_assign', vstack[ vstack.length - 4 ], vstack[ vstack.length - 2 ] ); 
 	}
 	break;
 	case 16:
 	{
-		 rval = createNode('node_op', 'op_noassign', vstack[ vstack.length - 2 ] ); 
+		 rval = JXG.JessieCode.createNode('node_op', 'op_noassign', vstack[ vstack.length - 2 ] ); 
 	}
 	break;
 	case 17:
@@ -1306,37 +1315,37 @@ switch( act )
 	break;
 	case 18:
 	{
-		 rval = createNode('node_op', 'op_none' ); 
+		 rval = JXG.JessieCode.createNode('node_op', 'op_none' ); 
 	}
 	break;
 	case 19:
 	{
-		 rval = createNode('node_op', 'op_equ', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
+		 rval = JXG.JessieCode.createNode('node_op', 'op_equ', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 20:
 	{
-		 rval = createNode('node_op', 'op_lot', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
+		 rval = JXG.JessieCode.createNode('node_op', 'op_lot', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 21:
 	{
-		 rval = createNode('node_op', 'op_grt', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
+		 rval = JXG.JessieCode.createNode('node_op', 'op_grt', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 22:
 	{
-		 rval = createNode('node_op', 'op_loe', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
+		 rval = JXG.JessieCode.createNode('node_op', 'op_loe', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 23:
 	{
-		 rval = createNode('node_op', 'op_gre', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
+		 rval = JXG.JessieCode.createNode('node_op', 'op_gre', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 24:
 	{
-		 rval = createNode('node_op', 'op_neq', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
+		 rval = JXG.JessieCode.createNode('node_op', 'op_neq', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 25:
@@ -1346,12 +1355,12 @@ switch( act )
 	break;
 	case 26:
 	{
-		 rval = createNode('node_op', 'op_sub', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
+		 rval = JXG.JessieCode.createNode('node_op', 'op_sub', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 27:
 	{
-		 rval = createNode('node_op', 'op_add', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
+		 rval = JXG.JessieCode.createNode('node_op', 'op_add', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 28:
@@ -1361,12 +1370,12 @@ switch( act )
 	break;
 	case 29:
 	{
-		 rval = createNode('node_op', 'op_mul', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
+		 rval = JXG.JessieCode.createNode('node_op', 'op_mul', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 30:
 	{
-		 rval = createNode('node_op', 'op_div', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
+		 rval = JXG.JessieCode.createNode('node_op', 'op_div', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 31:
@@ -1376,7 +1385,7 @@ switch( act )
 	break;
 	case 32:
 	{
-		 rval = createNode('node_op', 'op_neg', vstack[ vstack.length - 1 ] ); 
+		 rval = JXG.JessieCode.createNode('node_op', 'op_neg', vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 33:
@@ -1386,17 +1395,17 @@ switch( act )
 	break;
 	case 34:
 	{
-		 rval = createNode('node_const', vstack[ vstack.length - 1 ] ); 
+		 rval = JXG.JessieCode.createNode('node_const', vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 35:
 	{
-		 rval = createNode('node_const', vstack[ vstack.length - 1 ] ); 
+		 rval = JXG.JessieCode.createNode('node_const', vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 36:
 	{
-		 rval = createNode('node_var', vstack[ vstack.length - 1 ] ); 
+		 rval = JXG.JessieCode.createNode('node_var', vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 37:
@@ -1406,76 +1415,76 @@ switch( act )
 	break;
 	case 38:
 	{
-		 rval = createNode('node_str', vstack[ vstack.length - 1 ]); 
+		 rval = JXG.JessieCode.createNode('node_str', vstack[ vstack.length - 1 ]); 
 	}
 	break;
 	case 39:
 	{
-		 rval = createNode('node_op', 'op_create', vstack[ vstack.length - 2 ] ); 
+		 rval = JXG.JessieCode.createNode('node_op', 'op_create', vstack[ vstack.length - 2 ] ); 
 	}
 	break;
 	case 40:
 	{
-		 rval = createNode('node_op', 'op_function', vstack[ vstack.length - 5 ], vstack[ vstack.length - 2 ]); 
+		 rval = JXG.JessieCode.createNode('node_op', 'op_function', vstack[ vstack.length - 5 ], vstack[ vstack.length - 2 ]); 
 	}
 	break;
 	case 41:
 	{
-		 rval = createNode('node_method', 'x', vstack[ vstack.length - 2 ]); 
+		 rval = JXG.JessieCode.createNode('node_method', 'x', vstack[ vstack.length - 2 ]); 
 	}
 	break;
 	case 42:
 	{
-		 rval = createNode('node_method', 'y', vstack[ vstack.length - 2 ]); 
+		 rval = JXG.JessieCode.createNode('node_method', 'y', vstack[ vstack.length - 2 ]); 
 	}
 	break;
 }
 
 
 
-			if( jessie_dbg_withtrace )
-				__jessiedbg_print( "\tPopping " + pop_tab[act][1] + " off the stack..." );
-				
-			for( var i = 0; i < pop_tab[act][1]; i++ )
-			{
-				sstack.pop();
-				vstack.pop();
-			}
-									
-			go = -1;
-			for( var i = 0; i < goto_tab[sstack[sstack.length-1]].length; i+=2 )
-			{
-				if( goto_tab[sstack[sstack.length-1]][i] == pop_tab[act][0] )
-				{
-					go = goto_tab[sstack[sstack.length-1]][i+1];
-					break;
-				}
-			}
-			
-			if( act == 0 )
-				break;
-				
-			if( jessie_dbg_withtrace )
-				__jessiedbg_print( "\tPushing non-terminal " + labels[ pop_tab[act][0] ] );
-				
-			sstack.push( go );
-			vstack.push( rval );			
-		}
-		
-		if( jessie_dbg_withtrace )
-		{		
-			alert( jessie_dbg_string );
-			jessie_dbg_string = new String();
-		}
-	}
+            if( JXG.JessieCode._dbg_withtrace )
+                JXG.JessieCode._dbg_print( "\tPopping " + pop_tab[act][1] + " off the stack..." );
+                
+            for( var i = 0; i < pop_tab[act][1]; i++ )
+            {
+                sstack.pop();
+                vstack.pop();
+            }
+                                    
+            go = -1;
+            for( var i = 0; i < goto_tab[sstack[sstack.length-1]].length; i+=2 )
+            {
+                if( goto_tab[sstack[sstack.length-1]][i] == pop_tab[act][0] )
+                {
+                    go = goto_tab[sstack[sstack.length-1]][i+1];
+                    break;
+                }
+            }
+            
+            if( act == 0 )
+                break;
+                
+            if( JXG.JessieCode._dbg_withtrace )
+                JXG.JessieCode._dbg_print( "\tPushing non-terminal " + labels[ pop_tab[act][0] ] );
+                
+            sstack.push( go );
+            vstack.push( rval );            
+        }
+        
+        if( JXG.JessieCode._dbg_withtrace )
+        {        
+            alert( JXG.JessieCode._dbg_string );
+            JXG.JessieCode._dbg_string = new String();
+        }
+    }
 
-	if( jessie_dbg_withtrace )
-	{
-		__jessiedbg_print( "\nParse complete." );
-		alert( jessie_dbg_string );
-	}
-	
-	return err_cnt;
+    if( JXG.JessieCode._dbg_withtrace )
+    {
+        JXG.JessieCode._dbg_print( "\nParse complete." );
+        alert( JXG.JessieCode._dbg_string );
+    }
+    
+    return err_cnt;
 }
 
 
