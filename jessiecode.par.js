@@ -24,8 +24,11 @@ node = function(type, value, children) {
 // Management functions
 
 // Parsed variables
-variables = {},
-stack = [],
+// scope stack
+sstack = [{}],
+scope = 0,
+// parameter stack
+pstack = [],
 
 // board currently in use
 board,
@@ -44,12 +47,13 @@ _error = function(msg) {
 
 //Interpreting function
 letvar = function(vname, value) {
-    variables[vname] = value;
+    sstack[scope][vname] = value;
 },
 
 getvar = function(vname) {
-    return variables[vname] || 0;
+    return sstack[scope][vname] || 0;
 };
+
     return {
         parse: function(code) {
             var error_cnt = 0,
@@ -67,9 +71,6 @@ getvar = function(vname) {
             if( !node )
                 return 0;
 
-_debug(node.type);
-_debug(node.value);
-
             switch( node.type ) {
                 case 'node_op':
                     switch( node.value ) {
@@ -80,7 +81,6 @@ _debug(node.value);
                                 ret = this.execute( node.children[1] );
                             break;
                         case 'op_assign':
-_debug(node);
                             letvar( node.children[0], this.execute( node.children[1] ) );
                             break;
                         case 'op_noassign':
@@ -112,13 +112,13 @@ _debug(node);
                             }
                             if(node.children[1]) {
                                 ret = this.execute(node.children[1]);
-                                stack.push(ret);
+                                pstack.push(ret);
                             }
                             break;
                         case 'op_param':
                             if( node.children[0] ) {
                                 ret = this.execute(node.children[0]);
-                                stack.push(ret);
+                                pstack.push(ret);
                             }
                             break;
                         case 'op_paramdeflst':
@@ -127,29 +127,59 @@ _debug(node);
                             }
                             if(node.children[1]) {
                                 ret = node.children[1];
-                                stack.push(ret);
+                                pstack.push(ret);
                             }
                             break;
                         case 'op_paramdef':
                             if( node.children[0] ) {
                                 ret = node.children[0];
-                                stack.push(ret);
+                                pstack.push(ret);
                             }
                             break;
                         case 'op_function':
                             this.execute(node.children[0]);
-                            _debug(stack);
-// TODO:  PARAMETER HANDLING!
+                            _debug(pstack);
+
                             ret = function() {
-                                this.execute(node.children[1]);
+_debug('starting function execution');
+                                var r;
+
+                                sstack.push({});
+                                scope++;
+                                for(r = 0; r < pstack.length; r++)
+                                    sstack[scope][pstack[r]] = arguments[r];
+_debug('sstack');
+_debug(sstack);
+_debug('pstack');
+_debug(pstack);
+_debug('scope');
+_debug(scope);
+_debug('child #1 - function name');
+_debug(node.children[1]);
+                                r = JXG.JessieCode.execute(node.children[1]);
+                                sstack.pop();
+                                scope--;
+
+                                pstack = [];
+
+_debug('finalizing function execution');
+                                return r;
                             }
-                            stack = [];
+                            pstack = [];
+                            break;
+                        case 'op_execfun':
+_debug('execfun');
+_debug(pstack);
+                            this.execute(node.children[1]);
+                            ret = getvar(node.children[0])();
                             break;
                         case 'op_create':
-                            _debug('creating a ' + stack[0]);
                             this.execute(node.children[0]);
-                            ret = board.create(stack[0], stack.slice(1));
-                            stack = [];
+                            _debug('creating a ' + pstack[0]);
+_debug('pstack of  create:');
+_debug(pstack);
+                            ret = board.create(pstack[0], pstack.slice(1));
+                            pstack = [];
                             break;
                         case 'op_use':
                             var found = false;
@@ -216,24 +246,24 @@ _debug(node);
                 case 'node_method':
                     switch(node.value) {
                         case 'x':
-                            if(!JXG.exists(variables[node.children[0]])) {
+                            if(!JXG.exists(sstack[scope][node.children[0]])) {
                                 _error(node.children[0] + ' is undefined.');
                                 ret = NaN;
-                            } else if(!JXG.exists(variables[node.children[0]].X)) {
+                            } else if(!JXG.exists(sstack[scope][node.children[0]].X)) {
                                 _error(node.children[0] + ' has no property \'X\'.');
                                 ret = NaN;
                             } else
-                                ret = variables[node.children[0]].X();
+                                ret = sstack[scope][node.children[0]].X();
                             break;
                         case 'y':
-                            if(!JXG.exists(variables[node.children[0]])) {
+                            if(!JXG.exists(sstack[scope][node.children[0]])) {
                                 _error(node.children[0] + ' is undefined.');
                                 ret = NaN;
-                            } else if(!JXG.exists(variables[node.children[0]].Y)) {
+                            } else if(!JXG.exists(sstack[scope][node.children[0]].Y)) {
                                 _error(node.children[0] + ' has no property \'Y\'.');
                                 ret = NaN;
                             } else
-                                ret = variables[node.children[0]].Y();
+                                ret = sstack[scope][node.children[0]].Y();
                             break;
                     }
                     break;

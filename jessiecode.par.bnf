@@ -94,6 +94,7 @@ Value:        Integer                                                        [* 
         | '(' Expression ')'                                                 [* %% = %2; *]
         | String                                                             [* %% = JXG.JessieCode.createNode('node_str', %1); *]
         | CREATE '(' Param_List ')'                                          [* %% = JXG.JessieCode.createNode('node_op', 'op_create', %3 ); *]
+        | Identifier '(' Param_List ')'                                      [* %% = JXG.JessieCode.createNode('node_op', 'op_execfun', %1, %3); *]
         | FUNCTION '(' Param_Def_List ')' '{' Stmt_List '}'                  [* %% = JXG.JessieCode.createNode('node_op', 'op_function', %3, %6); *]
         | X '(' Identifier ')'                                               [* %% = JXG.JessieCode.createNode('node_method', 'x', %3); *]
         | Y '(' Identifier ')'                                               [* %% = JXG.JessieCode.createNode('node_method', 'y', %3); *]
