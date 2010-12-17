@@ -114,12 +114,14 @@ getvar = function(vname) {
                                 ret = this.execute(node.children[1]);
                                 pstack.push(ret);
                             }
+_debug(pstack.join(','));
                             break;
                         case 'op_param':
                             if( node.children[0] ) {
                                 ret = this.execute(node.children[0]);
                                 pstack.push(ret);
                             }
+_debug(pstack.join(','));
                             break;
                         case 'op_paramdeflst':
                                 if(node.children[0]) {
@@ -138,46 +140,30 @@ getvar = function(vname) {
                             break;
                         case 'op_function':
                             this.execute(node.children[0]);
-                            _debug(pstack);
 
-                            ret = function() {
-_debug('starting function execution');
+                            ret = (function(_pstack) { return function() {
                                 var r;
 
                                 sstack.push({});
                                 scope++;
-                                for(r = 0; r < pstack.length; r++)
-                                    sstack[scope][pstack[r]] = arguments[r];
-_debug('sstack');
-_debug(sstack);
-_debug('pstack');
-_debug(pstack);
-_debug('scope');
-_debug(scope);
-_debug('child #1 - function name');
-_debug(node.children[1]);
+                                for(r = 0; r < _pstack.length; r++)
+                                    sstack[scope][_pstack[r]] = arguments[r];
+                                pstack = [];
+
                                 r = JXG.JessieCode.execute(node.children[1]);
                                 sstack.pop();
                                 scope--;
 
-                                pstack = [];
-
-_debug('finalizing function execution');
                                 return r;
-                            }
+                            }; })(pstack);
                             pstack = [];
                             break;
                         case 'op_execfun':
-_debug('execfun');
-_debug(pstack);
                             this.execute(node.children[1]);
-                            ret = getvar(node.children[0])();
+                            ret = getvar(node.children[0]).apply(this, pstack);
                             break;
                         case 'op_create':
                             this.execute(node.children[0]);
-                            _debug('creating a ' + pstack[0]);
-_debug('pstack of  create:');
-_debug(pstack);
                             ret = board.create(pstack[0], pstack.slice(1));
                             pstack = [];
                             break;
