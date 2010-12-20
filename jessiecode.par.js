@@ -111,17 +111,15 @@ getvar = function(vname) {
                                 this.execute(node.children[0]);
                             }
                             if(node.children[1]) {
-                                ret = this.execute(node.children[1]);
+                                ret = node.children[1];
                                 pstack.push(ret);
                             }
-_debug(pstack.join(','));
                             break;
                         case 'op_param':
                             if( node.children[0] ) {
-                                ret = this.execute(node.children[0]);
+                                ret = node.children[0];
                                 pstack.push(ret);
                             }
-_debug(pstack.join(','));
                             break;
                         case 'op_paramdeflst':
                                 if(node.children[0]) {
@@ -148,9 +146,11 @@ _debug(pstack.join(','));
                                 scope++;
                                 for(r = 0; r < _pstack.length; r++)
                                     sstack[scope][_pstack[r]] = arguments[r];
+                                sstack[scope]['result'] = '';
                                 pstack = [];
 
-                                r = JXG.JessieCode.execute(node.children[1]);
+                                JXG.JessieCode.execute(node.children[1]);
+                                r = sstack[scope]['result'];
                                 sstack.pop();
                                 scope--;
 
@@ -159,8 +159,31 @@ _debug(pstack.join(','));
                             pstack = [];
                             break;
                         case 'op_execfun':
+                            var fun, i, parents = [];
+                            
                             this.execute(node.children[1]);
-                            ret = getvar(node.children[0]).apply(this, pstack);
+                            
+                            fun = getvar(node.children[0]);
+                            if(JXG.exists(fun) && typeof fun === 'function') {
+                                ret = fun.apply(this, pstack);
+                            } else if (node.children[0] in JXG.JSXGraph.elements) {
+                                    for(i = 0; i < pstack.length; i++) {
+                                        if(pstack[i].type !== 'node_const' && (node.children[0] === 'point' || node.children[0] === 'text')) {
+                                            parents[i] = ((function(stree) {
+                                                return function() {
+                                                    return JXG.JessieCode.execute(stree)
+                                                };
+                                            })(pstack[i]));
+                                        } else {
+                                            parents[i] = (JXG.JessieCode.execute(pstack[i]));
+                                        }
+                                    }
+_debug(pstack);
+                                ret = board.create(node.children[0], parents, {});
+                            } else {
+                                throw new Error('Error: Function \'' + fun + '\' is undefined.');
+                            }
+                            pstack = [];
                             break;
                         case 'op_create':
                             this.execute(node.children[0]);

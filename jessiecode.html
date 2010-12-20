@@ -17,19 +17,20 @@
 <h2>Sourcecode:</h2>
 <pre id="code">
 use jxgbox;
-A = create('point', 2, (1+5)/2);
-B = create('point', 1, 1);
-l = create('line', A, B);
+A = point(2, (1+5)/2);
+B = point(1, 1);
 
-M = create('point', (X(A)+X(B))/2, (Y(A)+Y(B))/2);
+M = point((X(A)+X(B))/2, (Y(A)+Y(B))/2);
 
-t = cReAtE('text', -4, 2, 'X(l) = ' + X(l));
+l = line(A, B);
 
-f = function(a, b, c) {
-    create(a, b, c);
+add = function(a, b) {
+    result = a+b;
 };
 
-f('point', -1, 3);
+t = text(-4, 2, 'X(l) = ');
+</pre>
+<pre>
 </pre>
 <script type="text/javascript">
   var str = document.getElementById('code').innerHTML;
