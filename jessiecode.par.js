@@ -28,7 +28,8 @@ node = function(type, value, children) {
 sstack = [{}],
 scope = 0,
 // parameter stack
-pstack = [],
+pstack = [[]],
+pscope = 0,
 
 // board currently in use
 board,
@@ -112,13 +113,13 @@ getvar = function(vname) {
                             }
                             if(node.children[1]) {
                                 ret = node.children[1];
-                                pstack.push(ret);
+                                pstack[pscope].push(ret);
                             }
                             break;
                         case 'op_param':
                             if( node.children[0] ) {
                                 ret = node.children[0];
-                                pstack.push(ret);
+                                pstack[pscope].push(ret);
                             }
                             break;
                         case 'op_paramdeflst':
@@ -127,16 +128,21 @@ getvar = function(vname) {
                             }
                             if(node.children[1]) {
                                 ret = node.children[1];
-                                pstack.push(ret);
+                                pstack[pscope].push(ret);
                             }
                             break;
                         case 'op_paramdef':
                             if( node.children[0] ) {
                                 ret = node.children[0];
-                                pstack.push(ret);
+                                pstack[pscope].push(ret);
                             }
                             break;
                         case 'op_function':
+                            pstack.push([]);
+                            pscope++;
+
+                            // parse the parameter list
+                            // after this, the parameters are in pstack
                             this.execute(node.children[0]);
 
                             ret = (function(_pstack) { return function() {
@@ -147,22 +153,24 @@ getvar = function(vname) {
                                 for(r = 0; r < _pstack.length; r++)
                                     sstack[scope][_pstack[r]] = arguments[r];
                                 sstack[scope]['result'] = '';
-                                pstack = [];
 
                                 JXG.JessieCode.execute(node.children[1]);
                                 r = sstack[scope]['result'];
                                 sstack.pop();
                                 scope--;
-
                                 return r;
-                            }; })(pstack);
-                            pstack = [];
+                            }; })(pstack[pscope]);
+                            pstack.pop();
+                            pscope--;
                             break;
                         case 'op_execfun':
                             // node.children:
                             //   [0]: Name of the function
                             //   [1]: Parameter list as a parse subtree
                             var fun, i, parents = [];
+                            
+                            pstack.push([]);
+                            pscope++;
                             
                             // parse the parameter list
                             // after this, the parameters are in pstack
@@ -173,19 +181,22 @@ getvar = function(vname) {
                             
                             // check for the function in the variable table
                             if(JXG.exists(fun) && typeof fun === 'function') {
-                                ret = fun.apply(this, pstack);
-                            
+                                for(i = 0; i < pstack[pscope].length; i++) {
+                                    parents[i] = this.execute(pstack[pscope][i]);
+                                }
+                                ret = fun.apply(this, parents);
+
                             // check for an element with this name
                             } else if (node.children[0] in JXG.JSXGraph.elements) {
-                                    for(i = 0; i < pstack.length; i++) {
-                                        if(pstack[i].type !== 'node_const' && (node.children[0] === 'point' || node.children[0] === 'text')) {
+                                    for(i = 0; i < pstack[pscope].length; i++) {
+                                        if(pstack[pscope][i].type !== 'node_const' && (node.children[0] === 'point' || node.children[0] === 'text')) {
                                             parents[i] = ((function(stree) {
                                                 return function() {
                                                     return JXG.JessieCode.execute(stree)
                                                 };
-                                            })(pstack[i]));
+                                            })(pstack[pscope][i]));
                                         } else {
-                                            parents[i] = (JXG.JessieCode.execute(pstack[i]));
+                                            parents[i] = (JXG.JessieCode.execute(pstack[pscope][i]));
                                         }
                                     }
 
@@ -199,7 +210,8 @@ getvar = function(vname) {
                             }
                             
                             // clear parameter stack
-                            pstack = [];
+                            pstack.pop();
+                            pscope--;
                             break;
                         case 'op_use':
                             // node.children:
