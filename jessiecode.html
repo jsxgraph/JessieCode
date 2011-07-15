@@ -1,7 +1,7 @@
 <html>
 <head>
   <link rel="stylesheet" type="text/css" href="http://jsxgraph.uni-bayreuth.de/distrib/jsxgraph.css" />
-  <script type="text/javascript" src="http://jsxgraph.uni-bayreuth.de/~michael/jsxgraph/trunk/src/loadjsxgraph.js"></script>
+  <script type="text/javascript" src="../JSXGraph/src/loadjsxgraph.js"></script>
   <script type="text/javascript" src="jessiecode.par.js"></script>
   <script type="text/javascript" src="jessiecode.bnf.js"></script>
 </head>
@@ -29,7 +29,15 @@ add = function(a, b) {
     result = a + b;
 };
 
+parab = function(x) {
+    result = X(A)*x*x;
+};
+
 t = text(-4, 2, 'X(l) = ' + add(2, X(M)));
+
+circle(A, M);
+plot(parab);
+plot(function (x) { result = Y(B)*x-3; });
 </pre>
 <pre>
 </pre>

@@ -55,7 +55,14 @@ letvar = function(vname, value) {
 },
 
 getvar = function(vname) {
-    return sstack[scope][vname] || 0;
+    var s;
+    for (s = scope; s > -1; s--) {
+        if (JXG.exists(sstack[s][vname])) {
+            return sstack[s][vname];
+        }
+    }
+
+    return 0;
 };
 
     return {
@@ -293,24 +300,24 @@ getvar = function(vname) {
                 case 'node_method':
                     switch(node.value) {
                         case 'x':
-                            if(!JXG.exists(sstack[scope][node.children[0]])) {
+                            if(getvar(node.children[0]) === 0) {
                                 _error(node.children[0] + ' is undefined.');
                                 ret = NaN;
-                            } else if(!JXG.exists(sstack[scope][node.children[0]].X)) {
+                            } else if(!JXG.exists(getvar(node.children[0]).X)) {
                                 _error(node.children[0] + ' has no property \'X\'.');
                                 ret = NaN;
                             } else
-                                ret = sstack[scope][node.children[0]].X();
+                                ret = getvar(node.children[0]).X();
                             break;
                         case 'y':
-                            if(!JXG.exists(sstack[scope][node.children[0]])) {
+                            if(getvar(node.children[0]) === 0) {
                                 _error(node.children[0] + ' is undefined.');
                                 ret = NaN;
-                            } else if(!JXG.exists(sstack[scope][node.children[0]].Y)) {
+                            } else if(!JXG.exists(getvar(node.children[0]).Y)) {
                                 _error(node.children[0] + ' has no property \'Y\'.');
                                 ret = NaN;
                             } else
-                                ret = sstack[scope][node.children[0]].Y();
+                                ret = getvar(node.children[0]).Y();
                             break;
                     }
                     break;
