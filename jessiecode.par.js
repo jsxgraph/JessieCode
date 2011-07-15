@@ -225,6 +225,11 @@ getvar = function(vname) {
                             // nothing found, throw an error
                             // todo: check for a valid identifier and appropriate parameters and create a point
                             //       this resembles the legacy JessieScript behaviour of A(1, 2);
+                            } else if (typeof Math[node.children[0].toLowerCase()] !== 'undefined') {
+                                for(i = 0; i < pstack[pscope].length; i++) {
+                                    parents[i] = this.execute(pstack[pscope][i]);
+                                }
+                                ret = Math[node.children[0].toLowerCase()].apply(this, parents);
                             } else {
                                 _error('Error: Function \'' + node.children[0] + '\' is undefined.');
                             }
