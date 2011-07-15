@@ -31,6 +31,9 @@ scope = 0,
 pstack = [[]],
 pscope = 0,
 
+// save left-hand-side of variable assignment
+lhs = [],
+
 // board currently in use
 board,
 
@@ -58,8 +61,16 @@ getvar = function(vname) {
     return {
         parse: function(code) {
             var error_cnt = 0,
-                error_off = new Array(),
-                error_la = new Array();
+                error_off = [],
+                error_la = [],
+                ccode = code.split('\n'), i, cleaned = [];
+
+            for (i = 0; i < ccode.length; i++) {
+                if (!(JXG.trim(ccode[i])[0] === '/' && JXG.trim(ccode[i])[1] === '/')) {
+                    cleaned.push(ccode[i]);
+                }
+            }
+            code = cleaned.join('\n');
 
             if((error_cnt = JXG.JessieCode._parse(code, error_off, error_la)) > 0) {
                 for(i = 0; i < error_cnt; i++)
@@ -82,7 +93,9 @@ getvar = function(vname) {
                                 ret = this.execute( node.children[1] );
                             break;
                         case 'op_assign':
+                            lhs[scope] = node.children[0];
                             letvar( node.children[0], this.execute( node.children[1] ) );
+                            lhs[scope] = 0;
                             break;
                         case 'op_noassign':
                             this.execute(node.children[0]);
@@ -200,13 +213,13 @@ getvar = function(vname) {
                                         }
                                     }
 
-                                ret = board.create(node.children[0], parents, {});
+                                ret = board.create(node.children[0], parents, {name: (lhs[scope] !== 0 ? lhs[scope] : '')});
                                 
                             // nothing found, throw an error
                             // todo: check for a valid identifier and appropriate parameters and create a point
                             //       this resembles the legacy JessieScript behaviour of A(1, 2);
                             } else {
-                                _error('Error: Function \'' + fun + '\' is undefined.');
+                                _error('Error: Function \'' + node.children[0] + '\' is undefined.');
                             }
                             
                             // clear parameter stack

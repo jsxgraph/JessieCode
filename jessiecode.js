@@ -28,7 +28,8 @@ node = function(type, value, children) {
 sstack = [{}],
 scope = 0,
 // parameter stack
-pstack = [],
+pstack = [[]],
+pscope = 0,
 
 // board currently in use
 board,
@@ -57,8 +58,16 @@ getvar = function(vname) {
     return {
         parse: function(code) {
             var error_cnt = 0,
-                error_off = new Array(),
-                error_la = new Array();
+                error_off = [],
+                error_la = [],
+                ccode = code.split('\n'), i, cleaned = [];
+
+            for (i = 0; i < ccode.length; i++) {
+                if (!(JXG.trim(ccode[i])[0] === '/' && JXG.trim(ccode[i])[1] === '/')) {
+                    cleaned.push(ccode[i]);
+                }
+            }
+            code = cleaned.join('\n');
 
             if((error_cnt = JXG.JessieCode._parse(code, error_off, error_la)) > 0) {
                 for(i = 0; i < error_cnt; i++)
@@ -112,31 +121,36 @@ getvar = function(vname) {
                             }
                             if(node.children[1]) {
                                 ret = node.children[1];
-                                pstack.push(ret);
+                                pstack[pscope].push(ret);
                             }
                             break;
                         case 'op_param':
                             if( node.children[0] ) {
                                 ret = node.children[0];
-                                pstack.push(ret);
+                                pstack[pscope].push(ret);
                             }
                             break;
                         case 'op_paramdeflst':
-                                if(node.children[0]) {
+                            if(node.children[0]) {
                                 this.execute(node.children[0]);
                             }
                             if(node.children[1]) {
                                 ret = node.children[1];
-                                pstack.push(ret);
+                                pstack[pscope].push(ret);
                             }
                             break;
                         case 'op_paramdef':
                             if( node.children[0] ) {
                                 ret = node.children[0];
-                                pstack.push(ret);
+                                pstack[pscope].push(ret);
                             }
                             break;
                         case 'op_function':
+                            pstack.push([]);
+                            pscope++;
+
+                            // parse the parameter list
+                            // after this, the parameters are in pstack
                             this.execute(node.children[0]);
 
                             ret = (function(_pstack) { return function() {
@@ -147,16 +161,15 @@ getvar = function(vname) {
                                 for(r = 0; r < _pstack.length; r++)
                                     sstack[scope][_pstack[r]] = arguments[r];
                                 sstack[scope]['result'] = '';
-                                pstack = [];
 
                                 JXG.JessieCode.execute(node.children[1]);
                                 r = sstack[scope]['result'];
                                 sstack.pop();
                                 scope--;
-
                                 return r;
-                            }; })(pstack);
-                            pstack = [];
+                            }; })(pstack[pscope]);
+                            pstack.pop();
+                            pscope--;
                             break;
                         case 'op_execfun':
                             // node.children:
@@ -164,26 +177,34 @@ getvar = function(vname) {
                             //   [1]: Parameter list as a parse subtree
                             var fun, i, parents = [];
                             
+                            pstack.push([]);
+                            pscope++;
+                            
                             // parse the parameter list
                             // after this, the parameters are in pstack
                             this.execute(node.children[1]);
+                            
+                            // look up the variables name in the variable table
                             fun = getvar(node.children[0]);
                             
                             // check for the function in the variable table
                             if(JXG.exists(fun) && typeof fun === 'function') {
-                                ret = fun.apply(this, pstack);
-                            
+                                for(i = 0; i < pstack[pscope].length; i++) {
+                                    parents[i] = this.execute(pstack[pscope][i]);
+                                }
+                                ret = fun.apply(this, parents);
+
                             // check for an element with this name
                             } else if (node.children[0] in JXG.JSXGraph.elements) {
-                                    for(i = 0; i < pstack.length; i++) {
-                                        if(pstack[i].type !== 'node_const' && (node.children[0] === 'point' || node.children[0] === 'text')) {
+                                    for(i = 0; i < pstack[pscope].length; i++) {
+                                        if(pstack[pscope][i].type !== 'node_const' && (node.children[0] === 'point' || node.children[0] === 'text')) {
                                             parents[i] = ((function(stree) {
                                                 return function() {
                                                     return JXG.JessieCode.execute(stree)
                                                 };
-                                            })(pstack[i]));
+                                            })(pstack[pscope][i]));
                                         } else {
-                                            parents[i] = (JXG.JessieCode.execute(pstack[i]));
+                                            parents[i] = (JXG.JessieCode.execute(pstack[pscope][i]));
                                         }
                                     }
 
@@ -193,30 +214,28 @@ getvar = function(vname) {
                             // todo: check for a valid identifier and appropriate parameters and create a point
                             //       this resembles the legacy JessieScript behaviour of A(1, 2);
                             } else {
-                                throw new Error('Error: Function \'' + fun + '\' is undefined.');
+                                _error('Error: Function \'' + fun + '\' is undefined.');
                             }
                             
                             // clear parameter stack
-                            pstack = [];
-                            break;
-                        case 'op_create':
-                            this.execute(node.children[0]);
-                            ret = board.create(pstack[0], pstack.slice(1));
-                            pstack = [];
+                            pstack.pop();
+                            pscope--;
                             break;
                         case 'op_use':
+                            // node.children:
+                            //   [0]: A string providing the id of the div the board is in.
                             var found = false;
+                            
+                            // search all the boards for the one with the appropriate container div
                             for(var b in JXG.JSXGraph.boards) {
                                 if(JXG.JSXGraph.boards[b].container === node.children[0].toString()) {
                                     board = JXG.JSXGraph.boards[b];
                                     found = true;
-
-                                    _debug('now using board ' + board.id);
                                 }
                             }
                     
                             if(!found)
-                                alert(node.children[0].toString() + ' not found!');
+                                _error('Board \'' + node.children[0].toString() + '\' not found!');
                             break;
                         case 'op_equ':
                             ret = this.execute( node.children[0] ) == this.execute( node.children[1] );
