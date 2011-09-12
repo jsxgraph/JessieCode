@@ -21,9 +21,19 @@ use jxgbox;
 A = point(2, 3);
 B = point(1, 1);
 
+A.color = 'green';
+
 M = point((X(A)+X(B))/2, (Y(A)+Y(B))/2);
 
 l = line(A, B);
+l.strokeColor = A.strokeColor;
+B.color = function () {
+    if (X(A) > 0) {
+        return 'green';
+    } else {
+        return 'red';
+    }
+};
 
 add = function(a, b) {
     if (b > 0) {
@@ -40,8 +50,11 @@ parab = function(x) {
 t = text(-4, 2, 'X(l) = ' + add(2, X(M)));
 
 circle(A, M);
-plot(parab);
+p = plot(parab);
 plot(function (x) { return Y(B)*cos(x*3+2); });
+
+p.strokeColor = '#CDEB8B';
+.strokeWidth = 4;
 </textarea>
 <pre>
 </pre>

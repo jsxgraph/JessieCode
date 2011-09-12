@@ -31,6 +31,9 @@ scope = 0,
 pstack = [[]],
 pscope = 0,
 
+// property object, if a property is set, the last object is saved and re-used, if there is no object given
+propobj = 0,
+
 // save left-hand-side of variable assignment
 lhs = [],
 
@@ -243,6 +246,26 @@ getvar = function(vname) {
                             pstack.pop();
                             pscope--;
                             break;
+                        case 'op_property':
+                            var v = this.execute(node.children[2]),
+                                e = getvar(node.children[0]),
+                                par = {};
+
+                            propobj = e;
+                            par[node.children[1]] = v;
+                            e.setProperty(par);
+                            break;
+                        case 'op_propnoob':
+                            var v = this.execute(node.children[1]),
+                                par = {};
+
+                            if (propobj === 0) {
+                                _error('Object <null> not found.');
+                            } else {
+                                par[node.children[0]] = v;
+                                propobj.setProperty(par);
+                            }
+                            break;
                         case 'op_use':
                             // node.children:
                             //   [0]: A string providing the id of the div the board is in.
@@ -293,6 +316,12 @@ getvar = function(vname) {
                             ret = this.execute( node.children[0] ) * -1;
                             break;
                     }
+                    break;
+
+                case 'node_property':
+                    var e = getvar(node.value);
+
+                    ret = e.getProperty(node.children[0]);
                     break;
 
                 case 'node_var':

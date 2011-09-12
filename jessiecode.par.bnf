@@ -27,6 +27,7 @@
     '\('
     '\)'
     '#'
+    '\.'
     '[A-Za-z_][A-Za-z0-9_]*'           Identifier
     '\'([^\']|\'\')*\''                String                                [* %match = %match.substr( 1, %match.length - 2 );
                                                                                 %match = %match.replace( /''/g, "\'" );    *]
@@ -60,6 +61,8 @@ Stmt:          IF Expression Stmt                                            [* 
         | USE Identifier ';'                                                 [* %% = JXG.JessieCode.createNode('node_op', 'op_use', %2 ); *]
         | RETURN Stmt                                                        [* %% = JXG.JessieCode.createNode('node_op', 'op_return', %2 ); *]
         | Identifier '=' Expression ';'                                      [* %% = JXG.JessieCode.createNode('node_op', 'op_assign', %1, %3 ); *]
+        | Identifier '.' Identifier '=' Expression ';'                       [* %% = JXG.JessieCode.createNode('node_op', 'op_property', %1, %3, %5 ); *]
+        | '.' Identifier '=' Expression ';'                                  [* %% = JXG.JessieCode.createNode('node_op', 'op_propnoob', %2, %4 ); *]
         | Expression ';'                                                     [* %% = JXG.JessieCode.createNode('node_op', 'op_noassign', %1 ); *]
         | '{' Stmt_List '}'                                                  [* %% = %2; *]
         | ';'                                                                [* %% = JXG.JessieCode.createNode('node_op', 'op_none' ); *]
@@ -98,5 +101,6 @@ Value:        Integer                                                        [* 
         | FUNCTION '(' Param_Def_List ')' '{' Stmt_List '}'                  [* %% = JXG.JessieCode.createNode('node_op', 'op_function', %3, %6); *]
         | X '(' Identifier ')'                                               [* %% = JXG.JessieCode.createNode('node_method', 'x', %3); *]
         | Y '(' Identifier ')'                                               [* %% = JXG.JessieCode.createNode('node_method', 'y', %3); *]
+        | Identifier '.' Identifier                                          [* %% = JXG.JessieCode.createNode('node_property', %1, %3); *]
         ;
 
