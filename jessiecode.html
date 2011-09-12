@@ -15,7 +15,7 @@
 </script>
 
 <h2>Sourcecode:</h2>
-<pre id="code">
+<textarea id="code" cols="90" rows="30">
 use jxgbox;
 //A = point(2, (1+5)/2);
 A = point(2, 3);
@@ -42,11 +42,11 @@ t = text(-4, 2, 'X(l) = ' + add(2, X(M)));
 circle(A, M);
 plot(parab);
 plot(function (x) { return Y(B)*cos(x*3+2); });
-</pre>
+</textarea>
 <pre>
 </pre>
 <script type="text/javascript">
-  var str = document.getElementById('code').innerText;
+  var str = document.getElementById('code').value;
 
   JXG.JessieCode.parse(str);
 </script>
