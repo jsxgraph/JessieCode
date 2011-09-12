@@ -105,17 +105,17 @@ getvar = function(vname) {
                             lhs[scope] = 0;
                             break;
                         case 'op_noassign':
-                            this.execute(node.children[0]);
+                            ret = this.execute(node.children[0]);
                             break;
                         case 'op_if':
                             if( this.execute( node.children[0] ) )
-                                this.execute( node.children[1] );
+                                ret = this.execute( node.children[1] );
                             break;
                         case 'op_if_else':
                             if( this.execute( node.children[0] ) )
-                                this.execute( node.children[1] );
+                                ret = this.execute( node.children[1] );
                             else
-                                this.execute( node.children[2] );
+                                ret = this.execute( node.children[2] );
                             break;
                         case 'op_while':
                             while( this.execute( node.children[0] ) )
@@ -157,6 +157,13 @@ getvar = function(vname) {
                                 pstack[pscope].push(ret);
                             }
                             break;
+                        case 'op_return':
+                            if (scope === 0) {
+                                _error('Error: Unexpected return.');
+                            } else {
+                                return this.execute(node.children[0]);
+                            }
+                            break;
                         case 'op_function':
                             pstack.push([]);
                             pscope++;
@@ -172,10 +179,8 @@ getvar = function(vname) {
                                 scope++;
                                 for(r = 0; r < _pstack.length; r++)
                                     sstack[scope][_pstack[r]] = arguments[r];
-                                sstack[scope]['result'] = '';
 
-                                JXG.JessieCode.execute(node.children[1]);
-                                r = sstack[scope]['result'];
+                                r = JXG.JessieCode.execute(node.children[1]);
                                 sstack.pop();
                                 scope--;
                                 return r;

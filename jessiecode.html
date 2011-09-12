@@ -26,23 +26,27 @@ M = point((X(A)+X(B))/2, (Y(A)+Y(B))/2);
 l = line(A, B);
 
 add = function(a, b) {
-    result = a + b;
+    if (b > 0) {
+        return a + b;
+    } else {
+        return a - b;
+    }
 };
 
 parab = function(x) {
-    result = X(A)*x*x;
+    return X(A)*x*x;
 };
 
 t = text(-4, 2, 'X(l) = ' + add(2, X(M)));
 
 circle(A, M);
 plot(parab);
-plot(function (x) { result = Y(B)*cos(x*3+2); });
+plot(function (x) { return Y(B)*cos(x*3+2); });
 </pre>
 <pre>
 </pre>
 <script type="text/javascript">
-  var str = document.getElementById('code').innerHTML;
+  var str = document.getElementById('code').innerText;
 
   JXG.JessieCode.parse(str);
 </script>
