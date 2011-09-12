@@ -15,7 +15,7 @@
 </script>
 
 <h2>Sourcecode:</h2>
-<textarea id="code" cols="90" rows="30">
+<textarea id="code" cols="90" rows="50">
 use jxgbox;
 //A = point(2, (1+5)/2);
 A = point(2, 3);
@@ -27,7 +27,7 @@ M = point((X(A)+X(B))/2, (Y(A)+Y(B))/2);
 
 l = line(A, B);
 l.strokeColor = A.strokeColor;
-B.color = function () {
+B.fillColor = function () {
     if (X(A) > 0) {
         return 'green';
     } else {
@@ -51,7 +51,13 @@ t = text(-4, 2, 'X(l) = ' + add(2, X(M)));
 
 circle(A, M);
 p = plot(parab);
-plot(function (x) { return Y(B)*cos(x*3+2); });
+plot(function (x) {
+    if (x > 0) {
+        return Y(B)*cos(x*3+2);
+    } else {
+        return Y(B)*sin(x*3+2);
+    }
+});
 
 p.strokeColor = '#CDEB8B';
 .strokeWidth = 4;
