@@ -18,15 +18,18 @@
 <textarea id="code" cols="90" rows="50">
 use jxgbox;
 //A = point(2, (1+5)/2);
-A = point(2, 3);
+A = point(2, 3) << strokeColor : 'yellow', fillColor : 'green' >>;
 B = point(1, 1);
+C = point(-1, 1);
 
-A.color = 'green';
+B.color = 'green';
 
 M = point((X(A)+X(B))/2, (Y(A)+Y(B))/2);
 
+CC = circumcircle(A, B, C) << point: << visible: true, withLabel: true, name: 'The Midpoint' >>, strokeColor: 'red' >>;
+
 l = line(A, B);
-l.strokeColor = A.strokeColor;
+//l.strokeColor = A.strokeColor;
 B.fillColor = function () {
     if (X(A) > 0) {
         return 'green';
@@ -61,6 +64,8 @@ plot(function (x) {
 
 p.strokeColor = '#CDEB8B';
 .strokeWidth = 4;
+
+obj = << foo: 3, bar: 'baz' >>;
 </textarea>
 <pre>
 </pre>

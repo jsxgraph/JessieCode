@@ -31,6 +31,10 @@ scope = 0,
 pstack = [[]],
 pscope = 0,
 
+// properties stack
+propstack = [{}],
+propscope = 0,
+
 // property object, if a property is set, the last object is saved and re-used, if there is no object given
 propobj = 0,
 
@@ -92,7 +96,7 @@ getvar = function(vname) {
     
             if( !node )
                 return 0;
-
+                
             switch( node.type ) {
                 case 'node_op':
                     switch( node.value ) {
@@ -160,6 +164,29 @@ getvar = function(vname) {
                                 pstack[pscope].push(ret);
                             }
                             break;
+                        case 'op_proplst':
+                            if(node.children[0]) {
+                                this.execute(node.children[0]);
+                            }
+                            if(node.children[1]) {
+                                this.execute(node.children[1]);
+                            }
+                            break;
+                        case 'op_proplst_val':
+                            propstack.push({});
+                            propscope++;
+
+                            this.execute(node.children[0]);
+                            ret = propstack[propscope];
+
+                            propstack.pop();
+                            propscope--;
+                            break;
+                        case 'op_prop':
+                            // child 0: Identifier
+                            // child 1: Value
+                            propstack[propscope][node.children[0]] = this.execute(node.children[1]);
+                            break;
                         case 'op_return':
                             if (scope === 0) {
                                 _error('Error: Unexpected return.');
@@ -195,7 +222,8 @@ getvar = function(vname) {
                             // node.children:
                             //   [0]: Name of the function
                             //   [1]: Parameter list as a parse subtree
-                            var fun, i, parents = [];
+                            //   [2]: Properties, only used in case of a create function
+                            var fun, i, parents = [], props = false, attr;
                             
                             pstack.push([]);
                             pscope++;
@@ -203,6 +231,15 @@ getvar = function(vname) {
                             // parse the parameter list
                             // after this, the parameters are in pstack
                             this.execute(node.children[1]);
+                            
+                            // parse the properties only if given
+                            if (typeof node.children[2] !== 'undefined') {
+                                propstack.push({});
+                                propscope++;
+                                
+                                props = true;
+                                this.execute(node.children[2]);
+                            }
                             
                             // look up the variables name in the variable table
                             fun = getvar(node.children[0]);
@@ -217,18 +254,28 @@ getvar = function(vname) {
                             // check for an element with this name
                             } else if (node.children[0] in JXG.JSXGraph.elements) {
                                     for(i = 0; i < pstack[pscope].length; i++) {
-                                        if(pstack[pscope][i].type !== 'node_const' && (node.children[0] === 'point' || node.children[0] === 'text')) {
-                                            parents[i] = ((function(stree) {
-                                                return function() {
-                                                    return JXG.JessieCode.execute(stree)
-                                                };
-                                            })(pstack[pscope][i]));
+                                        if (node.children[0] === 'point' || node.children[0] === 'text') {
+                                            if (pstack[pscope][i].type === 'node_const' || (pstack[pscope][i].value === 'op_neg' && pstack[pscope][i].children[0].type === 'node_const')) {
+                                                parents[i] = (JXG.JessieCode.execute(pstack[pscope][i]));
+                                            } else {
+                                                parents[i] = ((function(stree) {
+                                                    return function() {
+                                                        return JXG.JessieCode.execute(stree)
+                                                    };
+                                                })(pstack[pscope][i]));
+                                            }
                                         } else {
                                             parents[i] = (JXG.JessieCode.execute(pstack[pscope][i]));
                                         }
                                     }
 
-                                ret = board.create(node.children[0], parents, {name: (lhs[scope] !== 0 ? lhs[scope] : '')});
+                                if (props) {
+                                    attr = propstack[propscope];
+                                } else {
+                                    attr = {name: (lhs[scope] !== 0 ? lhs[scope] : '')};
+                                }
+
+                                ret = board.create(node.children[0], parents, attr);
                                 
                             // nothing found, throw an error
                             // todo: check for a valid identifier and appropriate parameters and create a point
@@ -240,6 +287,12 @@ getvar = function(vname) {
                                 ret = Math[node.children[0].toLowerCase()].apply(this, parents);
                             } else {
                                 _error('Error: Function \'' + node.children[0] + '\' is undefined.');
+                            }
+                            
+                            // clear props stack
+                            if (props) {
+                                propstack.pop();
+                                propscope--;
                             }
                             
                             // clear parameter stack
@@ -330,6 +383,10 @@ getvar = function(vname) {
 
                 case 'node_const':
                     ret = Number(node.value);
+                    break;
+
+                case 'node_const_bool':
+                    ret = Boolean(node.value);
                     break;
 
                 case 'node_str':
