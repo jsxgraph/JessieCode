@@ -1,448 +1,484 @@
+/*
+    Copyright 2008-2011
+        Matthias Ehmann,
+        Michael Gerhaeuser,
+        Carsten Miller,
+        Bianca Valentin,
+        Alfred Wassermann,
+        Peter Wilfahrt
 
+    This file is part of JSXGraph.
 
-JXG.JessieCode = (function() {
+    JSXGraph is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-// Control structures and functions
-var
+    JSXGraph is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
 
-//Structs
+    You should have received a copy of the GNU Lesser General Public License
+    along with JSXGraph.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 /**
- * Create a new parse tree node.
- * @param {String} type Type of node, e.g. node_op, node_var, or node_const
- * @param value The nodes value, e.g. a variables value or a functions body.
- * @param {Array} children Arbitrary number of child nodes.
+ * @fileoverview JessieCode is a scripting language designed to provide a simple scripting language to build constructions
+ * with JSXGraph. It is similar to JavaScript, but prevents access to the DOM. Hence, it can be used in community driven
+ * Math portals which want to use JSXGraph to display interactive math graphics.
  */
-node = function(type, value, children) {
-    return {
-        type: type,
-        value: value,
-        children: children
-    };
-},
 
-// Management functions
 
-// Parsed variables
-// scope stack
-sstack = [{}],
-scope = 0,
-// parameter stack
-pstack = [[]],
-pscope = 0,
+JXG.JessieCode = function(code) {
+    // Control structures
+    // scope stack
+    this.sstack = [{}];
+    this.scope = 0;
+    // parameter stack
+    this.pstack = [[]];
+    this.pscope = 0;
 
-// properties stack
-propstack = [{}],
-propscope = 0,
+    // properties stack
+    this.propstack = [{}];
+    this.propscope = 0;
 
-// property object, if a property is set, the last object is saved and re-used, if there is no object given
-propobj = 0,
+    // property object, if a property is set, the last object is saved and re-used, if there is no object given
+    this.propobj = 0;
 
-// save left-hand-side of variable assignment
-lhs = [],
+    // save left-hand-side of variable assignment
+    this.lhs = [];
 
-// board currently in use
-board,
+    // board currently in use
+    this.board = null;
 
-_debug = function(log) {
-    if(typeof console !== "undefined") {
-        console.log(log);
-    } else if(document.getElementById('debug') !== null) {
-        document.getElementById('debug').innerHTML += log + '<br />';
+    if (typeof code === 'string') {
+        this.parse(code);
     }
-},
-
-_error = function(msg) {
-    throw new Error(msg);
-},
-
-//Interpreting function
-letvar = function(vname, value) {
-    sstack[scope][vname] = value;
-},
-
-getvar = function(vname) {
-    var s;
-    for (s = scope; s > -1; s--) {
-        if (JXG.exists(sstack[s][vname])) {
-            return sstack[s][vname];
-        }
-    }
-
-    return 0;
 };
 
-    return {
-        parse: function(code) {
-            var error_cnt = 0,
-                error_off = [],
-                error_la = [],
-                ccode = code.split('\n'), i, cleaned = [];
 
-            for (i = 0; i < ccode.length; i++) {
-                if (!(JXG.trim(ccode[i])[0] === '/' && JXG.trim(ccode[i])[1] === '/')) {
-                    cleaned.push(ccode[i]);
-                }
+JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
+    /**
+     * Create a new parse tree node.
+     * @param {String} type Type of node, e.g. node_op, node_var, or node_const
+     * @param value The nodes value, e.g. a variables value or a functions body.
+     * @param {Array} children Arbitrary number of child nodes.
+     */
+    node: function(type, value, children) {
+        return {
+            type: type,
+            value: value,
+            children: children
+        };
+    },
+
+    _debug: function(log) {
+        if(typeof console !== "undefined") {
+            console.log(log);
+        } else if(document.getElementById('debug') !== null) {
+            document.getElementById('debug').innerHTML += log + '<br />';
+        }
+    },
+
+    _error: function(msg) {
+        throw new Error(msg);
+    },
+
+    letvar: function(vname, value) {
+        this.sstack[this.scope][vname] = value;
+    },
+
+    getvar: function(vname) {
+        var s;
+
+        for (s = this.scope; s > -1; s--) {
+            if (JXG.exists(this.sstack[s][vname])) {
+                return this.sstack[s][vname];
             }
-            code = cleaned.join('\n');
+        }
 
-            if((error_cnt = JXG.JessieCode._parse(code, error_off, error_la)) > 0) {
-                for(i = 0; i < error_cnt; i++)
-                    alert("Parse error near >"  + code.substr( error_off[i], 30 ) + "<, expecting \"" + error_la[i].join() + "\"");
+        return 0;
+    },
+
+    parse: function(code) {
+        var error_cnt = 0,
+            error_off = [],
+            error_la = [],
+            ccode = code.split('\n'), i, cleaned = [];
+
+        for (i = 0; i < ccode.length; i++) {
+            if (!(JXG.trim(ccode[i])[0] === '/' && JXG.trim(ccode[i])[1] === '/')) {
+                cleaned.push(ccode[i]);
             }
-        },
-        execute: function( node ) {
-            var ret = 0;
-    
-            if( !node )
-                return 0;
-                
-            switch( node.type ) {
-                case 'node_op':
-                    switch( node.value ) {
-                        case 'op_none':
-                            if( node.children[0] )
-                                this.execute( node.children[0] );                    
-                            if( node.children[1] )
-                                ret = this.execute( node.children[1] );
-                            break;
-                        case 'op_assign':
-                            lhs[scope] = node.children[0];
-                            letvar( node.children[0], this.execute( node.children[1] ) );
-                            lhs[scope] = 0;
-                            break;
-                        case 'op_noassign':
-                            ret = this.execute(node.children[0]);
-                            break;
-                        case 'op_if':
-                            if( this.execute( node.children[0] ) )
-                                ret = this.execute( node.children[1] );
-                            break;
-                        case 'op_if_else':
-                            if( this.execute( node.children[0] ) )
-                                ret = this.execute( node.children[1] );
-                            else
-                                ret = this.execute( node.children[2] );
-                            break;
-                        case 'op_while':
-                            while( this.execute( node.children[0] ) )
-                                this.execute( node.children[1] );
-                            break;
-                        case 'op_for':
-                            // todo
-                            do
-                                this.execute( node.children[0] )
-                            while( this.execute( node.children[1] ) );
-                            break;
-                        case 'op_paramlst':
-                            if(node.children[0]) {
-                                this.execute(node.children[0]);
-                            }
-                            if(node.children[1]) {
-                                ret = node.children[1];
-                                pstack[pscope].push(ret);
-                            }
-                            break;
-                        case 'op_param':
-                            if( node.children[0] ) {
-                                ret = node.children[0];
-                                pstack[pscope].push(ret);
-                            }
-                            break;
-                        case 'op_paramdeflst':
-                            if(node.children[0]) {
-                                this.execute(node.children[0]);
-                            }
-                            if(node.children[1]) {
-                                ret = node.children[1];
-                                pstack[pscope].push(ret);
-                            }
-                            break;
-                        case 'op_paramdef':
-                            if( node.children[0] ) {
-                                ret = node.children[0];
-                                pstack[pscope].push(ret);
-                            }
-                            break;
-                        case 'op_proplst':
-                            if(node.children[0]) {
-                                this.execute(node.children[0]);
-                            }
-                            if(node.children[1]) {
-                                this.execute(node.children[1]);
-                            }
-                            break;
-                        case 'op_proplst_val':
-                            propstack.push({});
-                            propscope++;
+        }
+        code = cleaned.join('\n');
 
+        if((error_cnt = JXG.JessieCode._parse(code, error_off, error_la)) > 0) {
+            for(i = 0; i < error_cnt; i++)
+                alert("Parse error near >"  + code.substr( error_off[i], 30 ) + "<, expecting \"" + error_la[i].join() + "\"");
+        }
+    },
+
+    execute: function( node ) {
+        var ret = 0;
+
+        if( !node )
+            return 0;
+
+        switch( node.type ) {
+            case 'node_op':
+                switch( node.value ) {
+                    case 'op_none':
+                        if (node.children[0]) {
                             this.execute(node.children[0]);
-                            ret = propstack[propscope];
-
-                            propstack.pop();
-                            propscope--;
-                            break;
-                        case 'op_prop':
-                            // child 0: Identifier
-                            // child 1: Value
-                            propstack[propscope][node.children[0]] = this.execute(node.children[1]);
-                            break;
-                        case 'op_return':
-                            if (scope === 0) {
-                                _error('Error: Unexpected return.');
-                            } else {
-                                return this.execute(node.children[0]);
-                            }
-                            break;
-                        case 'op_function':
-                            pstack.push([]);
-                            pscope++;
-
-                            // parse the parameter list
-                            // after this, the parameters are in pstack
-                            this.execute(node.children[0]);
-
-                            ret = (function(_pstack) { return function() {
-                                var r;
-
-                                sstack.push({});
-                                scope++;
-                                for(r = 0; r < _pstack.length; r++)
-                                    sstack[scope][_pstack[r]] = arguments[r];
-
-                                r = JXG.JessieCode.execute(node.children[1]);
-                                sstack.pop();
-                                scope--;
-                                return r;
-                            }; })(pstack[pscope]);
-                            pstack.pop();
-                            pscope--;
-                            break;
-                        case 'op_execfun':
-                            // node.children:
-                            //   [0]: Name of the function
-                            //   [1]: Parameter list as a parse subtree
-                            //   [2]: Properties, only used in case of a create function
-                            var fun, i, parents = [], props = false, attr;
-                            
-                            pstack.push([]);
-                            pscope++;
-                            
-                            // parse the parameter list
-                            // after this, the parameters are in pstack
+                        }
+                        if (node.children[1]) {
+                            ret = this.execute(node.children[1]);
+                        }
+                        break;
+                    case 'op_assign':
+                        this.lhs[this.scope] = node.children[0];
+                        this.letvar(node.children[0], this.execute(node.children[1]));
+                        this.lhs[this.scope] = 0;
+                        break;
+                    case 'op_noassign':
+                        ret = this.execute(node.children[0]);
+                        break;
+                    case 'op_if':
+                        if (this.execute(node.children[0])) {
+                            ret = this.execute(node.children[1]);
+                        }
+                        break;
+                    case 'op_if_else':
+                        if (this.execute(node.children[0])) {
+                            ret = this.execute(node.children[1]);
+                        } else {
+                            ret = this.execute(node.children[2]);
+                        }
+                        break;
+                    case 'op_while':
+                        while (this.execute(node.children[0])) {
                             this.execute(node.children[1]);
-                            
-                            // parse the properties only if given
-                            if (typeof node.children[2] !== 'undefined') {
-                                propstack.push({});
-                                propscope++;
-                                
-                                props = true;
-                                this.execute(node.children[2]);
+                        }
+                        break;
+                    case 'op_for':
+                        // todo
+                        do {
+                            this.execute(node.children[0]);
+                        } while (this.execute(node.children[1]));
+                        break;
+                    case 'op_paramlst':
+                        if (node.children[0]) {
+                            this.execute(node.children[0]);
+                        }
+
+                        if (node.children[1]) {
+                            ret = node.children[1];
+                            this.pstack[this.pscope].push(ret);
+                        }
+                        break;
+                    case 'op_param':
+                        if (node.children[0]) {
+                            ret = node.children[0];
+                            this.pstack[this.pscope].push(ret);
+                        }
+                        break;
+                    case 'op_paramdeflst':
+                        if (node.children[0]) {
+                            this.execute(node.children[0]);
+                        }
+                        if (node.children[1]) {
+                            ret = node.children[1];
+                            this.pstack[this.pscope].push(ret);
+                        }
+                        break;
+                    case 'op_paramdef':
+                        if (node.children[0]) {
+                            ret = node.children[0];
+                            this.pstack[this.pscope].push(ret);
+                        }
+                        break;
+                    case 'op_proplst':
+                        if (node.children[0]) {
+                            this.execute(node.children[0]);
+                        }
+                        if (node.children[1]) {
+                            this.execute(node.children[1]);
+                        }
+                        break;
+                    case 'op_proplst_val':
+                        this.propstack.push({});
+                        this.propscope++;
+
+                        this.execute(node.children[0]);
+                        ret = this.propstack[this.propscope];
+
+                        this.propstack.pop();
+                        this.propscope--;
+                        break;
+                    case 'op_prop':
+                        // child 0: Identifier
+                        // child 1: Value
+                        this.propstack[this.propscope][node.children[0]] = this.execute(node.children[1]);
+                        break;
+                    case 'op_return':
+                        if (this.scope === 0) {
+                            this._error('Error: Unexpected return.');
+                        } else {
+                            return this.execute(node.children[0]);
+                        }
+                        break;
+                    case 'op_function':
+                        this.pstack.push([]);
+                        this.pscope++;
+
+                        // parse the parameter list
+                        // after this, the parameters are in pstack
+                        this.execute(node.children[0]);
+
+                        ret = (function(_pstack, that) { return function() {
+                            var r;
+
+                            that.sstack.push({});
+                            that.scope++;
+                            for(r = 0; r < _pstack.length; r++)
+                                that.sstack[that.scope][_pstack[r]] = arguments[r];
+
+                            r = that..execute(node.children[1]);
+                            that.sstack.pop();
+                            that.scope--;
+                            return r;
+                        }; })(this.pstack[this.pscope], this);
+
+                        ret.functionCode = node.children[1];
+
+                        this.pstack.pop();
+                        this.pscope--;
+                        break;
+                    case 'op_execfun':
+                        // node.children:
+                        //   [0]: Name of the function
+                        //   [1]: Parameter list as a parse subtree
+                        //   [2]: Properties, only used in case of a create function
+                        var fun, i, parents = [], props = false, attr;
+
+                        this.pstack.push([]);
+                        this.pscope++;
+
+                        // parse the parameter list
+                        // after this, the parameters are in pstack
+                        this.execute(node.children[1]);
+
+                        // parse the properties only if given
+                        if (typeof node.children[2] !== 'undefined') {
+                            this.propstack.push({});
+                            this.propscope++;
+
+                            props = true;
+                            this.execute(node.children[2]);
+                        }
+
+                        // look up the variables name in the variable table
+                        fun = this.getvar(node.children[0]);
+
+                        // check for the function in the variable table
+                        if(JXG.exists(fun) && typeof fun === 'function') {
+                            for(i = 0; i < this.pstack[this.pscope].length; i++) {
+                                parents[i] = this.execute(this.pstack[this.pscope][i]);
                             }
-                            
-                            // look up the variables name in the variable table
-                            fun = getvar(node.children[0]);
-                            
-                            // check for the function in the variable table
-                            if(JXG.exists(fun) && typeof fun === 'function') {
-                                for(i = 0; i < pstack[pscope].length; i++) {
-                                    parents[i] = this.execute(pstack[pscope][i]);
-                                }
-                                ret = fun.apply(this, parents);
+                            ret = fun.apply(this, parents);
 
                             // check for an element with this name
-                            } else if (node.children[0] in JXG.JSXGraph.elements) {
-                                    for(i = 0; i < pstack[pscope].length; i++) {
-                                        if (node.children[0] === 'point' || node.children[0] === 'text') {
-                                            if (pstack[pscope][i].type === 'node_const' || (pstack[pscope][i].value === 'op_neg' && pstack[pscope][i].children[0].type === 'node_const')) {
-                                                parents[i] = (JXG.JessieCode.execute(pstack[pscope][i]));
-                                            } else {
-                                                parents[i] = ((function(stree) {
-                                                    return function() {
-                                                        return JXG.JessieCode.execute(stree)
-                                                    };
-                                                })(pstack[pscope][i]));
-                                            }
-                                        } else {
-                                            parents[i] = (JXG.JessieCode.execute(pstack[pscope][i]));
-                                        }
+                        } else if (node.children[0] in JXG.JSXGraph.elements) {
+                            for(i = 0; i < this.pstack[this.pscope].length; i++) {
+                                if (node.children[0] === 'point' || node.children[0] === 'text') {
+                                    if (this.pstack[this.pscope][i].type === 'node_const' || (this.pstack[this.pscope][i].value === 'op_neg' && this.pstack[this.pscope][i].children[0].type === 'node_const')) {
+                                        parents[i] = (this..execute(this.pstack[this.pscope][i]));
+                                    } else {
+                                        parents[i] = ((function(stree, that) {
+                                            return function() {
+                                                return that..execute(stree)
+                                            };
+                                        })(this.pstack[this.pscope][i], this));
                                     }
-
-                                if (props) {
-                                    attr = propstack[propscope];
                                 } else {
-                                    attr = {name: (lhs[scope] !== 0 ? lhs[scope] : '')};
+                                    parents[i] = (this..execute(this.pstack[this.pscope][i]));
                                 }
+                            }
 
-                                ret = board.create(node.children[0], parents, attr);
-                                
+                            if (props) {
+                                attr = this.propstack[this.propscope];
+                            } else {
+                                attr = {name: (this.lhs[this.scope] !== 0 ? this.lhs[this.scope] : '')};
+                            }
+
+                            ret = this.board.create(node.children[0], parents, attr);
+
                             // nothing found, throw an error
                             // todo: check for a valid identifier and appropriate parameters and create a point
                             //       this resembles the legacy JessieScript behaviour of A(1, 2);
-                            } else if (typeof Math[node.children[0].toLowerCase()] !== 'undefined') {
-                                for(i = 0; i < pstack[pscope].length; i++) {
-                                    parents[i] = this.execute(pstack[pscope][i]);
-                                }
-                                ret = Math[node.children[0].toLowerCase()].apply(this, parents);
-                            } else {
-                                _error('Error: Function \'' + node.children[0] + '\' is undefined.');
+                        } else if (typeof Math[node.children[0].toLowerCase()] !== 'undefined') {
+                            for(i = 0; i < this.pstack[this.pscope].length; i++) {
+                                parents[i] = this.execute(this.pstack[this.pscope][i]);
                             }
-                            
-                            // clear props stack
-                            if (props) {
-                                propstack.pop();
-                                propscope--;
+                            ret = Math[node.children[0].toLowerCase()].apply(this, parents);
+                        } else {
+                            this._error('Error: Function \'' + node.children[0] + '\' is undefined.');
+                        }
+
+                        // clear props stack
+                        if (props) {
+                            this.propstack.pop();
+                            this.propscope--;
+                        }
+
+                        // clear parameter stack
+                        this.pstack.pop();
+                        this.pscope--;
+                        break;
+                    case 'op_property':
+                        var v = this.execute(node.children[2]),
+                            e = this.getvar(node.children[0]),
+                            par = {};
+
+                        this.propobj = e;
+                        par[node.children[1]] = v;
+                        e.setProperty(par);
+                        break;
+                    case 'op_propnoob':
+                        var v = this.execute(node.children[1]),
+                            par = {};
+
+                        if (this.propobj === 0) {
+                            this._error('Object <null> not found.');
+                        } else {
+                            par[node.children[0]] = v;
+                            this.propobj.setProperty(par);
+                        }
+                        break;
+                    case 'op_use':
+                        // node.children:
+                        //   [0]: A string providing the id of the div the board is in.
+                        var found = false;
+
+                        // search all the boards for the one with the appropriate container div
+                        for(var b in JXG.JSXGraph.boards) {
+                            if(JXG.JSXGraph.boards[b].container === node.children[0].toString()) {
+                                this.board = JXG.JSXGraph.boards[b];
+                                found = true;
                             }
-                            
-                            // clear parameter stack
-                            pstack.pop();
-                            pscope--;
-                            break;
-                        case 'op_property':
-                            var v = this.execute(node.children[2]),
-                                e = getvar(node.children[0]),
-                                par = {};
+                        }
 
-                            propobj = e;
-                            par[node.children[1]] = v;
-                            e.setProperty(par);
-                            break;
-                        case 'op_propnoob':
-                            var v = this.execute(node.children[1]),
-                                par = {};
+                        if(!found)
+                            this._error('Board \'' + node.children[0].toString() + '\' not found!');
+                        break;
+                    case 'op_equ':
+                        ret = this.execute(node.children[0]) == this.execute(node.children[1]);
+                        break;
+                    case 'op_neq':
+                        ret = this.execute(node.children[0]) != this.execute(node.children[1]);
+                        break;
+                    case 'op_grt':
+                        ret = this.execute(node.children[0]) > this.execute(node.children[1]);
+                        break;
+                    case 'op_lot':
+                        ret = this.execute(node.children[0]) < this.execute(node.children[1]);
+                        break;
+                    case 'op_gre':
+                        ret = this.execute(node.children[0]) >= this.execute(node.children[1]);
+                        break;
+                    case 'op_loe':
+                        ret = this.execute(node.children[0]) <= this.execute(node.children[1]);
+                        break;
+                    case 'op_add':
+                        ret = this.execute(node.children[0]) + this.execute(node.children[1]);
+                        break;
+                    case 'op_sub':
+                        ret = this.execute(node.children[0]) - this.execute(node.children[1]);
+                        break;
+                    case 'op_div':
+                        ret = this.execute(node.children[0]) / this.execute(node.children[1]);
+                        break;
+                    case 'op_mul':
+                        ret = this.execute(node.children[0]) * this.execute(node.children[1]);
+                        break;
+                    case 'op_neg':
+                        ret = this.execute(node.children[0]) * -1;
+                        break;
+                }
+                break;
 
-                            if (propobj === 0) {
-                                _error('Object <null> not found.');
-                            } else {
-                                par[node.children[0]] = v;
-                                propobj.setProperty(par);
-                            }
-                            break;
-                        case 'op_use':
-                            // node.children:
-                            //   [0]: A string providing the id of the div the board is in.
-                            var found = false;
-                            
-                            // search all the boards for the one with the appropriate container div
-                            for(var b in JXG.JSXGraph.boards) {
-                                if(JXG.JSXGraph.boards[b].container === node.children[0].toString()) {
-                                    board = JXG.JSXGraph.boards[b];
-                                    found = true;
-                                }
-                            }
-                    
-                            if(!found)
-                                _error('Board \'' + node.children[0].toString() + '\' not found!');
-                            break;
-                        case 'op_equ':
-                            ret = this.execute( node.children[0] ) == this.execute( node.children[1] );
-                            break;
-                        case 'op_neq':
-                            ret = this.execute( node.children[0] ) != this.execute( node.children[1] );
-                            break;
-                        case 'op_grt':
-                            ret = this.execute( node.children[0] ) > this.execute( node.children[1] );
-                            break;
-                        case 'op_lot':
-                            ret = this.execute( node.children[0] ) < this.execute( node.children[1] );
-                            break;
-                        case 'op_gre':
-                            ret = this.execute( node.children[0] ) >= this.execute( node.children[1] );
-                            break;
-                        case 'op_loe':
-                            ret = this.execute( node.children[0] ) <= this.execute( node.children[1] );
-                            break;
-                        case 'op_add':
-                            ret = this.execute( node.children[0] ) + this.execute( node.children[1] );
-                            break;
-                        case 'op_sub':
-                            ret = this.execute( node.children[0] ) - this.execute( node.children[1] );
-                            break;
-                        case 'op_div':
-                            ret = this.execute( node.children[0] ) / this.execute( node.children[1] );
-                            break;
-                        case 'op_mul':
-                            ret = this.execute( node.children[0] ) * this.execute( node.children[1] );
-                            break;
-                        case 'op_neg':
-                            ret = this.execute( node.children[0] ) * -1;
-                            break;
-                    }
-                    break;
+            case 'node_property':
+                var e = this.getvar(node.value);
 
-                case 'node_property':
-                    var e = getvar(node.value);
+                ret = e.getProperty(node.children[0]);
+                break;
 
-                    ret = e.getProperty(node.children[0]);
-                    break;
+            case 'node_var':
+                ret = this.getvar(node.value);
+                break;
 
-                case 'node_var':
-                    ret = getvar(node.value);
-                    break;
+            case 'node_const':
+                ret = Number(node.value);
+                break;
 
-                case 'node_const':
-                    ret = Number(node.value);
-                    break;
+            case 'node_const_bool':
+                ret = Boolean(node.value);
+                break;
 
-                case 'node_const_bool':
-                    ret = Boolean(node.value);
-                    break;
+            case 'node_str':
+                ret = node.value;
+                break;
 
-                case 'node_str':
-                    ret = node.value;
-                    break;
-        
-                case 'node_method':
-                    switch(node.value) {
-                        case 'x':
-                            if(getvar(node.children[0]) === 0) {
-                                _error(node.children[0] + ' is undefined.');
-                                ret = NaN;
-                            } else if(!JXG.exists(getvar(node.children[0]).X)) {
-                                _error(node.children[0] + ' has no property \'X\'.');
-                                ret = NaN;
-                            } else
-                                ret = getvar(node.children[0]).X();
-                            break;
-                        case 'y':
-                            if(getvar(node.children[0]) === 0) {
-                                _error(node.children[0] + ' is undefined.');
-                                ret = NaN;
-                            } else if(!JXG.exists(getvar(node.children[0]).Y)) {
-                                _error(node.children[0] + ' has no property \'Y\'.');
-                                ret = NaN;
-                            } else
-                                ret = getvar(node.children[0]).Y();
-                            break;
-                    }
-                    break;
-            }
-
-            return ret;
-        },
-
-        /**
-         * Create a new parse tree node. Basically the same as node(), but this builds
-         * the children part out of an arbitrary number of parameters, instead of one
-         * array parameter.
-         * @param {String} type Type of node, e.g. node_op, node_var, or node_const
-         * @param value The nodes value, e.g. a variables value or a functions body.
-         * @param children Arbitrary number of parameters; define the child nodes.
-         */
-        createNode: function(type, value, children) {
-            var n = node(type, value, []),
-                i;
-    
-            for(i = 2; i < arguments.length; i++)
-                n.children.push( arguments[i] );
-
-            return n;
+            case 'node_method':
+                switch(node.value) {
+                    case 'x':
+                        if(this.getvar(node.children[0]) === 0) {
+                            this._error(node.children[0] + ' is undefined.');
+                            ret = NaN;
+                        } else if(!JXG.exists(this.getvar(node.children[0]).X)) {
+                            this._error(node.children[0] + ' has no property \'X\'.');
+                            ret = NaN;
+                        } else
+                            ret = this.getvar(node.children[0]).X();
+                        break;
+                    case 'y':
+                        if(this.getvar(node.children[0]) === 0) {
+                            this._error(node.children[0] + ' is undefined.');
+                            ret = NaN;
+                        } else if(!JXG.exists(this.getvar(node.children[0]).Y)) {
+                            this._error(node.children[0] + ' has no property \'Y\'.');
+                            ret = NaN;
+                        } else
+                            ret = this.getvar(node.children[0]).Y();
+                        break;
+                }
+                break;
         }
-    };
 
-})();
+        return ret;
+    },
 
+    /**
+     * Create a new parse tree node. Basically the same as node(), but this builds
+     * the children part out of an arbitrary number of parameters, instead of one
+     * array parameter.
+     * @param {String} type Type of node, e.g. node_op, node_var, or node_const
+     * @param value The nodes value, e.g. a variables value or a functions body.
+     * @param children Arbitrary number of parameters; define the child nodes.
+     */
+    createNode: function(type, value, children) {
+        var n = this.node(type, value, []),
+            i;
+
+        for(i = 2; i < arguments.length; i++)
+            n.children.push( arguments[i] );
+
+        return n;
+    }
+
+});
 /*
     Default template driver for JS/CC generated parsers running as
     browser-based JavaScript/ECMAScript applications.
@@ -458,30 +494,33 @@ getvar = function(vname) {
     This is in the public domain.
 */
 
-JXG.JessieCode._dbg_withtrace = false;
-JXG.JessieCode._dbg_string = new String();
 
-JXG.JessieCode._dbg_print = function ( text ) {
-    JXG.JessieCode._dbg_string += text + "\n";
-};
+JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
+    _dbg_withtrace: false,
+    _dbg_string: '',
 
-JXG.JessieCode._lex = function(info) {
-    var state       = 0,
-        match       = -1,
-        match_pos   = 0,
-        start       = 0,
-        pos         = info.offset + 1;
+    _dbg_print: function (text) {
+        this._dbg_string += text + "\n";
+    },
 
-    do {
-        pos--;
-        state = 0;
-        match = -2;
-        start = pos;
-
-        if( info.src.length <= start )
-            return 52;
+    _lex: function (info) {
+        var state = 0,
+            match = -1,
+            match_pos = 0,
+            start = 0,
+            pos = info.offset + 1;
 
         do {
+            pos--;
+            state = 0;
+            match = -2;
+            start = pos;
+
+            if (info.src.length <= start) {
+                return 52;
+            }
+
+            do {
 
 switch( state )
 {
@@ -1024,17 +1063,15 @@ switch( state )
 }
 
 
-            pos++;
+                pos++;
 
-        }
-        while( state > -1 );
+            } while( state > -1 );
 
-    }
-    while( 1 > -1 && match == 1 );
+        } while (1 > -1 && match == 1);
 
-    if( match > -1 ) {
-        info.att = info.src.substr( start, match_pos - start );
-        info.offset = match_pos;
+        if (match > -1) {
+            info.att = info.src.substr( start, match_pos - start );
+            info.offset = match_pos;
         
 switch( match )
 {
@@ -1048,26 +1085,27 @@ switch( match )
 }
 
 
-    } else {
-        info.att = new String();
-        match = -1;
-    }
+        } else {
+            info.att = new String();
+            match = -1;
+        }
 
-    return match;
-};
+        return match;
+    },
 
 
-JXG.JessieCode._parse = function(src, err_off, err_la) {
-    var sstack      = new Array(),
-        vstack      = new Array(),
-        err_cnt     = 0,
-        act,
-        go,
-        la,
-        rval,
-        parseinfo   = new Function( "", "var offset; var src; var att;" ),
-        info        = new parseinfo();
-    
+    _parse: function (src, err_off, err_la) {
+        var sstack = [],
+            vstack = [],
+            err_cnt = 0,
+            act,
+            go,
+            la,
+            rval,
+            i,
+            parseinfo = new Function( "", "var offset; var src; var att;" ),
+            info = new parseinfo();
+
 /* Pop-Table */
 var pop_tab = new Array(
 	new Array( 0/* Program' */, 1 ),
@@ -1426,150 +1464,141 @@ var labels = new Array(
 
 
     
-    info.offset = 0;
-    info.src = src;
-    info.att = new String();
+        info.offset = 0;
+        info.src = src;
+        info.att = '';
     
-    if( !err_off )
-        err_off    = new Array();
-    if( !err_la )
-    err_la = new Array();
+        if( !err_off ) {
+            err_off = [];
+        }
+        if( !err_la ) {
+            err_la = [];
+        }
     
-    sstack.push( 0 );
-    vstack.push( 0 );
+        sstack.push(0);
+        vstack.push(0);
     
-    la = JXG.JessieCode._lex( info );
+        la = this._lex(info);
 
-    while( true )
-    {
-        act = 116;
-        for( var i = 0; i < act_tab[sstack[sstack.length-1]].length; i+=2 )
-        {
-            if( act_tab[sstack[sstack.length-1]][i] == la )
-            {
-                act = act_tab[sstack[sstack.length-1]][i+1];
-                break;
+        while (true) {
+            act = 116;
+            for (i = 0; i < act_tab[sstack[sstack.length-1]].length; i+=2) {
+                if (act_tab[sstack[sstack.length-1]][i] == la) {
+                    act = act_tab[sstack[sstack.length-1]][i+1];
+                    break;
+                }
             }
-        }
 
-        if( JXG.JessieCode._dbg_withtrace && sstack.length > 0 )
-        {
-            JXG.JessieCode._dbg_print( "\nState " + sstack[sstack.length-1] + "\n" +
-                            "\tLookahead: " + labels[la] + " (\"" + info.att + "\")\n" +
-                            "\tAction: " + act + "\n" + 
-                            "\tSource: \"" + info.src.substr( info.offset, 30 ) + ( ( info.offset + 30 < info.src.length ) ?
-                                    "..." : "" ) + "\"\n" +
-                            "\tStack: " + sstack.join() + "\n" +
-                            "\tValue stack: " + vstack.join() + "\n" );
-        }
+            if (this._dbg_withtrace && sstack.length > 0) {
+                this._dbg_print("\nState " + sstack[sstack.length-1] + "\n" +
+                                "\tLookahead: " + labels[la] + " (\"" + info.att + "\")\n" +
+                                "\tAction: " + act + "\n" +
+                                "\tSource: \"" + info.src.substr( info.offset, 30 ) + ( ( info.offset + 30 < info.src.length ) ?
+                                        "..." : "" ) + "\"\n" +
+                                "\tStack: " + sstack.join() + "\n" +
+                                "\tValue stack: " + vstack.join() + "\n");
+            }
         
+            //Panic-mode: Try recovery when parse-error occurs!
+            if (act == 116) {
+                if (this._dbg_withtrace)
+                    this._dbg_print("Error detected: There is no reduce or shift on the symbol " + labels[la]);
             
-        //Panic-mode: Try recovery when parse-error occurs!
-        if( act == 116 )
-        {
-            if( JXG.JessieCode._dbg_withtrace )
-                JXG.JessieCode._dbg_print( "Error detected: There is no reduce or shift on the symbol " + labels[la] );
+                err_cnt++;
+                err_off.push(info.offset - info.att.length);
+                err_la.push([]);
+                for (i = 0; i < act_tab[sstack[sstack.length-1]].length; i+=2) {
+                    err_la[err_la.length-1].push( labels[act_tab[sstack[sstack.length-1]][i]] );
+                }
             
-            err_cnt++;
-            err_off.push( info.offset - info.att.length );            
-            err_la.push( new Array() );
-            for( var i = 0; i < act_tab[sstack[sstack.length-1]].length; i+=2 )
-                err_la[err_la.length-1].push( labels[act_tab[sstack[sstack.length-1]][i]] );
-            
-            //Remember the original stack!
-            var rsstack = new Array();
-            var rvstack = new Array();
-            for( var i = 0; i < sstack.length; i++ )
-            {
-                rsstack[i] = sstack[i];
-                rvstack[i] = vstack[i];
-            }
-            
-            while( act == 116 && la != 52 )
-            {
-                if( JXG.JessieCode._dbg_withtrace )
-                    JXG.JessieCode._dbg_print( "\tError recovery\n" +
-                                    "Current lookahead: " + labels[la] + " (" + info.att + ")\n" +
-                                    "Action: " + act + "\n\n" );
-                if( la == -1 )
-                    info.offset++;
-                    
-                while( act == 116 && sstack.length > 0 )
-                {
-                    sstack.pop();
-                    vstack.pop();
-                    
-                    if( sstack.length == 0 )
-                        break;
-                        
-                    act = 116;
-                    for( var i = 0; i < act_tab[sstack[sstack.length-1]].length; i+=2 )
-                    {
-                        if( act_tab[sstack[sstack.length-1]][i] == la )
-                        {
-                            act = act_tab[sstack[sstack.length-1]][i+1];
+                //Remember the original stack!
+                var rsstack = [];
+                var rvstack = [];
+                for (i = 0; i < sstack.length; i++) {
+                    rsstack[i] = sstack[i];
+                    rvstack[i] = vstack[i];
+                }
+
+                while (act == 116 && la != 52) {
+                    if (this._dbg_withtrace) {
+                        this._dbg_print("\tError recovery\n" +
+                                        "Current lookahead: " + labels[la] + " (" + info.att + ")\n" +
+                                        "Action: " + act + "\n\n");
+                    }
+                    if (la == -1) {
+                        info.offset++;
+                    }
+
+                    while (act == 116 && sstack.length > 0) {
+                        sstack.pop();
+                        vstack.pop();
+
+                        if (sstack.length == 0) {
                             break;
                         }
+
+                        act = 116;
+                        for (i = 0; i < act_tab[sstack[sstack.length-1]].length; i+=2) {
+                            if (act_tab[sstack[sstack.length-1]][i] == la) {
+                                act = act_tab[sstack[sstack.length-1]][i+1];
+                                break;
+                            }
+                        }
                     }
+
+                    if (act != 116) {
+                        break;
+                    }
+
+                    for (i = 0; i < rsstack.length; i++) {
+                        sstack.push(rsstack[i]);
+                        vstack.push(rvstack[i]);
+                    }
+
+                    la = this._lex(info);
                 }
-                
-                if( act != 116 )
+
+                if (act == 116) {
+                    if (this._dbg_withtrace ) {
+                        this._dbg_print("\tError recovery failed, terminating parse process...");
+                    }
                     break;
-                
-                for( var i = 0; i < rsstack.length; i++ )
-                {
-                    sstack.push( rsstack[i] );
-                    vstack.push( rvstack[i] );
                 }
-                
-                la = JXG.JessieCode._lex( info );
-            }
-            
-            if( act == 116 )
-            {
-                if( JXG.JessieCode._dbg_withtrace )
-                    JXG.JessieCode._dbg_print( "\tError recovery failed, terminating parse process..." );
-                break;
+
+                if (this._dbg_withtrace) {
+                    this._dbg_print("\tError recovery succeeded, continuing");
+                }
             }
 
+            //Shift
+            if (act > 0) {
+                if (this._dbg_withtrace) {
+                    this._dbg_print("Shifting symbol: " + labels[la] + " (" + info.att + ")");
+                }
 
-            if( JXG.JessieCode._dbg_withtrace )
-                JXG.JessieCode._dbg_print( "\tError recovery succeeded, continuing" );
-        }
-        
-        /*
-        if( act == 116 )
-            break;
-        */
-        
-        
-        //Shift
-        if( act > 0 )
-        {            
-            if( JXG.JessieCode._dbg_withtrace )
-                JXG.JessieCode._dbg_print( "Shifting symbol: " + labels[la] + " (" + info.att + ")" );
-        
-            sstack.push( act );
-            vstack.push( info.att );
-            
-            la = JXG.JessieCode._lex( info );
-            
-            if( JXG.JessieCode._dbg_withtrace )
-                JXG.JessieCode._dbg_print( "\tNew lookahead symbol: " + labels[la] + " (" + info.att + ")" );
-        }
-        //Reduce
-        else
-        {        
-            act *= -1;
-            
-            if( JXG.JessieCode._dbg_withtrace )
-                JXG.JessieCode._dbg_print( "Reducing by producution: " + act );
-            
-            rval = void(0);
-            
-            if( JXG.JessieCode._dbg_withtrace )
-                JXG.JessieCode._dbg_print( "\tPerforming semantic action..." );
-            
+                sstack.push(act);
+                vstack.push(info.att);
+
+                la = this._lex(info);
+
+                if (this._dbg_withtrace) {
+                    this._dbg_print("\tNew lookahead symbol: " + labels[la] + " (" + info.att + ")");
+                }
+            }
+            //Reduce
+            else {
+                act *= -1;
+
+                if (this._dbg_withtrace) {
+                    this._dbg_print("Reducing by producution: " + act);
+                }
+
+                rval = void(0);
+
+                if (this._dbg_withtrace) {
+                    this._dbg_print("\tPerforming semantic action...");
+                }
+
 switch( act )
 {
 	case 0:
@@ -1579,7 +1608,7 @@ switch( act )
 	break;
 	case 1:
 	{
-		 JXG.JessieCode.execute( vstack[ vstack.length - 1 ] ); 
+		 this.execute( vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 2:
@@ -1589,7 +1618,7 @@ switch( act )
 	break;
 	case 3:
 	{
-		 rval = JXG.JessieCode.createNode('node_op', 'op_none', vstack[ vstack.length - 2 ], vstack[ vstack.length - 1 ] ); 
+		 rval = this.createNode('node_op', 'op_none', vstack[ vstack.length - 2 ], vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 4:
@@ -1599,17 +1628,17 @@ switch( act )
 	break;
 	case 5:
 	{
-		 rval = JXG.JessieCode.createNode('node_op', 'op_paramlst', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
+		 rval = this.createNode('node_op', 'op_paramlst', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 6:
 	{
-		 rval = JXG.JessieCode.createNode('node_op', 'op_param', vstack[ vstack.length - 1 ]); 
+		 rval = this.createNode('node_op', 'op_param', vstack[ vstack.length - 1 ]); 
 	}
 	break;
 	case 7:
 	{
-		 rval = JXG.JessieCode.createNode('node_op', 'op_proplst', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
+		 rval = this.createNode('node_op', 'op_proplst', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 8:
@@ -1624,17 +1653,17 @@ switch( act )
 	break;
 	case 10:
 	{
-		 rval = JXG.JessieCode.createNode('node_op', 'op_prop', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
+		 rval = this.createNode('node_op', 'op_prop', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 11:
 	{
-		 rval = JXG.JessieCode.createNode('node_op', 'op_paramdeflst', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
+		 rval = this.createNode('node_op', 'op_paramdeflst', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 12:
 	{
-		 rval = JXG.JessieCode.createNode('node_op', 'op_paramdef', vstack[ vstack.length - 1 ]); 
+		 rval = this.createNode('node_op', 'op_paramdef', vstack[ vstack.length - 1 ]); 
 	}
 	break;
 	case 13:
@@ -1644,52 +1673,52 @@ switch( act )
 	break;
 	case 14:
 	{
-		 rval = JXG.JessieCode.createNode('node_op', 'op_if', vstack[ vstack.length - 2 ], vstack[ vstack.length - 1 ] ); 
+		 rval = this.createNode('node_op', 'op_if', vstack[ vstack.length - 2 ], vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 15:
 	{
-		 rval = JXG.JessieCode.createNode('node_op', 'op_if_else', vstack[ vstack.length - 4 ], vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
+		 rval = this.createNode('node_op', 'op_if_else', vstack[ vstack.length - 4 ], vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 16:
 	{
-		 rval = JXG.JessieCode.createNode('node_op', 'op_while', vstack[ vstack.length - 2 ], vstack[ vstack.length - 0 ] ); 
+		 rval = this.createNode('node_op', 'op_while', vstack[ vstack.length - 2 ], vstack[ vstack.length - 0 ] ); 
 	}
 	break;
 	case 17:
 	{
-		 rval = JXG.JessieCode.createNode('node_op', 'op_for', vstack[ vstack.length - 4 ], vstack[ vstack.length - 2 ] ); 
+		 rval = this.createNode('node_op', 'op_for', vstack[ vstack.length - 4 ], vstack[ vstack.length - 2 ] ); 
 	}
 	break;
 	case 18:
 	{
-		 rval = JXG.JessieCode.createNode('node_op', 'op_use', vstack[ vstack.length - 2 ] ); 
+		 rval = this.createNode('node_op', 'op_use', vstack[ vstack.length - 2 ] ); 
 	}
 	break;
 	case 19:
 	{
-		 rval = JXG.JessieCode.createNode('node_op', 'op_return', vstack[ vstack.length - 1 ] ); 
+		 rval = this.createNode('node_op', 'op_return', vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 20:
 	{
-		 rval = JXG.JessieCode.createNode('node_op', 'op_assign', vstack[ vstack.length - 4 ], vstack[ vstack.length - 2 ] ); 
+		 rval = this.createNode('node_op', 'op_assign', vstack[ vstack.length - 4 ], vstack[ vstack.length - 2 ] ); 
 	}
 	break;
 	case 21:
 	{
-		 rval = JXG.JessieCode.createNode('node_op', 'op_property', vstack[ vstack.length - 6 ], vstack[ vstack.length - 4 ], vstack[ vstack.length - 2 ] ); 
+		 rval = this.createNode('node_op', 'op_property', vstack[ vstack.length - 6 ], vstack[ vstack.length - 4 ], vstack[ vstack.length - 2 ] ); 
 	}
 	break;
 	case 22:
 	{
-		 rval = JXG.JessieCode.createNode('node_op', 'op_propnoob', vstack[ vstack.length - 4 ], vstack[ vstack.length - 2 ] ); 
+		 rval = this.createNode('node_op', 'op_propnoob', vstack[ vstack.length - 4 ], vstack[ vstack.length - 2 ] ); 
 	}
 	break;
 	case 23:
 	{
-		 rval = JXG.JessieCode.createNode('node_op', 'op_noassign', vstack[ vstack.length - 2 ] ); 
+		 rval = this.createNode('node_op', 'op_noassign', vstack[ vstack.length - 2 ] ); 
 	}
 	break;
 	case 24:
@@ -1699,37 +1728,37 @@ switch( act )
 	break;
 	case 25:
 	{
-		 rval = JXG.JessieCode.createNode('node_op', 'op_none' ); 
+		 rval = this.createNode('node_op', 'op_none' ); 
 	}
 	break;
 	case 26:
 	{
-		 rval = JXG.JessieCode.createNode('node_op', 'op_equ', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
+		 rval = this.createNode('node_op', 'op_equ', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 27:
 	{
-		 rval = JXG.JessieCode.createNode('node_op', 'op_lot', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
+		 rval = this.createNode('node_op', 'op_lot', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 28:
 	{
-		 rval = JXG.JessieCode.createNode('node_op', 'op_grt', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
+		 rval = this.createNode('node_op', 'op_grt', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 29:
 	{
-		 rval = JXG.JessieCode.createNode('node_op', 'op_loe', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
+		 rval = this.createNode('node_op', 'op_loe', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 30:
 	{
-		 rval = JXG.JessieCode.createNode('node_op', 'op_gre', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
+		 rval = this.createNode('node_op', 'op_gre', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 31:
 	{
-		 rval = JXG.JessieCode.createNode('node_op', 'op_neq', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
+		 rval = this.createNode('node_op', 'op_neq', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 32:
@@ -1739,12 +1768,12 @@ switch( act )
 	break;
 	case 33:
 	{
-		 rval = JXG.JessieCode.createNode('node_op', 'op_sub', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
+		 rval = this.createNode('node_op', 'op_sub', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 34:
 	{
-		 rval = JXG.JessieCode.createNode('node_op', 'op_add', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
+		 rval = this.createNode('node_op', 'op_add', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 35:
@@ -1754,12 +1783,12 @@ switch( act )
 	break;
 	case 36:
 	{
-		 rval = JXG.JessieCode.createNode('node_op', 'op_mul', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
+		 rval = this.createNode('node_op', 'op_mul', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 37:
 	{
-		 rval = JXG.JessieCode.createNode('node_op', 'op_div', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
+		 rval = this.createNode('node_op', 'op_div', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 38:
@@ -1769,7 +1798,7 @@ switch( act )
 	break;
 	case 39:
 	{
-		 rval = JXG.JessieCode.createNode('node_op', 'op_neg', vstack[ vstack.length - 1 ] ); 
+		 rval = this.createNode('node_op', 'op_neg', vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 40:
@@ -1779,17 +1808,17 @@ switch( act )
 	break;
 	case 41:
 	{
-		 rval = JXG.JessieCode.createNode('node_const', vstack[ vstack.length - 1 ] ); 
+		 rval = this.createNode('node_const', vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 42:
 	{
-		 rval = JXG.JessieCode.createNode('node_const', vstack[ vstack.length - 1 ] ); 
+		 rval = this.createNode('node_const', vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 43:
 	{
-		 rval = JXG.JessieCode.createNode('node_var', vstack[ vstack.length - 1 ] ); 
+		 rval = this.createNode('node_var', vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 44:
@@ -1799,102 +1828,100 @@ switch( act )
 	break;
 	case 45:
 	{
-		 rval = JXG.JessieCode.createNode('node_str', vstack[ vstack.length - 1 ]); 
+		 rval = this.createNode('node_str', vstack[ vstack.length - 1 ]); 
 	}
 	break;
 	case 46:
 	{
-		 rval = JXG.JessieCode.createNode('node_op', 'op_execfun', vstack[ vstack.length - 4 ], vstack[ vstack.length - 2 ]); 
+		 rval = this.createNode('node_op', 'op_execfun', vstack[ vstack.length - 4 ], vstack[ vstack.length - 2 ]); 
 	}
 	break;
 	case 47:
 	{
-		 rval = JXG.JessieCode.createNode('node_op', 'op_execfun', vstack[ vstack.length - 7 ], vstack[ vstack.length - 5 ], vstack[ vstack.length - 2 ]); 
+		 rval = this.createNode('node_op', 'op_execfun', vstack[ vstack.length - 7 ], vstack[ vstack.length - 5 ], vstack[ vstack.length - 2 ]); 
 	}
 	break;
 	case 48:
 	{
-		 rval = JXG.JessieCode.createNode('node_op', 'op_function', vstack[ vstack.length - 5 ], vstack[ vstack.length - 2 ]); 
+		 rval = this.createNode('node_op', 'op_function', vstack[ vstack.length - 5 ], vstack[ vstack.length - 2 ]); 
 	}
 	break;
 	case 49:
 	{
-		 rval = JXG.JessieCode.createNode('node_method', 'x', vstack[ vstack.length - 2 ]); 
+		 rval = this.createNode('node_method', 'x', vstack[ vstack.length - 2 ]); 
 	}
 	break;
 	case 50:
 	{
-		 rval = JXG.JessieCode.createNode('node_method', 'y', vstack[ vstack.length - 2 ]); 
+		 rval = this.createNode('node_method', 'y', vstack[ vstack.length - 2 ]); 
 	}
 	break;
 	case 51:
 	{
-		 rval = JXG.JessieCode.createNode('node_property', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ]); 
+		 rval = this.createNode('node_property', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ]); 
 	}
 	break;
 	case 52:
 	{
-		 rval = JXG.JessieCode.createNode('node_op', 'op_proplst_val', vstack[ vstack.length - 2 ] ); 
+		 rval = this.createNode('node_op', 'op_proplst_val', vstack[ vstack.length - 2 ] ); 
 	}
 	break;
 	case 53:
 	{
-		 rval = JXG.JessieCode.createNode('node_const_bool', vstack[ vstack.length - 1 ] ); 
+		 rval = this.createNode('node_const_bool', vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 	case 54:
 	{
-		 rval = JXG.JessieCode.createNode('node_const_bool', vstack[ vstack.length - 1 ] ); 
+		 rval = this.createNode('node_const_bool', vstack[ vstack.length - 1 ] ); 
 	}
 	break;
 }
 
 
 
-            if( JXG.JessieCode._dbg_withtrace )
-                JXG.JessieCode._dbg_print( "\tPopping " + pop_tab[act][1] + " off the stack..." );
-                
-            for( var i = 0; i < pop_tab[act][1]; i++ )
-            {
-                sstack.pop();
-                vstack.pop();
-            }
-                                    
-            go = -1;
-            for( var i = 0; i < goto_tab[sstack[sstack.length-1]].length; i+=2 )
-            {
-                if( goto_tab[sstack[sstack.length-1]][i] == pop_tab[act][0] )
-                {
-                    go = goto_tab[sstack[sstack.length-1]][i+1];
+                if (this._dbg_withtrace) {
+                    this._dbg_print("\tPopping " + pop_tab[act][1] + " off the stack...");
+                }
+
+                for (i = 0; i < pop_tab[act][1]; i++) {
+                    sstack.pop();
+                    vstack.pop();
+                }
+
+                go = -1;
+                for (i = 0; i < goto_tab[sstack[sstack.length-1]].length; i+=2) {
+                    if (goto_tab[sstack[sstack.length-1]][i] == pop_tab[act][0]) {
+                        go = goto_tab[sstack[sstack.length-1]][i+1];
+                        break;
+                    }
+                }
+
+                if (act == 0) {
                     break;
                 }
+
+                if (this._dbg_withtrace) {
+                    this._dbg_print("\tPushing non-terminal " + labels[pop_tab[act][0]]);
+                }
+
+                sstack.push(go);
+                vstack.push(rval);
             }
-            
-            if( act == 0 )
-                break;
-                
-            if( JXG.JessieCode._dbg_withtrace )
-                JXG.JessieCode._dbg_print( "\tPushing non-terminal " + labels[ pop_tab[act][0] ] );
-                
-            sstack.push( go );
-            vstack.push( rval );            
-        }
-        
-        if( JXG.JessieCode._dbg_withtrace )
-        {        
-            alert( JXG.JessieCode._dbg_string );
-            JXG.JessieCode._dbg_string = new String();
-        }
-    }
 
-    if( JXG.JessieCode._dbg_withtrace )
-    {
-        JXG.JessieCode._dbg_print( "\nParse complete." );
-        alert( JXG.JessieCode._dbg_string );
-    }
-    
-    return err_cnt;
-}
+            if (this._dbg_withtrace ) {
+                alert(this._dbg_string);
+                this._dbg_string = '';
+            }
+        }
 
+        if (this._dbg_withtrace) {
+            this._dbg_print("\nParse complete.");
+            alert(this._dbg_string);
+        }
+
+        return err_cnt;
+    }
+});
 
 

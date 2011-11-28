@@ -14,259 +14,250 @@
     This is in the public domain.
 */
 
-JXG.JessieCode._dbg_withtrace = false;
-JXG.JessieCode._dbg_string = new String();
 
-JXG.JessieCode._dbg_print = function ( text ) {
-    JXG.JessieCode._dbg_string += text + "\n";
-};
+JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
+    _dbg_withtrace: false,
+    _dbg_string: '',
 
-JXG.JessieCode._lex = function(info) {
-    var state       = 0,
-        match       = -1,
-        match_pos   = 0,
-        start       = 0,
-        pos         = info.offset + 1;
+    _dbg_print: function (text) {
+        this._dbg_string += text + "\n";
+    },
 
-    do {
-        pos--;
-        state = 0;
-        match = -2;
-        start = pos;
-
-        if( info.src.length <= start )
-            return ##EOF##;
+    _lex: function (info) {
+        var state = 0,
+            match = -1,
+            match_pos = 0,
+            start = 0,
+            pos = info.offset + 1;
 
         do {
+            pos--;
+            state = 0;
+            match = -2;
+            start = pos;
+
+            if (info.src.length <= start) {
+                return ##EOF##;
+            }
+
+            do {
 
 ##DFA##
-            pos++;
+                pos++;
 
-        }
-        while( state > -1 );
+            } while( state > -1 );
 
-    }
-    while( ##WHITESPACE## > -1 && match == ##WHITESPACE## );
+        } while (##WHITESPACE## > -1 && match == ##WHITESPACE##);
 
-    if( match > -1 ) {
-        info.att = info.src.substr( start, match_pos - start );
-        info.offset = match_pos;
+        if (match > -1) {
+            info.att = info.src.substr( start, match_pos - start );
+            info.offset = match_pos;
         
 ##TERMINAL_ACTIONS##
-    } else {
-        info.att = new String();
-        match = -1;
-    }
+        } else {
+            info.att = new String();
+            match = -1;
+        }
 
-    return match;
-};
+        return match;
+    },
 
 
-JXG.JessieCode._parse = function(src, err_off, err_la) {
-    var sstack      = new Array(),
-        vstack      = new Array(),
-        err_cnt     = 0,
-        act,
-        go,
-        la,
-        rval,
-        parseinfo   = new Function( "", "var offset; var src; var att;" ),
-        info        = new parseinfo();
-    
+    _parse: function (src, err_off, err_la) {
+        var sstack = [],
+            vstack = [],
+            err_cnt = 0,
+            act,
+            go,
+            la,
+            rval,
+            i,
+            parseinfo = new Function( "", "var offset; var src; var att;" ),
+            info = new parseinfo();
+
 ##TABLES##
 
 ##LABELS##
     
-    info.offset = 0;
-    info.src = src;
-    info.att = new String();
+        info.offset = 0;
+        info.src = src;
+        info.att = '';
     
-    if( !err_off )
-        err_off    = new Array();
-    if( !err_la )
-    err_la = new Array();
+        if( !err_off ) {
+            err_off = [];
+        }
+        if( !err_la ) {
+            err_la = [];
+        }
     
-    sstack.push( 0 );
-    vstack.push( 0 );
+        sstack.push(0);
+        vstack.push(0);
     
-    la = JXG.JessieCode._lex( info );
+        la = this._lex(info);
 
-    while( true )
-    {
-        act = ##ERROR##;
-        for( var i = 0; i < act_tab[sstack[sstack.length-1]].length; i+=2 )
-        {
-            if( act_tab[sstack[sstack.length-1]][i] == la )
-            {
-                act = act_tab[sstack[sstack.length-1]][i+1];
-                break;
+        while (true) {
+            act = ##ERROR##;
+            for (i = 0; i < act_tab[sstack[sstack.length-1]].length; i+=2) {
+                if (act_tab[sstack[sstack.length-1]][i] == la) {
+                    act = act_tab[sstack[sstack.length-1]][i+1];
+                    break;
+                }
             }
-        }
 
-        if( JXG.JessieCode._dbg_withtrace && sstack.length > 0 )
-        {
-            JXG.JessieCode._dbg_print( "\nState " + sstack[sstack.length-1] + "\n" +
-                            "\tLookahead: " + labels[la] + " (\"" + info.att + "\")\n" +
-                            "\tAction: " + act + "\n" + 
-                            "\tSource: \"" + info.src.substr( info.offset, 30 ) + ( ( info.offset + 30 < info.src.length ) ?
-                                    "..." : "" ) + "\"\n" +
-                            "\tStack: " + sstack.join() + "\n" +
-                            "\tValue stack: " + vstack.join() + "\n" );
-        }
+            if (this._dbg_withtrace && sstack.length > 0) {
+                this._dbg_print("\nState " + sstack[sstack.length-1] + "\n" +
+                                "\tLookahead: " + labels[la] + " (\"" + info.att + "\")\n" +
+                                "\tAction: " + act + "\n" +
+                                "\tSource: \"" + info.src.substr( info.offset, 30 ) + ( ( info.offset + 30 < info.src.length ) ?
+                                        "..." : "" ) + "\"\n" +
+                                "\tStack: " + sstack.join() + "\n" +
+                                "\tValue stack: " + vstack.join() + "\n");
+            }
         
+            //Panic-mode: Try recovery when parse-error occurs!
+            if (act == ##ERROR##) {
+                if (this._dbg_withtrace)
+                    this._dbg_print("Error detected: There is no reduce or shift on the symbol " + labels[la]);
             
-        //Panic-mode: Try recovery when parse-error occurs!
-        if( act == ##ERROR## )
-        {
-            if( JXG.JessieCode._dbg_withtrace )
-                JXG.JessieCode._dbg_print( "Error detected: There is no reduce or shift on the symbol " + labels[la] );
+                err_cnt++;
+                err_off.push(info.offset - info.att.length);
+                err_la.push([]);
+                for (i = 0; i < act_tab[sstack[sstack.length-1]].length; i+=2) {
+                    err_la[err_la.length-1].push( labels[act_tab[sstack[sstack.length-1]][i]] );
+                }
             
-            err_cnt++;
-            err_off.push( info.offset - info.att.length );            
-            err_la.push( new Array() );
-            for( var i = 0; i < act_tab[sstack[sstack.length-1]].length; i+=2 )
-                err_la[err_la.length-1].push( labels[act_tab[sstack[sstack.length-1]][i]] );
-            
-            //Remember the original stack!
-            var rsstack = new Array();
-            var rvstack = new Array();
-            for( var i = 0; i < sstack.length; i++ )
-            {
-                rsstack[i] = sstack[i];
-                rvstack[i] = vstack[i];
-            }
-            
-            while( act == ##ERROR## && la != ##EOF## )
-            {
-                if( JXG.JessieCode._dbg_withtrace )
-                    JXG.JessieCode._dbg_print( "\tError recovery\n" +
-                                    "Current lookahead: " + labels[la] + " (" + info.att + ")\n" +
-                                    "Action: " + act + "\n\n" );
-                if( la == -1 )
-                    info.offset++;
-                    
-                while( act == ##ERROR## && sstack.length > 0 )
-                {
-                    sstack.pop();
-                    vstack.pop();
-                    
-                    if( sstack.length == 0 )
-                        break;
-                        
-                    act = ##ERROR##;
-                    for( var i = 0; i < act_tab[sstack[sstack.length-1]].length; i+=2 )
-                    {
-                        if( act_tab[sstack[sstack.length-1]][i] == la )
-                        {
-                            act = act_tab[sstack[sstack.length-1]][i+1];
+                //Remember the original stack!
+                var rsstack = [];
+                var rvstack = [];
+                for (i = 0; i < sstack.length; i++) {
+                    rsstack[i] = sstack[i];
+                    rvstack[i] = vstack[i];
+                }
+
+                while (act == ##ERROR## && la != ##EOF##) {
+                    if (this._dbg_withtrace) {
+                        this._dbg_print("\tError recovery\n" +
+                                        "Current lookahead: " + labels[la] + " (" + info.att + ")\n" +
+                                        "Action: " + act + "\n\n");
+                    }
+                    if (la == -1) {
+                        info.offset++;
+                    }
+
+                    while (act == ##ERROR## && sstack.length > 0) {
+                        sstack.pop();
+                        vstack.pop();
+
+                        if (sstack.length == 0) {
                             break;
                         }
+
+                        act = ##ERROR##;
+                        for (i = 0; i < act_tab[sstack[sstack.length-1]].length; i+=2) {
+                            if (act_tab[sstack[sstack.length-1]][i] == la) {
+                                act = act_tab[sstack[sstack.length-1]][i+1];
+                                break;
+                            }
+                        }
                     }
+
+                    if (act != ##ERROR##) {
+                        break;
+                    }
+
+                    for (i = 0; i < rsstack.length; i++) {
+                        sstack.push(rsstack[i]);
+                        vstack.push(rvstack[i]);
+                    }
+
+                    la = this._lex(info);
                 }
-                
-                if( act != ##ERROR## )
+
+                if (act == ##ERROR##) {
+                    if (this._dbg_withtrace ) {
+                        this._dbg_print("\tError recovery failed, terminating parse process...");
+                    }
                     break;
-                
-                for( var i = 0; i < rsstack.length; i++ )
-                {
-                    sstack.push( rsstack[i] );
-                    vstack.push( rvstack[i] );
                 }
-                
-                la = JXG.JessieCode._lex( info );
-            }
-            
-            if( act == ##ERROR## )
-            {
-                if( JXG.JessieCode._dbg_withtrace )
-                    JXG.JessieCode._dbg_print( "\tError recovery failed, terminating parse process..." );
-                break;
+
+                if (this._dbg_withtrace) {
+                    this._dbg_print("\tError recovery succeeded, continuing");
+                }
             }
 
+            //Shift
+            if (act > 0) {
+                if (this._dbg_withtrace) {
+                    this._dbg_print("Shifting symbol: " + labels[la] + " (" + info.att + ")");
+                }
 
-            if( JXG.JessieCode._dbg_withtrace )
-                JXG.JessieCode._dbg_print( "\tError recovery succeeded, continuing" );
-        }
-        
-        /*
-        if( act == ##ERROR## )
-            break;
-        */
-        
-        
-        //Shift
-        if( act > 0 )
-        {            
-            if( JXG.JessieCode._dbg_withtrace )
-                JXG.JessieCode._dbg_print( "Shifting symbol: " + labels[la] + " (" + info.att + ")" );
-        
-            sstack.push( act );
-            vstack.push( info.att );
-            
-            la = JXG.JessieCode._lex( info );
-            
-            if( JXG.JessieCode._dbg_withtrace )
-                JXG.JessieCode._dbg_print( "\tNew lookahead symbol: " + labels[la] + " (" + info.att + ")" );
-        }
-        //Reduce
-        else
-        {        
-            act *= -1;
-            
-            if( JXG.JessieCode._dbg_withtrace )
-                JXG.JessieCode._dbg_print( "Reducing by producution: " + act );
-            
-            rval = void(0);
-            
-            if( JXG.JessieCode._dbg_withtrace )
-                JXG.JessieCode._dbg_print( "\tPerforming semantic action..." );
-            
+                sstack.push(act);
+                vstack.push(info.att);
+
+                la = this._lex(info);
+
+                if (this._dbg_withtrace) {
+                    this._dbg_print("\tNew lookahead symbol: " + labels[la] + " (" + info.att + ")");
+                }
+            }
+            //Reduce
+            else {
+                act *= -1;
+
+                if (this._dbg_withtrace) {
+                    this._dbg_print("Reducing by producution: " + act);
+                }
+
+                rval = void(0);
+
+                if (this._dbg_withtrace) {
+                    this._dbg_print("\tPerforming semantic action...");
+                }
+
 ##ACTIONS##
 
-            if( JXG.JessieCode._dbg_withtrace )
-                JXG.JessieCode._dbg_print( "\tPopping " + pop_tab[act][1] + " off the stack..." );
-                
-            for( var i = 0; i < pop_tab[act][1]; i++ )
-            {
-                sstack.pop();
-                vstack.pop();
-            }
-                                    
-            go = -1;
-            for( var i = 0; i < goto_tab[sstack[sstack.length-1]].length; i+=2 )
-            {
-                if( goto_tab[sstack[sstack.length-1]][i] == pop_tab[act][0] )
-                {
-                    go = goto_tab[sstack[sstack.length-1]][i+1];
+                if (this._dbg_withtrace) {
+                    this._dbg_print("\tPopping " + pop_tab[act][1] + " off the stack...");
+                }
+
+                for (i = 0; i < pop_tab[act][1]; i++) {
+                    sstack.pop();
+                    vstack.pop();
+                }
+
+                go = -1;
+                for (i = 0; i < goto_tab[sstack[sstack.length-1]].length; i+=2) {
+                    if (goto_tab[sstack[sstack.length-1]][i] == pop_tab[act][0]) {
+                        go = goto_tab[sstack[sstack.length-1]][i+1];
+                        break;
+                    }
+                }
+
+                if (act == 0) {
                     break;
                 }
+
+                if (this._dbg_withtrace) {
+                    this._dbg_print("\tPushing non-terminal " + labels[pop_tab[act][0]]);
+                }
+
+                sstack.push(go);
+                vstack.push(rval);
             }
-            
-            if( act == 0 )
-                break;
-                
-            if( JXG.JessieCode._dbg_withtrace )
-                JXG.JessieCode._dbg_print( "\tPushing non-terminal " + labels[ pop_tab[act][0] ] );
-                
-            sstack.push( go );
-            vstack.push( rval );            
-        }
-        
-        if( JXG.JessieCode._dbg_withtrace )
-        {        
-            alert( JXG.JessieCode._dbg_string );
-            JXG.JessieCode._dbg_string = new String();
-        }
-    }
 
-    if( JXG.JessieCode._dbg_withtrace )
-    {
-        JXG.JessieCode._dbg_print( "\nParse complete." );
-        alert( JXG.JessieCode._dbg_string );
-    }
-    
-    return err_cnt;
-}
+            if (this._dbg_withtrace ) {
+                alert(this._dbg_string);
+                this._dbg_string = '';
+            }
+        }
 
+        if (this._dbg_withtrace) {
+            this._dbg_print("\nParse complete.");
+            alert(this._dbg_string);
+        }
+
+        return err_cnt;
+    }
+});
 
 ##FOOTER##

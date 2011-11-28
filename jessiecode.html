@@ -8,10 +8,12 @@
 <body>
 
 <div id="jxgbox" class="jxgbox" style="width:800px; height:800px; float:left"></div>
+<div id="jxgbox2" class="jxgbox" style="width:800px; height:800px; float:left"></div>
 <div id="debug" style="display:block;"></div>
 
 <script type="text/javascript">
   board = JXG.JSXGraph.initBoard('jxgbox', {boundingbox: [-5, 5, 5, -5], axis:true});
+  board = JXG.JSXGraph.initBoard('jxgbox2', {boundingbox: [-5, 5, 5, -5], axis:true});
 </script>
 
 <h2>Sourcecode:</h2>
@@ -67,12 +69,19 @@ p.strokeColor = '#CDEB8B';
 
 obj = << foo: 3, bar: 'baz' >>;
 </textarea>
+
+
+<textarea id="code2" cols="90" rows="50">
+use jxgbox2;
+A = point(2, 3) << strokeColor : 'yellow', fillColor : 'green' >>;
+</textarea>
 <pre>
 </pre>
 <script type="text/javascript">
   var str = document.getElementById('code').value;
 
-  JXG.JessieCode.parse(str);
+  var p1 = new JXG.JessieCode(str);
+  var p2 = new JXG.JessieCode(document.getElementById('code2').value);
 </script>
 </body>
 </html>
