@@ -246,6 +246,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                                 that.sstack[that.scope][_pstack[r]] = arguments[r];
 
                             r = that.execute(node.children[1]);
+
                             that.sstack.pop();
                             that.scope--;
                             return r;
@@ -424,7 +425,11 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                 break;
 
             case 'node_const_bool':
-                ret = Boolean(node.value);
+                if (node.value === 'false') {
+                    ret = false;
+                } else {
+                    ret = true;
+                }
                 break;
 
             case 'node_str':

@@ -20,7 +20,7 @@
 <textarea id="code" cols="90" rows="50">
 use jxgbox;
 //A = point(2, (1+5)/2);
-A = point(2, 3) << strokeColor : 'yellow', fillColor : 'green' >>;
+A = point(2, 3) << strokeColor : 'yellow', fillColor : 'green', id: 'wrzpfrmpf' >>;
 B = point(1, 1);
 C = point(-1, 1);
 
@@ -28,7 +28,7 @@ B.color = 'green';
 
 M = point((X(A)+X(B))/2, (Y(A)+Y(B))/2);
 
-CC = circumcircle(A, B, C) << point: << visible: true, withLabel: true, name: 'The Midpoint' >>, strokeColor: 'red' >>;
+CC = circumcircle('wrzpfrmpf', B, C) << point: << visible: true, withLabel: true, name: 'The Midpoint' >>, strokeColor: 'red' >>;
 
 l = line(A, B);
 //l.strokeColor = A.strokeColor;

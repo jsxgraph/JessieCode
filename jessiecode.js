@@ -114,7 +114,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
         }
         code = cleaned.join('\n');
 
-        if((error_cnt = JXG.JessieCode._parse(code, error_off, error_la)) > 0) {
+        if((error_cnt = this._parse(code, error_off, error_la)) > 0) {
             for(i = 0; i < error_cnt; i++)
                 alert("Parse error near >"  + code.substr( error_off[i], 30 ) + "<, expecting \"" + error_la[i].join() + "\"");
         }
@@ -245,7 +245,8 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                             for(r = 0; r < _pstack.length; r++)
                                 that.sstack[that.scope][_pstack[r]] = arguments[r];
 
-                            r = that..execute(node.children[1]);
+                            r = that.execute(node.children[1]);
+
                             that.sstack.pop();
                             that.scope--;
                             return r;
@@ -294,16 +295,16 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                             for(i = 0; i < this.pstack[this.pscope].length; i++) {
                                 if (node.children[0] === 'point' || node.children[0] === 'text') {
                                     if (this.pstack[this.pscope][i].type === 'node_const' || (this.pstack[this.pscope][i].value === 'op_neg' && this.pstack[this.pscope][i].children[0].type === 'node_const')) {
-                                        parents[i] = (this..execute(this.pstack[this.pscope][i]));
+                                        parents[i] = (this.execute(this.pstack[this.pscope][i]));
                                     } else {
                                         parents[i] = ((function(stree, that) {
                                             return function() {
-                                                return that..execute(stree)
+                                                return that.execute(stree)
                                             };
                                         })(this.pstack[this.pscope][i], this));
                                     }
                                 } else {
-                                    parents[i] = (this..execute(this.pstack[this.pscope][i]));
+                                    parents[i] = (this.execute(this.pstack[this.pscope][i]));
                                 }
                             }
 
@@ -424,7 +425,11 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                 break;
 
             case 'node_const_bool':
-                ret = Boolean(node.value);
+                if (node.value === 'false') {
+                    ret = false;
+                } else {
+                    ret = true;
+                }
                 break;
 
             case 'node_str':
