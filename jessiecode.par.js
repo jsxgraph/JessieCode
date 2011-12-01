@@ -43,6 +43,10 @@ JXG.JessieCode = function(code) {
     this.propstack = [{}];
     this.propscope = 0;
 
+    // array access list stack
+    this.aalstack = [[]];
+    this.aalscope = 0;
+
     // property object, if a property is set, the last object is saved and re-used, if there is no object given
     this.propobj = 0;
 
@@ -221,6 +225,37 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         // child 0: Identifier
                         // child 1: Value
                         this.propstack[this.propscope][node.children[0]] = this.execute(node.children[1]);
+                        break;
+                    case 'op_array':
+                        var l;
+
+                        this.pstack.push([]);
+                        this.pscope++;
+
+                        this.execute(node.children[0]);
+
+                        ret = [];
+                        l = this.pstack[this.pscope].length;
+
+                        for (i = 0; i < l; i++) {
+                            ret.push(this.execute(this.pstack[this.pscope][i]));
+                        }
+
+                        this.pstack.pop();
+                        this.pscope--;
+                        
+                        break;
+                    case 'op_extvalue':
+                        var undef;
+
+                        ret = this.execute(node.children[0]);
+                        i = this.execute(node.children[1]);
+
+                        if (typeof i === 'number' && Math.abs(Math.round(i) - i) < JXG.Math.eps) {
+                            ret = ret[i];
+                        } else {
+                            ret = undef;
+                        }
                         break;
                     case 'op_return':
                         if (this.scope === 0) {

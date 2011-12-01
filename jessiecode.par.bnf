@@ -11,6 +11,10 @@
     "FALSE"
     'X'
     'Y'
+    '<<'
+    '>>'
+    '\['
+    '\]'
     '{'
     '}'
     ';'
@@ -32,8 +36,6 @@
     '\:'
     '\|'
     '\.'
-    '<<'
-    '>>'
     '[A-Za-z_][A-Za-z0-9_]*'           Identifier
     '\'([^\']|\'\')*\''                String                                [* %match = %match.substr( 1, %match.length - 2 );
                                                                                 %match = %match.replace( /''/g, "\'" );    *]
@@ -101,10 +103,13 @@ MulDivExp:    MulDivExp '*' NegExp                                           [* 
         | NegExp
         ;
                 
-NegExp:        '-' Value                                                     [* %% = this.createNode('node_op', 'op_neg', %2 ); *]
-        | Value
+NegExp:        '-' ExtValue                                                  [* %% = this.createNode('node_op', 'op_neg', %2 ); *]
+        | ExtValue
         ;
 
+ExtValue:      ExtValue '[' AddSubExp ']'                                    [* %% = this.createNode('node_op', 'op_extvalue', %1, %3); *]
+        | Value
+        ;
 
 Value:        Integer                                                        [* %% = this.createNode('node_const', %1 ); *]
         | Float                                                              [* %% = this.createNode('node_const', %1 ); *]
@@ -117,7 +122,8 @@ Value:        Integer                                                        [* 
         | X '(' Identifier ')'                                               [* %% = this.createNode('node_method', 'x', %3); *]
         | Y '(' Identifier ')'                                               [* %% = this.createNode('node_method', 'y', %3); *]
         | Identifier '.' Identifier                                          [* %% = this.createNode('node_property', %1, %3); *]
-        | '<<' Prop_List '>>'                                                [* %% = this.createNode('node_op', 'op_proplst_val', %2 ); *]
+        | '<<' Prop_List '>>'                                                [* %% = this.createNode('node_op', 'op_proplst_val', %2); *]
+        | '[' Param_List ']'                                                 [* %% = this.createNode('node_op', 'op_array', %2); *]
         | TRUE                                                               [* %% = this.createNode('node_const_bool', %1 ); *]
         | FALSE                                                              [* %% = this.createNode('node_const_bool', %1 ); *]
         ;
