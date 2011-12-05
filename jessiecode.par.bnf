@@ -9,6 +9,7 @@
     "RETURN"
     "TRUE"
     "FALSE"
+    "DELETE"
     'X'
     'Y'
     '<<'
@@ -75,6 +76,7 @@ Stmt:          IF Expression Stmt                                            [* 
         | WHILE Expression Stmt                                              [* %% = this.createNode('node_op', 'op_while', %2, %4 ); *]
         | DO Stmt WHILE Expression ';'                                       [* %% = this.createNode('node_op', 'op_for', %2, %4 ); *]
         | USE Identifier ';'                                                 [* %% = this.createNode('node_op', 'op_use', %2 ); *]
+        | DELETE Identifier                                                  [* %% = this.createNode('node_op', 'op_delete', %2); *]
         | RETURN Stmt                                                        [* %% = this.createNode('node_op', 'op_return', %2 ); *]
         | Identifier '=' Expression ';'                                      [* %% = this.createNode('node_op', 'op_assign', %1, %3 ); *]
         | Identifier '.' Identifier '=' Expression ';'                       [* %% = this.createNode('node_op', 'op_property', %1, %3, %5 ); *]

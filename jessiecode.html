@@ -74,15 +74,21 @@ obj = << foo: 3, bar: 'baz' >>;
 <textarea id="code2" cols="90" rows="50">
 use jxgbox2;
 A = point(2, 3) << strokeColor : 'yellow', fillColor : 'green' >>;
+c = circle(A, 2);
+
+B = point(0, 0);
+B.makeGlider(c);
 
 arr = [1, 2, 'str', function (x) { return 'booya'; }];
 pooh = arr[1];
 //winnie = arr[3](2);
 
-matroschka = [1, [1, 5]];
+matroschka = [1, [1, 1]];
 inside = matroschka[1][1];
 
-A.moveTo([3, 3], 2000);
+A.moveTo(matroschka[1], 2000);
+
+delete B;
 </textarea>
 <pre>
 </pre>

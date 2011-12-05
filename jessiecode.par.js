@@ -125,10 +125,12 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
     },
 
     execute: function( node ) {
-        var ret = 0;
+        var ret, v, i, parents = [];
+
+        ret = 0;
 
         if( !node )
-            return 0;
+            return ret;
 
         switch( node.type ) {
             case 'node_op':
@@ -297,7 +299,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         //   [0]: Name of the function
                         //   [1]: Parameter list as a parse subtree
                         //   [2]: Properties, only used in case of a create function
-                        var fun, i, parents = [], props = false, attr;
+                        var fun, props = false, attr;
 
                         this.pstack.push([]);
                         this.pscope++;
@@ -374,27 +376,26 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         this.pscope--;
                         break;
                     case 'op_property':
-                        var v = this.execute(node.children[2]),
-                            e = this.getvar(node.children[0]),
+                        var e = this.getvar(node.children[0]),
                             par = {};
+
+                        v = this.execute(node.children[2])
 
                         this.propobj = e;
                         par[node.children[1]] = v;
                         e.setProperty(par);
                         break;
                     case 'op_method':
-                        var v = this.getvar(node.children[0]),
-                            parents = [];
+                        v = this.getvar(node.children[0])
+
                         this.pstack.push([]);
                         this.pscope++;
-console.log(node.children[2]);
+
                         this.execute(node.children[2]);
 
                         for(i = 0; i < this.pstack[this.pscope].length; i++) {
-console.log((this.execute(this.pstack[this.pscope][i])));
                             parents[i] = (this.execute(this.pstack[this.pscope][i]));
                         }
-console.log(parents);
 
                         if (typeof v[node.children[1]] === 'function') {
                             v[node.children[1]].apply(v, parents);
@@ -406,8 +407,9 @@ console.log(parents);
                         this.pscope--;
                         break;
                     case 'op_propnoob':
-                        var v = this.execute(node.children[1]),
-                            par = {};
+                        var par = {};
+
+                        v = this.execute(node.children[1])
 
                         if (this.propobj === 0) {
                             this._error('Object <null> not found.');
@@ -431,6 +433,13 @@ console.log(parents);
 
                         if(!found)
                             this._error('Board \'' + node.children[0].toString() + '\' not found!');
+                        break;
+                    case 'op_delete':
+                        v = this.getvar(node.children[0]);
+                        
+                        if (typeof v === 'object' && JXG.exists(v.type) && JXG.exists(v.elementClass)) {
+                            this.board.removeObject(v);
+                        }
                         break;
                     case 'op_equ':
                         ret = this.execute(node.children[0]) == this.execute(node.children[1]);
@@ -469,9 +478,9 @@ console.log(parents);
                 break;
 
             case 'node_property':
-                var e = this.getvar(node.value);
+                v = this.getvar(node.value);
 
-                ret = e.getProperty(node.children[0]);
+                ret = v.getProperty(node.children[0]);
                 break;
 
             case 'node_var':
@@ -483,11 +492,7 @@ console.log(parents);
                 break;
 
             case 'node_const_bool':
-                if (node.value === 'false') {
-                    ret = false;
-                } else {
-                    ret = true;
-                }
+                ret = node.value !== 'false';
                 break;
 
             case 'node_str':
@@ -495,26 +500,29 @@ console.log(parents);
                 break;
 
             case 'node_method':
+                v = this.getvar(node.children[0]);
+
                 switch(node.value) {
                     case 'x':
-                        if(this.getvar(node.children[0]) === 0) {
+                        if (v === 0) {
                             this._error(node.children[0] + ' is undefined.');
                             ret = NaN;
-                        } else if(!JXG.exists(this.getvar(node.children[0]).X)) {
+                        } else if (!JXG.exists(v.X)) {
                             this._error(node.children[0] + ' has no property \'X\'.');
                             ret = NaN;
-                        } else
-                            ret = this.getvar(node.children[0]).X();
+                        } else {
+                            ret = v.X();
+                        }
                         break;
                     case 'y':
-                        if(this.getvar(node.children[0]) === 0) {
+                        if (v === 0) {
                             this._error(node.children[0] + ' is undefined.');
                             ret = NaN;
-                        } else if(!JXG.exists(this.getvar(node.children[0]).Y)) {
+                        } else if (!JXG.exists(v.Y)) {
                             this._error(node.children[0] + ' has no property \'Y\'.');
                             ret = NaN;
                         } else
-                            ret = this.getvar(node.children[0]).Y();
+                            ret = v.Y();
                         break;
                 }
                 break;
@@ -531,7 +539,7 @@ console.log(parents);
      * @param value The nodes value, e.g. a variables value or a functions body.
      * @param children Arbitrary number of parameters; define the child nodes.
      */
-    createNode: function(type, value, children) {
+    createNode: function (type, value, children) {
         var n = this.node(type, value, []),
             i;
 
