@@ -69,7 +69,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
      * @param value The nodes value, e.g. a variables value or a functions body.
      * @param {Array} children Arbitrary number of child nodes.
      */
-    node: function(type, value, children) {
+    node: function (type, value, children) {
         return {
             type: type,
             value: value,
@@ -77,7 +77,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
         };
     },
 
-    _debug: function(log) {
+    _debug: function (log) {
         if(typeof console !== "undefined") {
             console.log(log);
         } else if(document.getElementById('debug') !== null) {
@@ -85,15 +85,15 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
         }
     },
 
-    _error: function(msg) {
+    _error: function (msg) {
         throw new Error(msg);
     },
 
-    letvar: function(vname, value) {
+    letvar: function (vname, value) {
         this.sstack[this.scope][vname] = value;
     },
 
-    getvar: function(vname) {
+    getvar: function (vname) {
         var s;
 
         for (s = this.scope; s > -1; s--) {
@@ -102,10 +102,15 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
             }
         }
 
+        s = JXG.getRef(this.board, vname);
+        if (s !== vname) {
+            return s;
+        }
+
         return 0;
     },
 
-    parse: function(code) {
+    parse: function (code) {
         var error_cnt = 0,
             error_off = [],
             error_la = [],
@@ -124,17 +129,46 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
         }
     },
 
-    execute: function( node ) {
-        var ret, v, i, parents = [];
+    snippet: function (code, funwrap, varname) {
+        var vname, c, tmp, result;
+
+        vname = 'jxg__tmp__intern_' + JXG.Util.genUUID().replace(/\-/g, '');
+
+        if (!JXG.exists(funwrap)) {
+            funwrap = true;
+        }
+
+        if (!JXG.exists(varname)) {
+            varname = '';
+        }
+
+        // just in case...
+        tmp = this.sstack[0][vname];
+
+        c = vname + ' = ' + (funwrap ? ' function (' + varname + ') { return ' : '') + code + (funwrap ? '; }' : '') + ';';
+        this.parse(c);
+
+        result = this.sstack[0][vname];
+        if (JXG.exists(tmp)) {
+            this.sstack[0][vname] = tmp;
+        } else {
+            delete this.sstack[0][vname];
+        }
+
+        return result;
+    },
+
+    execute: function (node) {
+        var ret, v, i, parents = [], par = {};
 
         ret = 0;
 
-        if( !node )
+        if (!node)
             return ret;
 
-        switch( node.type ) {
+        switch (node.type) {
             case 'node_op':
-                switch( node.value ) {
+                switch (node.value) {
                     case 'op_none':
                         if (node.children[0]) {
                             this.execute(node.children[0]);
@@ -299,10 +333,13 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         //   [0]: Name of the function
                         //   [1]: Parameter list as a parse subtree
                         //   [2]: Properties, only used in case of a create function
-                        var fun, props = false, attr;
+                        var fun, props, attr;
 
                         this.pstack.push([]);
                         this.pscope++;
+
+                        // assume there are no properties given
+                        props = false;
 
                         // parse the parameter list
                         // after this, the parameters are in pstack
@@ -376,17 +413,16 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         this.pscope--;
                         break;
                     case 'op_property':
-                        var e = this.getvar(node.children[0]),
-                            par = {};
+                        var e = this.getvar(node.children[0]);
 
-                        v = this.execute(node.children[2])
+                        v = this.execute(node.children[2]);
 
                         this.propobj = e;
                         par[node.children[1]] = v;
                         e.setProperty(par);
                         break;
                     case 'op_method':
-                        v = this.getvar(node.children[0])
+                        v = this.getvar(node.children[0]);
 
                         this.pstack.push([]);
                         this.pscope++;
@@ -407,9 +443,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         this.pscope--;
                         break;
                     case 'op_propnoob':
-                        var par = {};
-
-                        v = this.execute(node.children[1])
+                        v = this.execute(node.children[1]);
 
                         if (this.propobj === 0) {
                             this._error('Object <null> not found.');
@@ -502,7 +536,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
             case 'node_method':
                 v = this.getvar(node.children[0]);
 
-                switch(node.value) {
+                switch (node.value) {
                     case 'x':
                         if (v === 0) {
                             this._error(node.children[0] + ' is undefined.');
