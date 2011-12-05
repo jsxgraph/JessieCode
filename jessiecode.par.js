@@ -243,7 +243,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
 
                         this.pstack.pop();
                         this.pscope--;
-                        
+
                         break;
                     case 'op_extvalue':
                         var undef;
@@ -381,6 +381,29 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         this.propobj = e;
                         par[node.children[1]] = v;
                         e.setProperty(par);
+                        break;
+                    case 'op_method':
+                        var v = this.getvar(node.children[0]),
+                            parents = [];
+                        this.pstack.push([]);
+                        this.pscope++;
+console.log(node.children[2]);
+                        this.execute(node.children[2]);
+
+                        for(i = 0; i < this.pstack[this.pscope].length; i++) {
+console.log((this.execute(this.pstack[this.pscope][i])));
+                            parents[i] = (this.execute(this.pstack[this.pscope][i]));
+                        }
+console.log(parents);
+
+                        if (typeof v[node.children[1]] === 'function') {
+                            v[node.children[1]].apply(v, parents);
+                        } else {
+                            this._error('Error: "' + node.children[0] + '" has no method "' + node.children[1] + '".');
+                        }
+
+                        this.pstack.pop();
+                        this.pscope--;
                         break;
                     case 'op_propnoob':
                         var v = this.execute(node.children[1]),
