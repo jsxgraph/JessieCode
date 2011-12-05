@@ -77,7 +77,7 @@ A = point(2, 3) << strokeColor : 'yellow', fillColor : 'green' >>;
 c = circle(A, 2);
 
 B = point(0, 0);
-B.makeGlider(c);
+B.glide(c);
 
 arr = [1, 2, 'str', function (x) { return 'booya'; }];
 pooh = arr[1];
@@ -86,7 +86,7 @@ pooh = arr[1];
 matroschka = [1, [1, 1]];
 inside = matroschka[1][1];
 
-A.moveTo(matroschka[1], 2000);
+A.move(matroschka[1], 2000);
 
 delete B;
 </textarea>

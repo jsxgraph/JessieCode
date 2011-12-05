@@ -1,4 +1,30 @@
+/*
+    Copyright 2008-2011
+        Matthias Ehmann,
+        Michael Gerhaeuser,
+        Carsten Miller,
+        Bianca Valentin,
+        Alfred Wassermann,
+        Peter Wilfahrt
+
+    This file is part of JSXGraph.
+
+    JSXGraph is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    JSXGraph is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with JSXGraph.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 ##HEADER##
+
 /*
     Default template driver for JS/CC generated parsers running as
     browser-based JavaScript/ECMAScript applications.
@@ -10,19 +36,40 @@
     - Integrated panic-mode error recovery
     
     Written 2007, 2008 by Jan Max Meyer, J.M.K S.F. Software Technologies
+    Modified 2011 by Michael Gerhaeuser, JSXGraph
     
     This is in the public domain.
 */
 
 
 JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
+    /**
+     * JS/CC interna
+     * @type Boolean
+     * @private
+     */
     _dbg_withtrace: false,
+
+    /**
+     * JS/CC interna
+     * @type String
+     * @private
+     */
     _dbg_string: '',
 
+    /**
+     * JS/CC interna
+     * @param {String} text
+     * @private
+     */
     _dbg_print: function (text) {
         this._dbg_string += text + "\n";
     },
 
+    /**
+     * Internal lexer method.
+     * @private
+     */
     _lex: function (info) {
         var state = 0,
             match = -1,
@@ -62,7 +109,13 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
         return match;
     },
 
-
+    /**
+     * Internal parse tree generator.
+     * @param {String} src source code
+     * @param {Array} err_off The positions where the errors occured are stored here.
+     * @param {Array} err_la What the parser expected will be stored here.
+     * @private
+     */
     _parse: function (src, err_off, err_la) {
         var sstack = [],
             vstack = [],
