@@ -7,16 +7,56 @@
 </head>
 <body>
 
+
+<textarea id="unresolved_code" cols="90" rows="50" style="color:#880000;">
+
+    // A functionality which is absolutely needed:
+    // Anyonymous objects -- only with IDs!
+
+    point(1, 3) << id: "22", name: "No Name" >>;
+
+    id("22").strokeColor = #00ff00;
+    id("22").glide(c);
+    id("22").setLabel("Gleiter_ABC"); // should set name, htmlStr and label.content.name,
+                                    // label.content.htmlStr for consistency
+
+    // This one is also a MUST have
+    // and should delete "Gleiter_ABC"!
+
+    delete id("22");
+
+    // Another part which is essential:
+
+    C = point(1, 1) << id: "33" >>;
+    D = point(1, 3);
+
+    // We need to set or modify the X/Y coord function of a point.
+
+    D.X = function() {
+        return X(id("33"));
+    };
+
+    // or like so:
+
+    D.X = id("33").X;
+
+    // This functionality is needed for the handling of constrained (X/Y) points
+    // and the copying and measuring of objects -- the efforts to implement this
+    // will result in a CSS-safe log entry which can be recorded in the construction file
+    // and which is needed for secure reloads on portals like Moodle.
+</textarea>
+
 <div id="jxgbox" class="jxgbox" style="width:800px; height:800px; float:left"></div>
 <div id="jxgbox2" class="jxgbox" style="width:800px; height:800px; float:left"></div>
 <div id="debug" style="display:block;"></div>
 
 <script type="text/javascript">
-  board = JXG.JSXGraph.initBoard('jxgbox', {boundingbox: [-5, 5, 5, -5], axis:true});
-  board = JXG.JSXGraph.initBoard('jxgbox2', {boundingbox: [-5, 5, 5, -5], axis:true});
+    board = JXG.JSXGraph.initBoard('jxgbox', {boundingbox: [-5, 5, 5, -5], axis:true});
+    board = JXG.JSXGraph.initBoard('jxgbox2', {boundingbox: [-5, 5, 5, -5], axis:true});
 </script>
 
 <h2>Sourcecode:</h2>
+
 <textarea id="code" cols="90" rows="50">
 use jxgbox;
 //A = point(2, (1+5)/2);
@@ -70,7 +110,6 @@ p.strokeColor = '#CDEB8B';
 obj = << foo: 3, bar: 'baz' >>;
 </textarea>
 
-
 <textarea id="code2" cols="90" rows="50">
 use jxgbox2;
 A = point(2, 3) << strokeColor : 'yellow', fillColor : 'green' >>;
@@ -89,7 +128,9 @@ inside = matroschka[1][1];
 A.move(matroschka[1], 2000);
 
 delete B;
+
 </textarea>
+
 <pre>
 </pre>
 <script type="text/javascript">
