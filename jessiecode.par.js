@@ -497,19 +497,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                             // check for an element with this name
                         } else if (node.children[0] in JXG.JSXGraph.elements) {
                             for(i = 0; i < this.pstack[this.pscope].length; i++) {
-                                if (node.children[0] === 'point' || node.children[0] === 'text') {
-                                    if (this.pstack[this.pscope][i].type === 'node_const' || (this.pstack[this.pscope][i].value === 'op_neg' && this.pstack[this.pscope][i].children[0].type === 'node_const')) {
-                                        parents[i] = (this.execute(this.pstack[this.pscope][i]));
-                                    } else {
-                                        parents[i] = ((function(stree, that) {
-                                            return function() {
-                                                return that.execute(stree)
-                                            };
-                                        })(this.pstack[this.pscope][i], this));
-                                    }
-                                } else {
-                                    parents[i] = (this.execute(this.pstack[this.pscope][i]));
-                                }
+                                parents[i] = (this.execute(this.pstack[this.pscope][i]));
                             }
 
                             if (props) {
