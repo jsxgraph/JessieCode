@@ -170,24 +170,25 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
 
         // check for an element with this name
         if (vname in JXG.JSXGraph.elements) {
-            return (function (that) { return function (parameters, attributes) {
+            s = (function (that) { return function (parameters, attributes) {
                     var attr;
 
                     if (JXG.exists(attributes)) {
                         attr = attributes;
                     } else {
-                        attr = {name: (this.lhs[this.scope] !== 0 ? this.lhs[this.scope] : '')};
+                        attr = {name: (that.lhs[that.scope] !== 0 ? that.lhs[that.scope] : '')};
                     }
 
                     that.board.create(vname, parameters, attr);
                 };
             })(this);
+            
+            s.creator = true;
+            return s;
         }
 
         if (typeof Math[vname.toLowerCase()] !== 'undefined') {
-            return function (parameters, attributes) {
-                return Math[vname.toLowerCase()].apply(this, parameters);
-            }
+            return Math[vname.toLowerCase()];
         }
 
         s = JXG.getRef(this.board, vname);
@@ -460,13 +461,13 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         // after this, the parameters are in pstack
                         this.execute(node.children[0]);
 
-                        ret = (function(_pstack, that) { return function(parameters, attributes) {
+                        ret = (function(_pstack, that) { return function() {
                             var r;
 
                             that.sstack.push({});
                             that.scope++;
                             for(r = 0; r < _pstack.length; r++) {
-                                that.sstack[that.scope][_pstack[r]] = parameters[r];
+                                that.sstack[that.scope][_pstack[r]] = arguments[r];
                             }
 
                             r = that.execute(node.children[1]);
@@ -475,8 +476,6 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                             that.scope--;
                             return r;
                         }; })(this.pstack[this.pscope], this);
-
-                        ret.functionCode = node.children[1];
 
                         this.pstack.pop();
                         this.pscope--;
@@ -518,11 +517,11 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                             attr = this.propstack[this.propscope];
                         }
 
-console.log('function call', node.children[0], fun, parents, attr);
-
                         // check for the function in the variable table
-                        if (typeof fun === 'function') {
-                            ret = fun.call(this, parents, attr);
+                        if (typeof fun === 'function' && !fun.creator) {
+                            ret = fun.apply(this, parents);
+                        } else if (typeof fun === 'function' && !!fun.creator) {
+                            ret = fun(parents, attr);
                         } else {
                             this._error('Error: Function \'' + node.children[0] + '\' is undefined.');
                         }
