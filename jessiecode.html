@@ -67,19 +67,19 @@ C = point(-1, 1);
 D = point(2, -2);
 
 D.X = function () {
-    return A.X() + 1 - X(B);
+    return A.X() + 1 - B.X();
 };
 
 B.color = 'green';
 
-M = point('(X(A)+X(B))/2', '(Y(A)+Y(B))/2');
+M = point('(A.X()+B.X())/2', '(A.Y()+B.Y())/2');
 
 CC = circumcircle('wrzpfrmpf', B, C) << point: << visible: true, withLabel: true, name: 'The Midpoint' >>, strokeColor: 'red' >>;
 
 l = line(A, B);
 //l.strokeColor = A.strokeColor;
 B.fillColor = function () {
-    if (X(A) > 0) {
+    if (A.X() > 0) {
         return 'green';
     } else {
         return 'red';
@@ -95,18 +95,18 @@ add = function(a, b) {
 };
 
 parab = function(x) {
-    return X(A)*x*x;
+    return A.X()*x*x;
 };
 
-t = text(-4, 2, 'X(l) = ' + add(2, X(M)));
+t = text(-4, 2, 'X(l) = ' + add(2, M.X()));
 
 circle(A, M);
 p = plot(parab);
 plot(function (x) {
     if (x > 0) {
-        return Y(B)*cos(x*3+2);
+        return B.Y()*cos(x*3+2);
     } else {
-        return Y(B)*sin(x*3+2);
+        return B.Y()*sin(x*3+2);
     }
 });
 
@@ -114,6 +114,9 @@ p.strokeColor = '#CDEB8B';
 .strokeWidth = 4;
 
 obj = << foo: 3, bar: 'baz' >>;
+
+arr = [function () { return [3, 4]; }];
+foobar = arr[0]()[1];
 </textarea>
 
 <textarea id="code2" cols="90" rows="50">

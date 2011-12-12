@@ -109,6 +109,8 @@ NegExp:        '-' ExtValue                                                  [* 
         ;
 
 ExtValue:      ExtValue '[' AddSubExp ']'                                    [* %% = this.createNode('node_op', 'op_extvalue', %1, %3); *]
+        | ExtValue '(' Param_List ')'                                        [* %% = this.createNode('node_op', 'op_execfun', %1, %3); *]
+        | ExtValue '(' Param_List ')' '<<' Prop_List '>>'                    [* %% = this.createNode('node_op', 'op_execfun', %1, %3, %6); *]
         | Value
         ;
 
@@ -117,8 +119,6 @@ Value:        Integer                                                        [* 
         | Identifier                                                         [* %% = this.createNode('node_var', %1 ); *]
         | '(' Expression ')'                                                 [* %% = %2; *]
         | String                                                             [* %% = this.createNode('node_str', %1); *]
-        | Identifier '(' Param_List ')'                                      [* %% = this.createNode('node_op', 'op_execfun', %1, %3); *]
-        | Identifier '(' Param_List ')' '<<' Prop_List '>>'                  [* %% = this.createNode('node_op', 'op_execfun', %1, %3, %6); *]
         | FUNCTION '(' Param_Def_List ')' '{' Stmt_List '}'                  [* %% = this.createNode('node_op', 'op_function', %3, %6); *]
         | Identifier '.' Identifier                                          [* %% = this.createNode('node_property', %1, %3); *]
         | Identifier '.' Identifier '(' Param_List ')'                       [* %% = this.createNode('node_op', 'op_method', %1, %3, %5); *]

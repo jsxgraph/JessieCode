@@ -168,6 +168,29 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
             }
         }
 
+        // check for an element with this name
+        if (vname in JXG.JSXGraph.elements) {
+            s = (function (that) { return function (parameters, attributes) {
+                    var attr;
+
+                    if (JXG.exists(attributes)) {
+                        attr = attributes;
+                    } else {
+                        attr = {name: (that.lhs[that.scope] !== 0 ? that.lhs[that.scope] : '')};
+                    }
+
+                    that.board.create(vname, parameters, attr);
+                };
+            })(this);
+            
+            s.creator = true;
+            return s;
+        }
+
+        if (typeof Math[vname.toLowerCase()] !== 'undefined') {
+            return Math[vname.toLowerCase()];
+        }
+
         s = JXG.getRef(this.board, vname);
         if (s !== vname) {
             return s;
@@ -443,8 +466,9 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
 
                             that.sstack.push({});
                             that.scope++;
-                            for(r = 0; r < _pstack.length; r++)
+                            for(r = 0; r < _pstack.length; r++) {
                                 that.sstack[that.scope][_pstack[r]] = arguments[r];
+                            }
 
                             r = that.execute(node.children[1]);
 
@@ -452,8 +476,6 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                             that.scope--;
                             return r;
                         }; })(this.pstack[this.pscope], this);
-
-                        ret.functionCode = node.children[1];
 
                         this.pstack.pop();
                         this.pscope--;
@@ -485,63 +507,21 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         }
 
                         // look up the variables name in the variable table
-                        fun = this.getvar(node.children[0]);
+                        fun = this.execute(node.children[0]);
+
+                        for(i = 0; i < this.pstack[this.pscope].length; i++) {
+                            parents[i] = this.execute(this.pstack[this.pscope][i]);
+                        }
+
+                        if (props) {
+                            attr = this.propstack[this.propscope];
+                        }
 
                         // check for the function in the variable table
-                        if(JXG.exists(fun) && typeof fun === 'function') {
-                            for(i = 0; i < this.pstack[this.pscope].length; i++) {
-                                parents[i] = this.execute(this.pstack[this.pscope][i]);
-                            }
+                        if (typeof fun === 'function' && !fun.creator) {
                             ret = fun.apply(this, parents);
-
-                            // check for an element with this name
-                        } else if (node.children[0] in JXG.JSXGraph.elements) {
-                            for(i = 0; i < this.pstack[this.pscope].length; i++) {
-                                parents[i] = (this.execute(this.pstack[this.pscope][i]));
-                            }
-
-                            if (props) {
-                                attr = this.propstack[this.propscope];
-                            } else {
-                                attr = {name: (this.lhs[this.scope] !== 0 ? this.lhs[this.scope] : '')};
-                            }
-
-                            ret = this.board.create(node.children[0], parents, attr);
-
-                            // nothing found, throw an error
-                            // todo: check for a valid identifier and appropriate parameters and create a point
-                            //       this resembles the legacy JessieScript behaviour of A(1, 2);
-                        } else if (typeof Math[node.children[0].toLowerCase()] !== 'undefined') {
-                            for(i = 0; i < this.pstack[this.pscope].length; i++) {
-                                parents[i] = this.execute(this.pstack[this.pscope][i]);
-                            }
-                            ret = Math[node.children[0].toLowerCase()].apply(this, parents);
-                        } else if (node.children[0].toLowerCase() === 'delete') {
-                            v = this.getvar(node.children[1]);
-
-                            if (typeof v === 'object' && JXG.exists(v.type) && JXG.exists(v.elementClass)) {
-                                this.board.removeObject(v);
-                            }
-                        } else if (node.children[0].toLowerCase() === 'x' || node.children[0].toLowerCase() === 'y' ) {
-                            v = this.execute(this.pstack[this.pscope][0]);
-
-                            switch (node.children[0].toLowerCase()) {
-                                case 'x':
-                                    if (!JXG.exists(v.X)) {
-                                        this._error('Parameter has no property \'X\'.');
-                                        ret = NaN;
-                                    } else {
-                                        ret = v.X();
-                                    }
-                                    break;
-                                case 'y':
-                                    if (!JXG.exists(v.Y)) {
-                                        this._error('Parameter has no property \'Y\'.');
-                                        ret = NaN;
-                                    } else
-                                        ret = v.Y();
-                                    break;
-                            }
+                        } else if (typeof fun === 'function' && !!fun.creator) {
+                            ret = fun(parents, attr);
                         } else {
                             this._error('Error: Function \'' + node.children[0] + '\' is undefined.');
                         }
