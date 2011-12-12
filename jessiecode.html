@@ -8,7 +8,7 @@
 <body>
 
 
-<textarea id="unresolved_code" cols="90" rows="50" style="color:#880000;">
+<!--textarea id="unresolved_code" cols="90" rows="50" style="color:#880000;">
 
     // A functionality which is absolutely needed:
     // Anyonymous objects -- only with IDs!
@@ -44,7 +44,7 @@
     // and the copying and measuring of objects -- the efforts to implement this
     // will result in a CSS-safe log entry which can be recorded in the construction file
     // and which is needed for secure reloads on portals like Moodle.
-</textarea>
+</textarea-->
 
 <div id="jxgbox" class="jxgbox" style="width:800px; height:800px; float:left"></div>
 <div id="jxgbox2" class="jxgbox" style="width:800px; height:800px; float:left"></div>
@@ -63,6 +63,12 @@ use jxgbox;
 A = point(2, 3) << strokeColor : 'yellow', fillColor : 'green', id: 'wrzpfrmpf' >>;
 B = point(1, 1);
 C = point(-1, 1);
+
+D = point(2, -2);
+
+D.X = function () {
+    return A.X() + 1 - X(B);
+};
 
 B.color = 'green';
 

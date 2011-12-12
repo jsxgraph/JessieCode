@@ -177,6 +177,54 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
     },
 
     /**
+     * Sets the property <tt>what</tt> of {@link JXG.JessieCode#propobj} to <tt>value</tt>
+     * @param {String} what
+     * @param {%} value
+     */
+    setProp: function (what, value) {
+        var par = {}, x, y, o = this.propobj;
+
+        if (o.elementClass === JXG.OBJECT_CLASS_POINT && (what.toLowerCase() === 'x' || what.toLowerCase() === 'y')) {
+            // set coords
+
+            what = what.toLowerCase();
+
+            // be advised, we've spotted three cases in your AO:
+            // o.isDraggable && typeof value === number:
+            //   stay draggable, just set the new coords (e.g. via moveTo)
+            // o.isDraggable && typeof value === function:
+            //   convert to !o.isDraggable, set the new coords via o.addConstraint()
+            // !o.isDraggable:
+            //   stay !o.isDraggable, update the given coord by overwriting X/YEval
+
+            if (o.isDraggable && typeof value === 'number') {
+                x = what === 'x' ? value : o.X();
+                y = what === 'y' ? value : o.Y();
+
+                o.XEval = function() { return this.coords.usrCoords[1]; };
+                o.YEval = function() { return this.coords.usrCoords[2]; };
+                o.setPosition(JXG.COORDS_BY_USER, x, y);
+            } else if (o.isDraggable && typeof value === 'function') {
+                x = what === 'x' ? value : function () { return this.coords.usrCoords[1]; };
+                y = what === 'y' ? value : function () { return this.coords.usrCoords[2]; };
+
+                o.isDraggable = false;
+                o.addConstraint([x, y]);
+            } else if (!o.isDraggable) {
+                x = what === 'x' ? value : o.XEval;
+                y = what === 'y' ? value : o.YEval;
+
+                o.addConstraint(x, y);
+            }
+
+            this.board.update();
+        } else {
+            par[what] = value;
+            this.propobj.setProperty(par);
+        }
+    },
+
+    /**
      * Parses JessieCode
      * @param {String} code
      */
@@ -241,7 +289,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
      * @private
      */
     execute: function (node) {
-        var ret, v, i, parents = [], par = {};
+        var ret, v, i, parents = [];
 
         ret = 0;
 
@@ -480,6 +528,32 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                                 parents[i] = this.execute(this.pstack[this.pscope][i]);
                             }
                             ret = Math[node.children[0].toLowerCase()].apply(this, parents);
+                        } else if (node.children[0].toLowerCase() === 'delete') {
+                            v = this.getvar(node.children[1]);
+
+                            if (typeof v === 'object' && JXG.exists(v.type) && JXG.exists(v.elementClass)) {
+                                this.board.removeObject(v);
+                            }
+                        } else if (node.children[0].toLowerCase() === 'x' || node.children[0].toLowerCase() === 'y' ) {
+                            v = this.execute(this.pstack[this.pscope][0]);
+
+                            switch (node.children[0].toLowerCase()) {
+                                case 'x':
+                                    if (!JXG.exists(v.X)) {
+                                        this._error('Parameter has no property \'X\'.');
+                                        ret = NaN;
+                                    } else {
+                                        ret = v.X();
+                                    }
+                                    break;
+                                case 'y':
+                                    if (!JXG.exists(v.Y)) {
+                                        this._error('Parameter has no property \'Y\'.');
+                                        ret = NaN;
+                                    } else
+                                        ret = v.Y();
+                                    break;
+                            }
                         } else {
                             this._error('Error: Function \'' + node.children[0] + '\' is undefined.');
                         }
@@ -494,17 +568,8 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         this.pstack.pop();
                         this.pscope--;
                         break;
-                    case 'op_property':
-                        var e = this.getvar(node.children[0]);
-
-                        v = this.execute(node.children[2]);
-
-                        this.propobj = e;
-                        par[node.children[1]] = v;
-                        e.setProperty(par);
-                        break;
                     case 'op_method':
-                        var mname = node.children[1].toLowerCase();
+                        var mname = node.children[1];
                         v = this.getvar(node.children[0]);
 
                         this.pstack.push([]);
@@ -517,7 +582,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         }
 
                         if (typeof v.methodMap !== 'undefined' && typeof v.methodMap[mname] === 'string') {
-                            v[v.methodMap[mname]].apply(v, parents);
+                            ret = v[v.methodMap[mname]].apply(v, parents);
                         } else {
                             this._error('Error: "' + node.children[0] + '" has no method "' + node.children[1] + '".');
                         }
@@ -525,14 +590,21 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         this.pstack.pop();
                         this.pscope--;
                         break;
+                    case 'op_property':
+                        var e = this.getvar(node.children[0]);
+
+                        v = this.execute(node.children[2]);
+
+                        this.propobj = e;
+                        this.setProp(node.children[1], v);
+                        break;
                     case 'op_propnoob':
                         v = this.execute(node.children[1]);
 
                         if (this.propobj === 0) {
                             this._error('Object <null> not found.');
                         } else {
-                            par[node.children[0]] = v;
-                            this.propobj.setProperty(par);
+                            this.setProp(node.children[0], v);
                         }
                         break;
                     case 'op_use':
@@ -553,7 +625,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         break;
                     case 'op_delete':
                         v = this.getvar(node.children[0]);
-                        
+
                         if (typeof v === 'object' && JXG.exists(v.type) && JXG.exists(v.elementClass)) {
                             this.board.removeObject(v);
                         }
@@ -614,34 +686,6 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
 
             case 'node_str':
                 ret = node.value;
-                break;
-
-            case 'node_method':
-                v = this.getvar(node.children[0]);
-
-                switch (node.value) {
-                    case 'x':
-                        if (v === 0) {
-                            this._error(node.children[0] + ' is undefined.');
-                            ret = NaN;
-                        } else if (!JXG.exists(v.X)) {
-                            this._error(node.children[0] + ' has no property \'X\'.');
-                            ret = NaN;
-                        } else {
-                            ret = v.X();
-                        }
-                        break;
-                    case 'y':
-                        if (v === 0) {
-                            this._error(node.children[0] + ' is undefined.');
-                            ret = NaN;
-                        } else if (!JXG.exists(v.Y)) {
-                            this._error(node.children[0] + ' has no property \'Y\'.');
-                            ret = NaN;
-                        } else
-                            ret = v.Y();
-                        break;
-                }
                 break;
         }
 

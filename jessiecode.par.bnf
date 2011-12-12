@@ -7,11 +7,9 @@
     "FUNCTION"
     "USE"
     "RETURN"
+    "DELETE"
     "TRUE"
     "FALSE"
-    "DELETE"
-    'X'
-    'Y'
     '<<'
     '>>'
     '\['
@@ -56,6 +54,7 @@ Stmt_List:     Stmt_List Stmt                                                [* 
 
 Param_List:    Param_List ',' Expression                                     [* %% = this.createNode('node_op', 'op_paramlst', %1, %3 ); *]
         | Expression                                                         [* %% = this.createNode('node_op', 'op_param', %1); *]
+        |
         ;
 
 Prop_List:     Prop_List ',' Prop                                            [* %% = this.createNode('node_op', 'op_proplst', %1, %3 ); *]
@@ -121,8 +120,6 @@ Value:        Integer                                                        [* 
         | Identifier '(' Param_List ')'                                      [* %% = this.createNode('node_op', 'op_execfun', %1, %3); *]
         | Identifier '(' Param_List ')' '<<' Prop_List '>>'                  [* %% = this.createNode('node_op', 'op_execfun', %1, %3, %6); *]
         | FUNCTION '(' Param_Def_List ')' '{' Stmt_List '}'                  [* %% = this.createNode('node_op', 'op_function', %3, %6); *]
-        | X '(' Identifier ')'                                               [* %% = this.createNode('node_method', 'x', %3); *]
-        | Y '(' Identifier ')'                                               [* %% = this.createNode('node_method', 'y', %3); *]
         | Identifier '.' Identifier                                          [* %% = this.createNode('node_property', %1, %3); *]
         | Identifier '.' Identifier '(' Param_List ')'                       [* %% = this.createNode('node_op', 'op_method', %1, %3, %5); *]
         | '<<' Prop_List '>>'                                                [* %% = this.createNode('node_op', 'op_proplst_val', %2); *]
