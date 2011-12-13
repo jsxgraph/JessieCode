@@ -67,7 +67,7 @@ C = point(-1, 1);
 D = point(2, -2);
 
 D.X = function () {
-    return A.X() + 1 - B.X();
+    return A.X() + 1 - X(B);
 };
 
 B.color = 'green';
