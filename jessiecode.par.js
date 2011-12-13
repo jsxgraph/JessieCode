@@ -144,6 +144,14 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
         throw new Error(msg);
     },
 
+    isIdentifier: function (s) {
+        return /[A-Za-z_\$][A-Za-z0-9_\$]*/.test(s);
+    },
+
+    getElementById: function (id) {
+        return this.board.objects[id];
+    },
+
     /**
      * Assigns a value to a variable in the current scope.
      * @param {String} vname Variable name
@@ -178,7 +186,6 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                     } else {
                         attr = {name: (that.lhs[that.scope] !== 0 ? that.lhs[that.scope] : '')};
                     }
-
                     return that.board.create(vname, parameters, attr);
                 };
             })(this);
@@ -197,6 +204,10 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
             }
         }
 
+        if (vname === '$') {
+            return this.getElementById;
+        }
+
         s = JXG.getRef(this.board, vname);
         if (s !== vname) {
             return s;
@@ -210,8 +221,8 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
      * @param {String} what
      * @param {%} value
      */
-    setProp: function (what, value) {
-        var par = {}, x, y, o = this.propobj;
+    setProp: function (o, what, value) {
+        var par = {}, x, y;
 
         if (o.elementClass === JXG.OBJECT_CLASS_POINT && (what.toLowerCase() === 'x' || what.toLowerCase() === 'y')) {
             // set coords
@@ -247,9 +258,11 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
             }
 
             this.board.update();
-        } else {
+        } else if (o.type && o.elementClass && o.visProp) {
             par[what] = value;
-            this.propobj.setProperty(par);
+            o.setProperty(par);
+        } else {
+            o[what] = value;
         }
     },
 
@@ -274,6 +287,8 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
             for(i = 0; i < error_cnt; i++)
                 alert("Parse error near >"  + code.substr( error_off[i], 30 ) + "<, expecting \"" + error_la[i].join() + "\"");
         }
+
+        this.board.update();
     },
 
     /**
@@ -318,7 +333,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
      * @private
      */
     execute: function (node) {
-        var ret, v, i, parents = [];
+        var ret, v, i, e, parents = [];
 
         ret = 0;
 
@@ -337,8 +352,15 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         }
                         break;
                     case 'op_assign':
-                        this.lhs[this.scope] = node.children[0];
-                        this.letvar(node.children[0], this.execute(node.children[1]));
+                        v = this.execute(node.children[0]);
+                        this.lhs[this.scope] = v[1];
+
+                        if (v[0] !== this.sstack[this.scope]) {
+                            this.setProp(v[0], v[1], this.execute(node.children[1]));
+                        } else {
+                            this.letvar(v[1], this.execute(node.children[1]));
+                        }
+
                         this.lhs[this.scope] = 0;
                         break;
                     case 'op_noassign':
@@ -491,7 +513,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         //   [0]: Name of the function
                         //   [1]: Parameter list as a parse subtree
                         //   [2]: Properties, only used in case of a create function
-                        var fun, props, attr;
+                        var fun, props, attr, sc;
 
                         this.pstack.push([]);
                         this.pscope++;
@@ -515,6 +537,12 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         // look up the variables name in the variable table
                         fun = this.execute(node.children[0]);
 
+                        if (fun.sc) {
+                            sc = fun.sc;
+                        } else {
+                            sc = this;
+                        }
+
                         for(i = 0; i < this.pstack[this.pscope].length; i++) {
                             parents[i] = this.execute(this.pstack[this.pscope][i]);
                         }
@@ -525,7 +553,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
 
                         // check for the function in the variable table
                         if (typeof fun === 'function' && !fun.creator) {
-                            ret = fun.apply(this, parents);
+                            ret = fun.apply(sc, parents);
                         } else if (typeof fun === 'function' && !!fun.creator) {
                             ret = fun(parents, attr);
                         } else {
@@ -542,44 +570,37 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         this.pstack.pop();
                         this.pscope--;
                         break;
-                    case 'op_method':
-                        var mname = node.children[1];
-                        v = this.getvar(node.children[0]);
-
-                        this.pstack.push([]);
-                        this.pscope++;
-
-                        this.execute(node.children[2]);
-
-                        for(i = 0; i < this.pstack[this.pscope].length; i++) {
-                            parents[i] = (this.execute(this.pstack[this.pscope][i]));
-                        }
-
-                        if (typeof v.methodMap !== 'undefined' && typeof v.methodMap[mname] === 'string') {
-                            ret = v[v.methodMap[mname]].apply(v, parents);
-                        } else {
-                            this._error('Error: "' + node.children[0] + '" has no method "' + node.children[1] + '".');
-                        }
-
-                        this.pstack.pop();
-                        this.pscope--;
-                        break;
                     case 'op_property':
-                        var e = this.getvar(node.children[0]);
+                        e = this.execute(node.children[0]);
+                        v = node.children[1];
 
-                        v = this.execute(node.children[2]);
-
-                        this.propobj = e;
-                        this.setProp(node.children[1], v);
-                        break;
-                    case 'op_propnoob':
-                        v = this.execute(node.children[1]);
-
-                        if (this.propobj === 0) {
-                            this._error('Object <null> not found.');
-                        } else {
-                            this.setProp(node.children[0], v);
+                        if (e.type && e.elementClass && !JXG.exists(e.methodMap[v])) {
+                            //e = e.visProp;
+                            v = v.toLowerCase();
                         }
+
+                        if (e.type && e.elementClass && JXG.exists(e.methodMap[v])) {
+                            v = e.methodMap[v];
+                        }
+
+                        ret = e[v];
+                        ret.sc = e;
+                        break;
+                    case 'op_lhs':
+                        v = node.children[0];
+
+                        if (node.children.length === 1) {
+                            e = this.sstack[this.scope];
+                        } else {
+                            e = this.execute(node.children[1]);
+
+                            if (e.type && e.elementClass && v.toLowerCase() !== 'x' && v.toLowerCase() !== 'y') {
+                                e = e.visProp;
+                                v = v.toLowerCase();
+                            }
+                        }
+
+                        ret = [e, v];
                         break;
                     case 'op_use':
                         // node.children:
@@ -638,12 +659,6 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         ret = this.execute(node.children[0]) * -1;
                         break;
                 }
-                break;
-
-            case 'node_property':
-                v = this.getvar(node.value);
-
-                ret = v.getProperty(node.children[0]);
                 break;
 
             case 'node_var':

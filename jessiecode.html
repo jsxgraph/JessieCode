@@ -70,7 +70,9 @@ D.X = function () {
     return A.X() + 1 - X(B);
 };
 
-B.color = 'green';
+//B.color = 'green';
+
+$('wrzpfrmpf').strokeColor = 'black';
 
 M = point('(A.X()+B.X())/2', '(A.Y()+B.Y())/2');
 
@@ -98,9 +100,9 @@ parab = function(x) {
     return A.X()*x*x;
 };
 
-t = text(-4, 2, 'X(l) = ' + add(2, M.X()));
+t = text(-4, 2, function () { return 'X(l) = ' + add(2, M.X());});
 
-circle(A, M);
+circle('wrzpfrmpf', M);
 p = plot(parab);
 plot(function (x) {
     if (x > 0) {
@@ -111,9 +113,11 @@ plot(function (x) {
 });
 
 p.strokeColor = '#CDEB8B';
-.strokeWidth = 4;
+p.strokeWidth = 4;
 
-obj = << foo: 3, bar: 'baz' >>;
+obj = << foo: 3, bar: 'baz', sub: << this: 99 >> >>;
+
+val = obj.sub.this;
 
 arr = [function () { return [3, 4]; }];
 foobar = arr[0]()[1];
@@ -122,6 +126,8 @@ foobar = arr[0]()[1];
 <textarea id="code2" cols="90" rows="50">
 use jxgbox2;
 A = point(2, 3) << strokeColor : 'yellow', fillColor : 'green' >>;
+A.strokeColor = 'black';
+
 c = circle(A, 2);
 
 B = point(0, 0);
@@ -129,14 +135,14 @@ B.glide(c);
 
 arr = [1, 2, 'str', function (x) { return 'booya'; }];
 pooh = arr[1];
-//winnie = arr[3](2);
+winnie = arr[3](2);
 
 matroschka = [1, [1, 1]];
 inside = matroschka[1][1];
 
 A.move(matroschka[1], 2000);
 
-delete B;
+//delete B;
 
 </textarea>
 

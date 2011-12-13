@@ -1788,7 +1788,7 @@ function lalr1_parse_table( debug )
 	
 	//Create EOF symbol
 	item = create_item( 0 );
-	s = create_symbol( "$", SYM_TERM, SPECIAL_EOF );
+	s = create_symbol( "$$$", SYM_TERM, SPECIAL_EOF );
 	item.lookahead.push( s );
 	
 	//Create first state
