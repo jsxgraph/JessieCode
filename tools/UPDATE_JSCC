@@ -1,0 +1,18 @@
+Up to v0.30 JS/CC uses the $ symbol as a special terminal symbol to mark the EOF.
+
+The $ symbol is used by JessieCode as a special method and therefore is part of the Identifier regex pattern and might
+be used in JessieCode source. Hence, if someone wants to update JS/CC, please make sure to patch jscc.js:
+
+Try to find the piece of code, where the $ terminal symbol is created (line 1791 in v0.30)
+
+	//Create EOF symbol
+	item = create_item( 0 );
+	s = create_symbol( "$", SYM_TERM, SPECIAL_EOF );
+	item.lookahead.push( s );
+
+and change it to something else, e.g. $$$:
+
+	//Create EOF symbol
+	item = create_item( 0 );
+	s = create_symbol( "$$$", SYM_TERM, SPECIAL_EOF );
+	item.lookahead.push( s );
