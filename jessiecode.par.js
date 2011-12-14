@@ -355,7 +355,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         v = this.execute(node.children[0]);
                         this.lhs[this.scope] = v[1];
 
-                        if (v[0] !== this.sstack[this.scope]) {
+                        if (v[0] !== this.sstack[this.scope] || (JXG.isArray(v[0]) && typeof v[1] === 'number')) {
                             this.setProp(v[0], v[1], this.execute(node.children[1]));
                         } else {
                             this.letvar(v[1], this.execute(node.children[1]));
@@ -588,6 +588,11 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         break;
                     case 'op_lhs':
                         v = node.children[0];
+
+                        // we have a subtree here (in case this is an array component)
+                        if (v.children && v.type && v.value) {
+                            v = this.execute(v);
+                        }
 
                         if (node.children.length === 1) {
                             e = this.sstack[this.scope];

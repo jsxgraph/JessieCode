@@ -84,6 +84,7 @@ Stmt:          IF Expression Stmt                                            [* 
         ;
 
 Lhs:          ExtValue '.' Identifier                                        [* %% = this.createNode('node_op', 'op_lhs', %3, %1); *]
+        | ExtValue '[' AddSubExp ']'                                         [* %% = this.createNode('node_op', 'op_lhs', %3, %1); *]
         | Identifier                                                         [* %% = this.createNode('node_op', 'op_lhs', %1); *]
         ;
                 
