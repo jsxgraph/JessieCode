@@ -124,25 +124,32 @@ foobar = arr[0]()[1];
 </textarea>
 
 <textarea id="code2" cols="90" rows="50">
-use jxgbox2;
-A = point(2, 3) << strokeColor : 'yellow', fillColor : 'green' >>;
-A.strokeColor = 'black';
+    use jxgbox2;
+    A = point(1, 1) << strokeColor : 'yellow', fillColor : 'green' >>;
+    A.strokeColor = 'black';
 
-c = circle(A, 2);
+    c = circle(A, 1);
 
-B = point(0, 0);
-B.glide(c);
+    B = point(0, 0);
+    B.glide(c);
 
-arr = [1, 2, 'str', function (x) { return 'booya'; }];
-pooh = arr[1];
-winnie = arr[3](2);
+    Q = point(2, 0);
+    W = point(2, 2);
+    E = point(0, 2);
+    Q.glide(c);
+    W.glide(c);
+    E.glide(c);
 
-matroschka = [1, [1, 1]];
-inside = matroschka[1][1];
+    arr = [1, 2, 'str', function (x) { return 'booya'; }];
+    pooh = arr[1];
+    winnie = arr[3](2);
 
-A.move(matroschka[1], 2000);
+    matroschka = [1, [1, 1]];
+    inside = matroschka[1][1];
 
-//delete B;
+    //A.move(matroschka[1], 2000);
+
+    //delete B;
 
 </textarea>
 
