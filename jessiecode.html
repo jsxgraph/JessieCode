@@ -142,6 +142,8 @@ foobar = arr[0]()[1];
 
     W.free();
 
+    W.withLabel = false;
+
     arr = [1, 2, 'str', function (x) { return 'booya'; }];
     pooh = arr[1];
     winnie = arr[3](2);
