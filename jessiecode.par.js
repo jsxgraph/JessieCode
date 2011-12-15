@@ -35,8 +35,9 @@
  * please use {@link JXG.JessieCode#parse}. For code snippets like single expressions use {@link JXG.JessieCode#snippet}.
  * @constructor
  * @param {String} [code] Code to parse.
+ * @param {Boolean} [geonext=false] Geonext compatibility mode.
  */
-JXG.JessieCode = function(code) {
+JXG.JessieCode = function(code, geonext) {
     // Control structures
 
     /**
@@ -44,7 +45,9 @@ JXG.JessieCode = function(code) {
      * @type Array
      * @private
      */
-    this.sstack = [{}];
+    this.sstack = [{
+        PI: Math.PI
+    }];
 
     /**
      * Defines the current variable scope.
@@ -96,6 +99,11 @@ JXG.JessieCode = function(code) {
      * @private
      */
     this.lhs = [];
+
+    /**
+     * Reserved keywords
+     */
+    this.reserved = ['PI', 'X', 'Y', 'E', 'V', 'L'];
 
     /**
      * The board which currently is used to create and look up elements.
@@ -211,6 +219,10 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
      * @see JXG.JessieCode#scope
      */
     letvar: function (vname, value) {
+        if (this.reserved.indexOf(vname) > -1) {
+            this._error('Error: ' + vname + ' is a reserved word.');
+        }
+
         this.sstack[this.scope][vname] = value;
     },
 
@@ -232,8 +244,8 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
             return this.creator(vname);
         }
 
-        if (typeof Math[vname.toLowerCase()] !== 'undefined') {
-            return Math[vname.toLowerCase()];
+        if (typeof Math[vname] !== 'undefined') {
+            return Math[vname];
         }
 
         if (vname in {X: 1, Y: 1}) {
@@ -242,14 +254,14 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
             }
         }
 
-        if (vname.toLowerCase() === 'rad') {
+        if (vname === 'rad') {
             s = JXG.Math.Geometry.rad;
             s.sc = JXG.Math.Geometry;
             
             return s;
         }
 
-        if (vname.toLowerCase() === 'deg') {
+        if (vname === 'deg') {
             s = JXG.Math.Geometry.trueAngle;
             s.sc = JXG.Math.Geometry;
 
@@ -276,7 +288,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
     setProp: function (o, what, value) {
         var par = {}, x, y;
 
-        if (o.elementClass === JXG.OBJECT_CLASS_POINT && (what.toLowerCase() === 'x' || what.toLowerCase() === 'y')) {
+        if (o.elementClass === JXG.OBJECT_CLASS_POINT && (what === 'X' || what === 'y')) {
             // set coords
 
             what = what.toLowerCase();
@@ -321,16 +333,30 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
     /**
      * Parses JessieCode
      * @param {String} code
+     * @param {Boolean} [geonext=false] Geonext compatibility mode.
      */
-    parse: function (code) {
+    parse: function (code, geonext) {
         var error_cnt = 0,
             error_off = [],
             error_la = [],
             ccode = code.split('\n'), i, cleaned = [];
 
+        if (!JXG.exists(geonext)) {
+            geonext = false;
+        }
+
         for (i = 0; i < ccode.length; i++) {
             if (!(JXG.trim(ccode[i])[0] === '/' && JXG.trim(ccode[i])[1] === '/')) {
                 cleaned.push(ccode[i]);
+            }
+
+            if (geonext) {
+                ccode[i] = ccode[i].replace(/Deg\(/g, 'deg(')
+                                   .replace(/Rad\(/g, 'rad(')
+                                   .replace(/Dist/g, 'dist(')
+                                   .replace(/Factorial\(/g, 'factorial(')
+                                   .replace(/If\(/g, 'if(')
+                                   .replace(/Round\(/, 'round(');
             }
         }
         code = cleaned.join('\n');
@@ -348,8 +374,9 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
      * @param {String} code A small snippet of JessieCode. Must not be an assignment.
      * @param {Boolean} funwrap If true, the code is wrapped in a function.
      * @param {String} varname Name of the parameter(s)
+     * @param {Boolean} [geonext=false] Geonext compatibility mode.
      */
-    snippet: function (code, funwrap, varname) {
+    snippet: function (code, funwrap, varname, geonext) {
         var vname, c, tmp, result;
 
         vname = 'jxg__tmp__intern_' + JXG.Util.genUUID().replace(/\-/g, '');
@@ -362,11 +389,15 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
             varname = '';
         }
 
+        if (!JXG.exists(geonext)) {
+            geonext = false;
+        }
+
         // just in case...
         tmp = this.sstack[0][vname];
 
         c = vname + ' = ' + (funwrap ? ' function (' + varname + ') { return ' : '') + code + (funwrap ? '; }' : '') + ';';
-        this.parse(c);
+        this.parse(c, geonext);
 
         result = this.sstack[0][vname];
         if (JXG.exists(tmp)) {
