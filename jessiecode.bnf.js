@@ -1307,7 +1307,7 @@ switch( act )
 	break;
 	case 18:
 	{
-		 rval = this.createNode('node_op', 'op_for', vstack[ vstack.length - 4 ], vstack[ vstack.length - 2 ] ); 
+		 rval = this.createNode('node_op', 'op_do', vstack[ vstack.length - 4 ], vstack[ vstack.length - 2 ] ); 
 	}
 	break;
 	case 19:

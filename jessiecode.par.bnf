@@ -73,7 +73,7 @@ Param_Def_List:Param_Def_List ',' Identifier                                 [* 
 Stmt:          IF Expression Stmt                                            [* %% = this.createNode('node_op', 'op_if', %2, %3 ); *]
         | IF Expression Stmt ELSE Stmt                                       [* %% = this.createNode('node_op', 'op_if_else', %2, %3, %5 ); *]
         | WHILE Expression Stmt                                              [* %% = this.createNode('node_op', 'op_while', %2, %4 ); *]
-        | DO Stmt WHILE Expression ';'                                       [* %% = this.createNode('node_op', 'op_for', %2, %4 ); *]
+        | DO Stmt WHILE Expression ';'                                       [* %% = this.createNode('node_op', 'op_do', %2, %4 ); *]
         | USE Identifier ';'                                                 [* %% = this.createNode('node_op', 'op_use', %2 ); *]
         | DELETE Identifier                                                  [* %% = this.createNode('node_op', 'op_delete', %2); *]
         | RETURN Stmt                                                        [* %% = this.createNode('node_op', 'op_return', %2 ); *]
