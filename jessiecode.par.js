@@ -101,6 +101,13 @@ JXG.JessieCode = function(code, geonext) {
     this.lhs = [];
 
     /**
+     * This is a stub that might be used later on.
+     * @type Boolean
+     * @private
+     */
+    this.isfuncall = true;
+
+    /**
      * Reserved keywords
      */
     this.reserved = ['PI', 'X', 'Y', 'E', 'V', 'L'];
@@ -248,9 +255,15 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
             return Math[vname];
         }
 
-        if (vname in {X: 1, Y: 1}) {
+        if (vname in {X: 1, Y: 1, L: 1}) {
             return function (el) {
-                return el[vname.toUpperCase()]();
+                return el[vname]();
+            }
+        }
+
+        if (vname === 'V') {
+            return function (el) {
+                return el.Value();
             }
         }
 

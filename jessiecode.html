@@ -148,8 +148,18 @@ foobar = arr[0]()[1];
     ax.ticks.visible = false;
 
     C = point(1, 0);
-    cc = circumcircle(A, C, B);
+    cc = circumcircle(A, B, B);
     cc.midpoint.visible = true;
+
+    B.X = function () {
+        return ((function () {
+            if (X(A) > 0) {
+                return X;
+            } else {
+                return Y;
+            }
+        })())(A);
+    };
 </textarea>
 
 <pre>
