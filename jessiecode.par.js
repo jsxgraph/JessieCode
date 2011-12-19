@@ -677,12 +677,17 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                                 v = 'content';
                             } else {
                                 // ok, it's not the label he wants to change
-                                if (!JXG.exists(e.methodMap[v])) {
+
+                                // well, what then?
+                                if (JXG.exists(e.subs[v])) {
+                                    // a subelement it is, good sir.
+                                    e = e.subs;
+                                } else if (JXG.exists(e.methodMap[v])) {
+                                    // the user wants to call a method
+                                    v = e.methodMap[v];
+                                } else {
                                     // the user wants to change an attribute
                                     v = v.toLowerCase();
-                                } else {
-                                    // the use wants to call a method
-                                    v = e.methodMap[v];
                                 }
                             }
                         }

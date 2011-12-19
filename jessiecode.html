@@ -53,6 +53,7 @@
 <script type="text/javascript">
     board = JXG.JSXGraph.initBoard('jxgbox', {boundingbox: [-5, 5, 5, -5], axis:true});
     board = JXG.JSXGraph.initBoard('jxgbox2', {boundingbox: [-5, 5, 5, -5], axis:true});
+    board.options.angle.type = 'sector';
 </script>
 
 <h2>Sourcecode:</h2>
@@ -131,24 +132,7 @@ foobar = arr[0]()[1];
     c = circle(A, 1);
 
     B = point(0, 0);
-    B.glide(c);
-
-    Q = point(2, 0);
-    W = point(2, 2);
-    //E = point(0, 2);
-    Q.glide(c);
-    W.glide(c);
-    //E.glide(c);
-
-    //X = 5;
-
-    pi = PI;
-
-    W.free();
-
-    W.withLabel = false;
-    Q.label.strokeColor = 'red';
-    Q.label.setText('wrzpfrmpf');
+    //B.glide(c);
 
     arr = [1, 2, 'str', function (x) { return 'booya'; }];
     pooh = arr[1];
@@ -160,11 +144,12 @@ foobar = arr[0]()[1];
 
     //A.move(matroschka[1], 2000);
 
-    //delete B;
+    ax = axis([0, -1], [1, -1]);
+    ax.ticks.visible = false;
 
-    d = deg(Q, W, E);
-    r = rad(Q, W, E);
-
+    C = point(1, 0);
+    cc = circumcircle(A, C, B);
+    cc.midpoint.visible = true;
 </textarea>
 
 <pre>
