@@ -321,7 +321,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                 o.XEval = function() { return this.coords.usrCoords[1]; };
                 o.YEval = function() { return this.coords.usrCoords[2]; };
                 o.setPosition(JXG.COORDS_BY_USER, x, y);
-            } else if (o.isDraggable && typeof value === 'function') {
+            } else if (o.isDraggable && (typeof value === 'function' || typeof value === 'string')) {
                 x = what === 'x' ? value : function () { return this.coords.usrCoords[1]; };
                 y = what === 'y' ? value : function () { return this.coords.usrCoords[2]; };
 

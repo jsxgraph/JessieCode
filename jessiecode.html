@@ -77,6 +77,8 @@ $('wrzpfrmpf').strokeColor = 'black';
 
 M = point('(A.X()+B.X())/2', '(A.Y()+B.Y())/2');
 
+M.free();
+
 CC = circumcircle('wrzpfrmpf', B, C) << point: << visible: true, withLabel: true, name: 'The Midpoint' >>, strokeColor: 'red' >>;
 
 l = line(A, B);
@@ -148,7 +150,7 @@ foobar = arr[0]()[1];
     ax.ticks.visible = false;
 
     C = point(1, 0);
-    cc = circumcircle(A, B, B);
+    cc = circumcircle(A, B, C);
     cc.midpoint.visible = true;
 
     B.X = function () {
@@ -160,6 +162,9 @@ foobar = arr[0]()[1];
             }
         })())(A);
     };
+
+    D = point(-2.5, -2.5);
+    D.X = 'X(A)-5';
 </textarea>
 
 <pre>
