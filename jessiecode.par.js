@@ -791,6 +791,9 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                     case 'op_mul':
                         ret = this.execute(node.children[0]) * this.execute(node.children[1]);
                         break;
+                    case 'op_exp':
+                        ret = Math.pow(this.execute(node.children[0]),  this.execute(node.children[1]));
+                        break;
                     case 'op_neg':
                         ret = this.execute(node.children[0]) * -1;
                         break;
