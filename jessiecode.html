@@ -173,6 +173,10 @@ foobar = arr[0]()[1];
     B.label.setText(function () {
         return 'X(B\') = <strong>' + B.X() + '</strong>';
     });
+
+    T = text(0, 0, 'Test Text');
+
+    T.X = function() { return A.X(); };
 </textarea>
 
 <pre>
