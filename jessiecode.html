@@ -151,7 +151,7 @@ foobar = arr[0]()[1];
 
     C = point(1, 0);
     cc = circumcircle(A, B, C);
-    cc.midpoint.visible = true;
+    cc.center.visible = true;
 
     B.X = function () {
         return ((function () {
@@ -174,9 +174,11 @@ foobar = arr[0]()[1];
         return 'X(B\') = <strong>' + B.X() + '</strong>';
     });
 
-    T = text(0, 0, 'Test Text');
+    T = text(0, 0, 'Test Text') << casText: 'w0rd!' >>;
 
     T.X = function() { return A.X(); };
+
+    ctxt = T.casText;
 </textarea>
 
 <pre>
