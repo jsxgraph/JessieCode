@@ -103,7 +103,7 @@ parab = function(x) {
     return A.X()*x^2;
 };
 
-t = text(-4, 2, function () { return 'X(l) = ' + add(2, M.X()) + '; dist(A, B) = ' + dist(A, B);});
+t = text(-4, 2, function () { return 'X(l) = ' + add(2, M.X()) + '; dist(A, B) = ' + dist(A, B);}) << cssClass: 'foobar' >>;
 
 circle('wrzpfrmpf', M);
 p = plot(parab);
@@ -173,6 +173,8 @@ foobar = arr[0]()[1];
     B.label.setText(function () {
         return 'X(B\') = <strong>' + B.X() + '</strong>';
     });
+
+    B.label.cssClass = 'this';
 
     T = text(0, 0, 'Test Text') << casText: 'w0rd!' >>;
 
