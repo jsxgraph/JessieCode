@@ -1275,7 +1275,7 @@ switch( act )
 	break;
 	case 5:
 	{
-		 rval = this.createNode('node_op', 'op_paramlst', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
+		 rval = this.createNode('node_op', 'op_param', vstack[ vstack.length - 1 ], vstack[ vstack.length - 3 ] ); 
 	}
 	break;
 	case 6:
@@ -1310,7 +1310,7 @@ switch( act )
 	break;
 	case 12:
 	{
-		 rval = this.createNode('node_op', 'op_paramdeflst', vstack[ vstack.length - 3 ], vstack[ vstack.length - 1 ] ); 
+		 rval = this.createNode('node_op', 'op_paramdef', vstack[ vstack.length - 1 ], vstack[ vstack.length - 3 ]); 
 	}
 	break;
 	case 13:
@@ -1370,7 +1370,7 @@ switch( act )
 	break;
 	case 24:
 	{
-		 rval = vstack[ vstack.length - 2 ]; 
+		 rval = vstack[ vstack.length - 2 ]; rval.needsBrackets = true; 
 	}
 	break;
 	case 25:
@@ -1380,12 +1380,12 @@ switch( act )
 	break;
 	case 26:
 	{
-		 rval = this.createNode('node_op', 'op_lhs', vstack[ vstack.length - 1 ], vstack[ vstack.length - 3 ]); 
+		 rval = this.createNode('node_op', 'op_lhs', vstack[ vstack.length - 1 ], vstack[ vstack.length - 3 ], 'dot'); 
 	}
 	break;
 	case 27:
 	{
-		 rval = this.createNode('node_op', 'op_lhs', vstack[ vstack.length - 2 ], vstack[ vstack.length - 4 ]); 
+		 rval = this.createNode('node_op', 'op_lhs', vstack[ vstack.length - 2 ], vstack[ vstack.length - 4 ], 'bracket'); 
 	}
 	break;
 	case 28:

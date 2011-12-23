@@ -179,6 +179,20 @@ foobar = arr[0]()[1];
     T.X = function() { return A.X(); };
 
     ctxt = T.casText;
+
+    testFun = function () {
+        Q = point(1, 2) << color: 'black' >>;
+        Q.size = 9;
+        a = [1, 2, 3];
+        a[0] = a[2];
+
+        f = function(a, b, c) {
+            return a+b-c*(a-c)+2^a;
+        };
+
+        foo = 'bar\'s adventure';
+    };
+    testFun();
 </textarea>
 
 <pre>

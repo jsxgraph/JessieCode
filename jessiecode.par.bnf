@@ -53,7 +53,7 @@ Stmt_List:     Stmt_List Stmt                                                [* 
         |
         ;
 
-Param_List:    Param_List ',' Expression                                     [* %% = this.createNode('node_op', 'op_paramlst', %1, %3 ); *]
+Param_List:    Param_List ',' Expression                                     [* %% = this.createNode('node_op', 'op_param', %3, %1 ); *]
         | Expression                                                         [* %% = this.createNode('node_op', 'op_param', %1); *]
         |
         ;
@@ -66,7 +66,7 @@ Prop_List:     Prop_List ',' Prop                                            [* 
 Prop:          Identifier ':' Expression                                     [* %% = this.createNode('node_op', 'op_prop', %1, %3 ); *]
         ;
                                 
-Param_Def_List:Param_Def_List ',' Identifier                                 [* %% = this.createNode('node_op', 'op_paramdeflst', %1, %3 ); *]
+Param_Def_List:Param_Def_List ',' Identifier                                 [* %% = this.createNode('node_op', 'op_paramdef', %3, %1); *]
         | Identifier                                                         [* %% = this.createNode('node_op', 'op_paramdef', %1); *]
         |
         ;
@@ -80,12 +80,12 @@ Stmt:          IF Expression Stmt                                            [* 
         | RETURN Stmt                                                        [* %% = this.createNode('node_op', 'op_return', %2 ); *]
         | Lhs '=' Expression ';'                                             [* %% = this.createNode('node_op', 'op_assign', %1, %3 ); *]
         | Expression ';'                                                     [* %% = this.createNode('node_op', 'op_noassign', %1 ); *]
-        | '{' Stmt_List '}'                                                  [* %% = %2; *]
+        | '{' Stmt_List '}'                                                  [* %% = %2; %%.needsBrackets = true; *]
         | ';'                                                                [* %% = this.createNode('node_op', 'op_none' ); *]
         ;
 
-Lhs:          ExtValue '.' Identifier                                        [* %% = this.createNode('node_op', 'op_lhs', %3, %1); *]
-        | ExtValue '[' AddSubExp ']'                                         [* %% = this.createNode('node_op', 'op_lhs', %3, %1); *]
+Lhs:          ExtValue '.' Identifier                                        [* %% = this.createNode('node_op', 'op_lhs', %3, %1, 'dot'); *]
+        | ExtValue '[' AddSubExp ']'                                         [* %% = this.createNode('node_op', 'op_lhs', %3, %1, 'bracket'); *]
         | Identifier                                                         [* %% = this.createNode('node_op', 'op_lhs', %1); *]
         ;
                 

@@ -528,36 +528,21 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                             this.execute(node.children[0]);
                         } while (this.execute(node.children[1]));
                         break;
-                    case 'op_paramlst':
-                        if (node.children[0]) {
-                            this.execute(node.children[0]);
+                    case 'op_param':
+                        if (node.children[1]) {
+                            this.execute(node.children[1]);
                         }
 
-                        if (node.children[1]) {
-                            ret = node.children[1];
-                            this.pstack[this.pscope].push(ret);
-                        }
-                        break;
-                    case 'op_param':
-                        if (node.children[0]) {
-                            ret = node.children[0];
-                            this.pstack[this.pscope].push(ret);
-                        }
-                        break;
-                    case 'op_paramdeflst':
-                        if (node.children[0]) {
-                            this.execute(node.children[0]);
-                        }
-                        if (node.children[1]) {
-                            ret = node.children[1];
-                            this.pstack[this.pscope].push(ret);
-                        }
+                        ret = node.children[0];
+                        this.pstack[this.pscope].push(ret);
                         break;
                     case 'op_paramdef':
-                        if (node.children[0]) {
-                            ret = node.children[0];
-                            this.pstack[this.pscope].push(ret);
+                        if (node.children[1]) {
+                            this.execute(node.children[1]);
                         }
+
+                        ret = node.children[0];
+                        this.pstack[this.pscope].push(ret);
                         break;
                     case 'op_proplst':
                         if (node.children[0]) {
@@ -643,6 +628,8 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                             that.scope--;
                             return r;
                         }; })(this.pstack[this.pscope], this);
+
+                        ret.parseTree = node.children[1];
 
                         this.pstack.pop();
                         this.pscope--;
@@ -854,6 +841,187 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
             case 'node_str':
                 ret = node.value;
                 break;
+        }
+
+        return ret;
+    },
+
+    /**
+     * Compiles a parse tree back to JessieCode.
+     * @param {Object} node
+     * @param {Boolean} [javascript=false] Currently ignored. Compile either to JavaScript or back to JessieCode (required for the UI).
+     * @returns Something
+     * @private
+     */
+    compile: function (node, javascript) {
+        var ret, v, i, e, parents = [];
+
+        ret = '';
+
+        if (!JXG.exists(javascript)) {
+            javascript = false
+        }
+
+        // ignore it
+        javascript = false;
+
+        if (!node)
+            return ret;
+
+        switch (node.type) {
+            case 'node_op':
+                switch (node.value) {
+                    case 'op_none':
+                        if (node.children[0]) {
+                            ret = this.compile(node.children[0]);
+                        }
+                        if (node.children[1]) {
+                            ret += this.compile(node.children[1]);
+                        }
+                        break;
+                    case 'op_assign':
+                        ret = this.compile(node.children[0]) + ' = ' + this.compile(node.children[1]) + ';\n';
+                        break;
+                    case 'op_noassign':
+                        ret = this.compile(node.children[0]);
+                        break;
+                    case 'op_if':
+                        ret = ' if ' + this.compile(node.children[0]) + this.compile(node.children[1]);
+                        break;
+                    case 'op_if_else':
+                        ret = ' if ' + this.compile(node.children[0]) + this.compile(node.children[1]);
+                        ret += ' else ' + this.compile(node.children[2]);
+                        break;
+                    case 'op_while':
+                        ret = ' while (' + this.compile(node.children[0]) + ') {\n' + this.compile(node.children[1]) + '}\n';
+                        break;
+                    case 'op_do':
+                        ret = ' do {\n' + this.compile(node.children[0]) + '} while (' + this.compile(node.children[1]) + ');\n';
+                        break;
+                    case 'op_param':
+                        if (node.children[1]) {
+                            ret = this.compile(node.children[1]) + ', ';
+                        }
+
+                        ret += this.compile(node.children[0]);
+                        break;
+                    case 'op_paramdef':
+                        if (node.children[1]) {
+                            ret = this.compile(node.children[1]) + ', ';
+                        }
+
+                        ret += node.children[0];
+                        break;
+                    case 'op_proplst':
+                        if (node.children[0]) {
+                            ret = this.compile(node.children[0]) + ', ';
+                        }
+
+                        ret += this.compile(node.children[1]);
+                        break;
+                    case 'op_prop':
+                        // child 0: Identifier
+                        // child 1: Value
+                        ret = node.children[0] + ': ' + this.compile(node.children[1]);
+                        break;
+                    case 'op_proplst_val':
+                        ret = (javascript ? '{' : '<<') + this.compile(node.children[0]) + (javascript ? '}' : '>>');
+                        break;
+                    case 'op_array':
+                        ret = '[' + this.compile(node.children[0]) + ']';
+                        break;
+                    case 'op_extvalue':
+                        ret = this.compile(node.children[0]) + '[' + this.compile(node.children[1]) + ']';
+                        break;
+                    case 'op_return':
+                        ret = ' return ' + this.compile(node.children[0]) + ';\n';
+                        break;
+                    case 'op_function':
+                        ret = ' function (' + this.compile(node.children[0]) + ') {\n' + this.compile(node.children[1]) + '}';
+                        break;
+                    case 'op_execfun':
+                        ret = this.compile(node.children[0]) + '(' + this.compile(node.children[1]) + ')';
+                        // parse the properties only if given
+                        if (node.children[2]) {
+                            ret += (javascript ? '{' : '<<') + this.compile(node.children[2]) + (javascript ? '}' : '>>');
+                        }
+                        break;
+                    case 'op_property':
+                        ret = this.compile(node.children[0]) + '.' + node.children[1];
+                        break;
+                    case 'op_lhs':
+                        if (node.children.length === 1) {
+                            ret = node.children[0];
+                        } else if (node.children[2] === 'dot') {
+                            ret = this.compile(node.children[1]) + '.' + node.children[0];
+                        } else if (node.children[2] === 'bracket') {
+                            ret = this.compile(node.children[1]) + '[' + this.compile(node.children[0]) + ']';
+                        }
+                        break;
+                    case 'op_use':
+                        ret = 'use ' + node.children[0] + ';';
+                        break;
+                    case 'op_delete':
+                        ret = 'delete ' + node.children[0];
+                        break;
+                    case 'op_equ':
+                        ret = '(' + this.compile(node.children[0]) + ' == ' + this.compile(node.children[1]) + ')';
+                        break;
+                    case 'op_neq':
+                        ret = '(' + this.compile(node.children[0]) + ' != ' + this.compile(node.children[1]) + ')';
+                        break;
+                    case 'op_grt':
+                        ret = '(' + this.compile(node.children[0]) + ' > ' + this.compile(node.children[1]) + ')';
+                        break;
+                    case 'op_lot':
+                        ret = '(' + this.compile(node.children[0]) + ' < ' + this.compile(node.children[1]) + ')';
+                        break;
+                    case 'op_gre':
+                        ret = '(' + this.compile(node.children[0]) + ' >= ' + this.compile(node.children[1]) + ')';
+                        break;
+                    case 'op_loe':
+                        ret = '(' + this.compile(node.children[0]) + ' <= ' + this.compile(node.children[1]) + ')';
+                        break;
+                    case 'op_add':
+                        ret = '(' + this.compile(node.children[0]) + ' + ' + this.compile(node.children[1]) + ')';
+                        break;
+                    case 'op_sub':
+                        ret = '(' + this.compile(node.children[0]) + ' - ' + this.compile(node.children[1]) + ')';
+                        break;
+                    case 'op_div':
+                        ret = '(' + this.compile(node.children[0]) + ' / ' + this.compile(node.children[1]) + ')';
+                        break;
+                    case 'op_mul':
+                        ret = '(' + this.compile(node.children[0]) + ' * ' + this.compile(node.children[1]) + ')';
+                        break;
+                    case 'op_exp':
+                        ret = '(' + this.compile(node.children[0]) + '^' + this.compile(node.children[1]) + ')';
+                        break;
+                    case 'op_neg':
+                        ret = '(-' + this.compile(node.children[0]) + ')';
+                        break;
+                }
+                break;
+
+            case 'node_var':
+                ret = node.value;
+                break;
+
+            case 'node_const':
+                ret = node.value;
+                break;
+
+            case 'node_const_bool':
+                ret = node.value;
+                break;
+
+            case 'node_str':
+                ret = '\'' + node.value.replace(/'/g, '\\\'') + '\'';
+                break;
+        }
+
+        if (node.needsBrackets) {
+            ret = '{\n' + ret + '}\n';
         }
 
         return ret;
