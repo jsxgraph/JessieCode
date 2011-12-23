@@ -126,7 +126,7 @@ arr = [function () { return [3, 4]; }];
 foobar = arr[0]()[1];
 </textarea>
 
-<textarea id="code2" cols="90" rows="50">
+<textarea id="code3" cols="90" rows="50">
     use jxgbox2;
     A = point(1, 1) << strokeColor : 'yellow', fillColor : 'green' >>;
     A.strokeColor = 'black';
@@ -195,6 +195,15 @@ foobar = arr[0]()[1];
         foo = 'bar\'s adventure';
     };
     testFun();
+</textarea>
+
+<textarea id="code2">
+    use jxgbox2;
+point(2, 3) << id: 'wrzpfrmpf', name: 'A' >>;
+t = text(1, 2, 'sticky!') << id: 'foobar' >>;
+t.X = function () {
+    return X(A);
+};
 </textarea>
 
 <pre>
