@@ -108,7 +108,7 @@ MulDivExp:    MulDivExp '*' ExpExp                                           [* 
         | ExpExp
         ;
 
-ExpExp:      ExpExp '^' NegExp                                               [* %% = this.createNode('node_op', 'op_exp', %1, %3 ); *]
+ExpExp:      NegExp '^' ExpExp                                               [* %% = this.createNode('node_op', 'op_exp', %1, %3 ); *]
         | NegExp
         ;
                 
