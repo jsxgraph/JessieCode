@@ -854,7 +854,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
      * @private
      */
     compile: function (node, javascript) {
-        var ret, v, i, e, parents = [];
+        var ret, i, e;
 
         ret = '';
 
