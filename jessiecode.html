@@ -199,12 +199,21 @@ foobar = arr[0]()[1];
 
 <textarea id="code2">
     use jxgbox2;
-point(2, 3) << id: 'wrzpfrmpf', name: 'A' >>;
-t = text(1, 2, 'sticky!') << id: 'foobar' >>;
-t.X = function () {
-    return X(A);
-};
-$('wrzpfrmpf').label.setText('D id\'d!');
+
+    point(2, 3) << id: 'wrzpfrmpf', name: 'A' >>;
+    t = text(1, 2, 'sticky!') << id: 'foobar' >>;
+    t.X = function () {
+        return X(A);
+    };
+    $('wrzpfrmpf').label.setText('D id\'d!');
+
+    A.X = function () {
+        return 3;
+    };
+
+    A.X = function () {
+        return 0;
+    };
 </textarea>
 
 <pre>
