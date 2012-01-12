@@ -200,7 +200,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
      */
     _debug: function (log) {
         if(typeof console !== "undefined") {
-            console.log(log);
+            JXG.debug(log);
         } else if(document.getElementById('debug') !== null) {
             document.getElementById('debug').innerHTML += log + '<br />';
         }
@@ -216,7 +216,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
 
     _warn: function (msg) {
         if(typeof console !== "undefined") {
-            console.log('Warning: ' + msg);
+            JXG.debug('Warning: ' + msg);
         } else if(document.getElementById(this.warnLog) !== null) {
             document.getElementById(this.warnLog).innerHTML += 'Warning: ' + msg + '<br />';
         }
