@@ -157,6 +157,17 @@ JXG.JessieCode = function(code, geonext) {
         rad: JXG.Math.Geometry.rad,
         deg: JXG.Math.Geometry.trueAngle,
         factorial: JXG.Math.factorial,
+        trunc: function (n, p) {
+            p = JXG.def(p, 0);
+
+            if (p == 0) {
+                n = ~~n;
+            } else {
+                n = n.toFixed(p);
+            }
+
+            return n;
+        },
         '$': this.getElementById
     };
 
