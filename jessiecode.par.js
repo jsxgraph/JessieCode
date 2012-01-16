@@ -964,6 +964,15 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                     case 'op_loe':
                         ret = this.execute(node.children[0]) <= this.execute(node.children[1]);
                         break;
+                    case 'op_or':
+                        ret = this.execute(node.children[0]) || this.execute(node.children[1]);
+                        break;
+                    case 'op_and':
+                        ret = this.execute(node.children[0]) && this.execute(node.children[1]);
+                        break;
+                    case 'op_not':
+                        ret = !this.execute(node.children[0]);
+                        break;
                     case 'op_add':
                         ret = this.execute(node.children[0]) + this.execute(node.children[1]);
                         break;
@@ -972,6 +981,9 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         break;
                     case 'op_div':
                         ret = this.execute(node.children[0]) / this.execute(node.children[1]);
+                        break;
+                    case 'op_mod':
+                        ret = this.execute(node.children[0]) % this.execute(node.children[1]);
                         break;
                     case 'op_mul':
                         ret = this.execute(node.children[0]) * this.execute(node.children[1]);
@@ -1141,6 +1153,15 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                     case 'op_loe':
                         ret = '(' + this.compile(node.children[0]) + ' <= ' + this.compile(node.children[1]) + ')';
                         break;
+                    case 'op_or':
+                        ret = '(' + this.compile(node.children[0]) + ' || ' + this.compile(node.children[1]) + ')';
+                        break;
+                    case 'op_and':
+                        ret = '(' + this.compile(node.children[0]) + ' && ' + this.compile(node.children[1]) + ')';
+                        break;
+                    case 'op_not':
+                        ret = '!(' + this.compile(node.children[0]) + ')';
+                        break;
                     case 'op_add':
                         ret = '(' + this.compile(node.children[0]) + ' + ' + this.compile(node.children[1]) + ')';
                         break;
@@ -1149,6 +1170,9 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         break;
                     case 'op_div':
                         ret = '(' + this.compile(node.children[0]) + ' / ' + this.compile(node.children[1]) + ')';
+                        break;
+                    case 'op_mod':
+                        ret = '(' + this.compile(node.children[0]) + ' % ' + this.compile(node.children[1]) + ')';
                         break;
                     case 'op_mul':
                         ret = '(' + this.compile(node.children[0]) + ' * ' + this.compile(node.children[1]) + ')';

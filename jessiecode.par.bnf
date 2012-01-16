@@ -24,9 +24,13 @@
     '>='
     '>'
     '<'
+    '\|\|'
+    '&&'
+    '!'
     '\+'
     '\-'
     '/'
+    '%'
     '\*'
     '^'
     '\('
@@ -89,12 +93,18 @@ Lhs:          ExtValue '.' Identifier                                        [* 
         | Identifier                                                         [* %% = this.createNode('node_op', 'op_lhs', %1); *]
         ;
                 
-Expression:    Expression '==' AddSubExp                                     [* %% = this.createNode('node_op', 'op_equ', %1, %3 ); *]
-        | Expression '<' AddSubExp                                           [* %% = this.createNode('node_op', 'op_lot', %1, %3 ); *]
-        | Expression '>' AddSubExp                                           [* %% = this.createNode('node_op', 'op_grt', %1, %3 ); *]
-        | Expression '<=' AddSubExp                                          [* %% = this.createNode('node_op', 'op_loe', %1, %3 ); *]
-        | Expression '>=' AddSubExp                                          [* %% = this.createNode('node_op', 'op_gre', %1, %3 ); *]
-        | Expression '!=' AddSubExp                                          [* %% = this.createNode('node_op', 'op_neq', %1, %3 ); *]
+Expression:    Expression '==' LogExp                                        [* %% = this.createNode('node_op', 'op_equ', %1, %3 ); *]
+        | Expression '<' LogExp                                              [* %% = this.createNode('node_op', 'op_lot', %1, %3 ); *]
+        | Expression '>' LogExp                                              [* %% = this.createNode('node_op', 'op_grt', %1, %3 ); *]
+        | Expression '<=' LogExp                                             [* %% = this.createNode('node_op', 'op_loe', %1, %3 ); *]
+        | Expression '>=' LogExp                                             [* %% = this.createNode('node_op', 'op_gre', %1, %3 ); *]
+        | Expression '!=' LogExp                                             [* %% = this.createNode('node_op', 'op_neq', %1, %3 ); *]
+        | LogExp
+        ;
+
+LogExp:       LogExp '||' AddSubExp                                          [* %% = this.createNode('node_op', 'op_or', %1, %3); *]
+        | LogExp '&&' AddSubExp                                              [* %% = this.createNode('node_op', 'op_and', %1, %3); *]
+        | '!' LogExp                                                         [* %% = this.createNode('node_op', 'op_not', %2); *]
         | AddSubExp
         ;
 
@@ -105,6 +115,7 @@ AddSubExp:    AddSubExp '-' MulDivExp                                        [* 
                 
 MulDivExp:    MulDivExp '*' ExpExp                                           [* %% = this.createNode('node_op', 'op_mul', %1, %3 ); *]
         | MulDivExp '/' ExpExp                                               [* %% = this.createNode('node_op', 'op_div', %1, %3 ); *]
+        | MulDivExp '%' ExpExp                                               [* %% = this.createNode('node_op', 'op_mod', %1, %3 ); *]
         | ExpExp
         ;
 
