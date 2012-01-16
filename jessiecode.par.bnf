@@ -4,6 +4,7 @@
     "ELSE"
     "WHILE"
     "DO"
+    "FOR"
     "FUNCTION"
     "USE"
     "RETURN"
@@ -75,14 +76,18 @@ Param_Def_List:Param_Def_List ',' Identifier                                 [* 
         |
         ;
 
+Assign:       Lhs '=' Expression                                             [* %% = this.createNode('node_op', 'op_assign', %1, %3 ); *]
+        ;
+
 Stmt:          IF Expression Stmt                                            [* %% = this.createNode('node_op', 'op_if', %2, %3 ); *]
         | IF Expression Stmt ELSE Stmt                                       [* %% = this.createNode('node_op', 'op_if_else', %2, %3, %5 ); *]
         | WHILE Expression Stmt                                              [* %% = this.createNode('node_op', 'op_while', %2, %4 ); *]
         | DO Stmt WHILE Expression ';'                                       [* %% = this.createNode('node_op', 'op_do', %2, %4 ); *]
+        | FOR '(' Assign ';' Expression ';' Assign ')' Stmt                  [* %% = this.createNode('node_op', 'op_for', %3, %5, %7, %9); *]
         | USE Identifier ';'                                                 [* %% = this.createNode('node_op', 'op_use', %2 ); *]
         | DELETE Identifier                                                  [* %% = this.createNode('node_op', 'op_delete', %2); *]
         | RETURN Stmt                                                        [* %% = this.createNode('node_op', 'op_return', %2 ); *]
-        | Lhs '=' Expression ';'                                             [* %% = this.createNode('node_op', 'op_assign', %1, %3 ); *]
+        | Assign ';'
         | Expression ';'                                                     [* %% = this.createNode('node_op', 'op_noassign', %1 ); *]
         | '{' Stmt_List '}'                                                  [* %% = %2; %%.needsBrackets = true; *]
         | ';'                                                                [* %% = this.createNode('node_op', 'op_none' ); *]

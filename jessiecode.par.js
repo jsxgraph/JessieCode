@@ -661,6 +661,11 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                             this.execute(node.children[0]);
                         } while (this.execute(node.children[1]));
                         break;
+                    case 'op_for':
+                        for (this.execute(node.children[0]); this.execute(node.children[1]); this.execute(node.children[2])) {
+                            this.execute(node.children[3]);
+                        }
+                        break;
                     case 'op_param':
                         if (node.children[1]) {
                             this.execute(node.children[1]);
