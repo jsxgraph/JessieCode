@@ -67,6 +67,8 @@ C = point(-1, 1);
 
 D = point(2, -2);
 
+sqrt4 = 3.14159265358 ~= PI;
+
 D.X = function () {
     return A.X() + 1 - X(B);
 };
@@ -205,7 +207,7 @@ foobar = arr[0]()[1];
     t.X = function () {
         return X(A);
     };
-    $('wrzpfrmpf').label.setText('D id\'d!');
+    $('wrzpfrmpf').label.setText('D');
 
     //t.free();
 
@@ -216,6 +218,8 @@ foobar = arr[0]()[1];
     for (i = 0; i < 5; i = i+1) {
         point(random()*2, random()*2) << name: 'random point no' + (i+1) >>;
     }
+
+    //str = '&alpha;';
 </textarea>
 
 <pre>

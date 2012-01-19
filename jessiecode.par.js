@@ -993,6 +993,9 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                     case 'op_neq':
                         ret = this.execute(node.children[0]) != this.execute(node.children[1]);
                         break;
+                    case 'op_approx':
+                        ret = Math.abs(this.execute(node.children[0]) - this.execute(node.children[1])) < JXG.Math.eps;
+                        break;
                     case 'op_grt':
                         ret = this.execute(node.children[0]) > this.execute(node.children[1]);
                         break;
@@ -1184,6 +1187,9 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         break;
                     case 'op_neq':
                         ret = '(' + this.compile(node.children[0]) + ' != ' + this.compile(node.children[1]) + ')';
+                        break;
+                    case 'op_approx':
+                        ret = '(' + this.compile(node.children[0]) + ' ~= ' + this.compile(node.children[1]) + ')';
                         break;
                     case 'op_grt':
                         ret = '(' + this.compile(node.children[0]) + ' > ' + this.compile(node.children[1]) + ')';
