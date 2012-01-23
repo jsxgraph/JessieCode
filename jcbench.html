@@ -15,7 +15,7 @@
 
 <textarea id="code" cols="90" rows="50">
     plot(function (x) {
-        return sin(x)*A.X();
+        return (sin(x)*A.X()+cos(x)*A.Y())^2;
     });
 </textarea>
 
@@ -33,7 +33,7 @@
     var timeJC = (new Date()).getTime() - start;
 
     board2.create('plot', [function (x) {
-        return Math.sin(x)*A.X();
+        return Math.pow(Math.sin(x)*A.X() + Math.cos(x)*A.Y(), 2);
     }]);
     start = (new (Date)).getTime();
     board2.update();
