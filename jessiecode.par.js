@@ -447,7 +447,9 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
         var error_cnt = 0,
             error_off = [],
             error_la = [],
-            ccode = code.replace(/\r\n/g,'\n').split('\n'), i, cleaned = [];
+            replacegxt = ['Abs', 'ACos', 'ASin', 'ATan','Ceil','Cos','Exp','Factorial','Floor','Log','Max','Min','Random','Round','Sin','Sqrt','Tan','Trunc', 'If', 'Deg', 'Rad', 'Dist'],
+            regex,
+            ccode = code.replace(/\r\n/g,'\n').split('\n'), i, j, cleaned = [];
 
         if (!JXG.exists(geonext)) {
             geonext = false;
@@ -456,14 +458,10 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
         for (i = 0; i < ccode.length; i++) {
             if (!(JXG.trim(ccode[i])[0] === '/' && JXG.trim(ccode[i])[1] === '/')) {
                 if (geonext) {
-                    ccode[i] = ccode[i].replace(/Deg\(/g, 'deg(')
-                                       .replace(/Rad\(/g, 'rad(')
-                                       .replace(/Sin\(/g, 'sin(')
-                                       .replace(/Cos\(/g, 'cos(')
-                                       .replace(/Dist\(/g, 'dist(')
-                                       .replace(/Factorial\(/g, 'factorial(')
-                                       .replace(/If\(/g, 'if(')
-                                       .replace(/Round\(/, 'round(');
+                    for (j = 0; j < replacegxt.length; j++) {
+                        regex = new RegExp(replacegxt[j] + "\\(", 'g');
+                        ccode[i] = ccode[i].replace(regex, replacegxt[j].toLowerCase() + '(');
+                    }
                 }
 
                 cleaned.push(ccode[i]);
@@ -1101,9 +1099,6 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
             javascript = false
         }
 
-        // ignore it
-        javascript = false;
-
         if (!node)
             return ret;
 
@@ -1125,10 +1120,10 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         ret = this.compile(node.children[0]);
                         break;
                     case 'op_if':
-                        ret = ' if ' + this.compile(node.children[0]) + this.compile(node.children[1]);
+                        ret = ' if (' + this.compile(node.children[0]) + ') ' + this.compile(node.children[1]);
                         break;
                     case 'op_if_else':
-                        ret = ' if ' + this.compile(node.children[0]) + this.compile(node.children[1]);
+                        ret = ' if (' + this.compile(node.children[0]) + ')' + this.compile(node.children[1]);
                         ret += ' else ' + this.compile(node.children[2]);
                         break;
                     case 'op_while':
