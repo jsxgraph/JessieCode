@@ -1,0 +1,45 @@
+<html>
+<head>
+  <link rel="stylesheet" type="text/css" href="http://jsxgraph.uni-bayreuth.de/distrib/jsxgraph.css" />
+  <script type="text/javascript" src="../JSXGraph/src/loadjsxgraph.js"></script>
+  <script type="text/javascript" src="jessiecode.par.js"></script>
+  <script type="text/javascript" src="jessiecode.bnf.js"></script>
+</head>
+<body>
+
+<div id="jxgbox" class="jxgbox" style="width:800px; height:800px; float:left"></div>
+<div id="jxgbox2" class="jxgbox" style="width:800px; height:800px; float:left"></div>
+<div id="debug" style="display:block;"></div>
+
+<h2>Sourcecode:</h2>
+
+<textarea id="code" cols="90" rows="50">
+    plot(function (x) {
+        return sin(x)*A.X();
+    });
+</textarea>
+
+<script type="text/javascript">
+    var board = JXG.JSXGraph.initBoard('jxgbox', {boundingbox: [-5, 5, 5, -5], axis:true});
+    var board2 = JXG.JSXGraph.initBoard('jxgbox2', {boundingbox: [-5, 5, 5, -5], axis:true});
+
+    A = board.create('point', [1, 2], {name: 'A'});
+
+    var str = document.getElementById('code').value;
+
+    board.jc.parse(str);
+    var start = (new Date()).getTime();
+    board.update();
+    var timeJC = (new Date()).getTime() - start;
+
+    board2.create('plot', [function (x) {
+        return Math.sin(x)*A.X();
+    }]);
+    start = (new (Date)).getTime();
+    board2.update();
+    var timeJS = (new Date()).getTime() - start;
+
+    document.getElementById('debug').innerHTML = 'JC: ' + timeJC + '<br />' + 'JS: ' + timeJS;
+</script>
+</body>
+</html>
