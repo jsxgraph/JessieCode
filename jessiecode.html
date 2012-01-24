@@ -52,7 +52,7 @@
 
 <script type="text/javascript">
     board = JXG.JSXGraph.initBoard('jxgbox', {boundingbox: [-5, 5, 5, -5], axis:true});
-    board = JXG.JSXGraph.initBoard('jxgbox2', {boundingbox: [-5, 5, 5, -5], axis:true});
+    board2 = JXG.JSXGraph.initBoard('jxgbox2', {boundingbox: [-5, 5, 5, -5], axis:true});
     board.options.angle.type = 'sector';
 </script>
 
@@ -86,6 +86,8 @@ CC = circumcircle('wrzpfrmpf', B, C) << point: << visible: true, withLabel: true
 l = line(A, B);
 //l.strokeColor = A.strokeColor;
 B.fillColor = function () {
+    //B.strokeColor = 'blue';
+
     if (A.X() > 0) {
         return 'green';
     } else {
@@ -120,9 +122,9 @@ plot(function (x) {
 p.strokeColor = '#CDEB8B';
 p.strokeWidth = 4;
 
-obj = << foo: 3, bar: 'baz', sub: << this: 99 >> >>;
+//obj = << foo: 3, bar: 'baz', sub: << this: 99 >> >>;
 
-val = obj.sub.this;
+//val = obj.sub.this;
 
 arr = [function () { return [3, 4]; }];
 foobar = arr[0]()[1];
@@ -224,6 +226,8 @@ foobar = arr[0]()[1];
 
 <textarea id="code2">
     use jxgbox2;
+
+    point(1, 2) << name: 'B' >>;
 
     b = 3;
     a = function (x) {
