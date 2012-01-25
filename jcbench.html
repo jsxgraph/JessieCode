@@ -15,7 +15,8 @@
 
 <textarea id="code" cols="90" rows="50">
     plot(function (x) {
-        return (sin(x)*A.X()+cos(x)*A.Y())^2;
+        //return (sin(x)*A.X()+cos(x)*A.Y())^2;
+        return sin(x)*A.X();
     });
 </textarea>
 
@@ -23,23 +24,30 @@
     var board = JXG.JSXGraph.initBoard('jxgbox', {boundingbox: [-5, 5, 5, -5], axis:true});
     var board2 = JXG.JSXGraph.initBoard('jxgbox2', {boundingbox: [-5, 5, 5, -5], axis:true});
 
+    var runs = 100;
+
     A = board.create('point', [1, 2], {name: 'A'});
 
     var str = document.getElementById('code').value;
 
     board.jc.parse(str);
     var start = (new Date()).getTime();
-    board.update();
+    for (i = 0; i < runs; i++) {
+        board.update();
+    }
     var timeJC = (new Date()).getTime() - start;
 
     board2.create('plot', [function (x) {
-        return Math.pow(Math.sin(x)*A.X() + Math.cos(x)*A.Y(), 2);
+        //return Math.pow(Math.sin(x)*A.X() + Math.cos(x)*A.Y(), 2);
+        return Math.sin(x)*A.X();
     }]);
     start = (new (Date)).getTime();
-    board2.update();
+    for (i = 0; i < runs; i++) {
+        board2.update();
+    }
     var timeJS = (new Date()).getTime() - start;
 
-    document.getElementById('debug').innerHTML = 'JC: ' + timeJC + '<br />' + 'JS: ' + timeJS;
+    document.getElementById('debug').innerHTML = 'JC: ' + timeJC/runs + '<br />' + 'JS: ' + timeJS/runs;
 </script>
 </body>
 </html>
