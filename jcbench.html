@@ -43,7 +43,7 @@
     }
 
 
-    var runs = 1;
+    var runs = 20;
 
     console.log('Preparations for Test 1');
     A = board.create('point', [1, 2], {name: 'A'});
@@ -61,8 +61,8 @@
     B = board2.create('point', [1, 2]);
     board2.create('plot', [function (x) {
         //return Math.pow(Math.sin(x)*A.X() + Math.cos(x)*A.Y(), 2);
-        B.setProperty({strokeColor: 'green'});
-        return Math.sin(x)*(resolve(A, 'X'))()*(resolve(A, 'X'))();
+        //B.setProperty({strokeColor: 'green'});
+        return Math.sin(x)*(resolve(B, 'X'))()*(resolve(B, 'X'))();
     }]);
 
     console.log('Starting Test 2');
@@ -72,10 +72,11 @@
     }
     var timeJSAno = (new Date()).getTime() - start;
 
+    C = board3.create('point', [1, 2]);
     board3.create('plot', [function (x) {
         //return Math.pow(Math.sin(x)*A.X() + Math.cos(x)*A.Y(), 2);
         //A.setProperty({strokeColor: 'green'});
-        return Math.sin(x)*A.X()*A.X();
+        return Math.sin(x)*C.X()*C.X();
     }]);
     start = (new (Date)).getTime();
     for (i = 0; i < runs; i++) {
