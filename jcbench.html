@@ -9,45 +9,81 @@
 
 <div id="jxgbox" class="jxgbox" style="width:800px; height:800px; float:left"></div>
 <div id="jxgbox2" class="jxgbox" style="width:800px; height:800px; float:left"></div>
+<div id="jxgbox3" class="jxgbox" style="width:800px; height:800px; float:left"></div>
 <div id="debug" style="display:block;"></div>
 
 <h2>Sourcecode:</h2>
 
 <textarea id="code" cols="90" rows="50">
+
     plot(function (x) {
         //return (sin(x)*A.X()+cos(x)*A.Y())^2;
-        return sin(x)*A.X();
+        //A.strokeColor = 'green';
+        return sin(x)*A.X()*A.X();
     });
 </textarea>
 
 <script type="text/javascript">
+    counter = 0;
     var board = JXG.JSXGraph.initBoard('jxgbox', {boundingbox: [-5, 5, 5, -5], axis:true});
     var board2 = JXG.JSXGraph.initBoard('jxgbox2', {boundingbox: [-5, 5, 5, -5], axis:true});
+    var board3 = JXG.JSXGraph.initBoard('jxgbox3', {boundingbox: [-5, 5, 5, -5], axis:true});
 
-    var runs = 10;
+    function resolve (e, v) {
+        // is it a geometry element?
+        if (e.subs && e.methodMap) {
+            return v === 'label' ? e.label.content : e.subs[v] || function () { return e[e.methodMap[v]].apply(e, arguments); } || e.visProp[v.toLowerCase()];
+        }
 
+        if (typeof e[v] === 'function') {
+            return function () { return e[v].apply(e, arguments); };
+        } else {
+            return e[v];
+        }
+    }
+
+
+    var runs = 1;
+
+    console.log('Preparations for Test 1');
     A = board.create('point', [1, 2], {name: 'A'});
-
     var str = document.getElementById('code').value;
-
     board.jc.parse(str);
+
+    console.log('Starting Test 1');
     var start = (new Date()).getTime();
     for (i = 0; i < runs; i++) {
         board.update();
     }
     var timeJC = (new Date()).getTime() - start;
 
+    console.log('Preparations for Test 2');
+    B = board2.create('point', [1, 2]);
     board2.create('plot', [function (x) {
         //return Math.pow(Math.sin(x)*A.X() + Math.cos(x)*A.Y(), 2);
-        return Math.sin(x)*A.X();
+        B.setProperty({strokeColor: 'green'});
+        return Math.sin(x)*(resolve(A, 'X'))()*(resolve(A, 'X'))();
     }]);
+
+    console.log('Starting Test 2');
     start = (new (Date)).getTime();
     for (i = 0; i < runs; i++) {
         board2.update();
     }
+    var timeJSAno = (new Date()).getTime() - start;
+
+    board3.create('plot', [function (x) {
+        //return Math.pow(Math.sin(x)*A.X() + Math.cos(x)*A.Y(), 2);
+        //A.setProperty({strokeColor: 'green'});
+        return Math.sin(x)*A.X()*A.X();
+    }]);
+    start = (new (Date)).getTime();
+    for (i = 0; i < runs; i++) {
+        board3.update();
+    }
     var timeJS = (new Date()).getTime() - start;
 
-    document.getElementById('debug').innerHTML = 'JC: ' + timeJC/runs + '<br />' + 'JS: ' + timeJS/runs;
+    document.getElementById('debug').innerHTML = 'JC: ' + timeJC/runs + '<br />' + 'JSAno: ' + timeJSAno/runs + '<br />' + 'JS: ' + timeJS/runs;
 </script>
 </body>
 </html>
