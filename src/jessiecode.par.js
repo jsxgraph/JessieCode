@@ -172,9 +172,9 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
      */
     creator: (function () {
         // stores the already defined creators
-        var _ccache = {};
+        var _ccache = {}, r;
 
-        return function (vname) {
+        r = function (vname) {
             var f;
 
             // _ccache is global, i.e. it is the same for ALL JessieCode instances.
@@ -202,6 +202,12 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
             }
 
         };
+
+        r.clearCache = function () {
+            _ccache = {};
+        };
+
+        return r;
     })(),
 
    /**

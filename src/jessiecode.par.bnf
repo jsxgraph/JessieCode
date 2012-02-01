@@ -141,6 +141,7 @@ ExpExp:      NegExp '^' ExpExp                                               [* 
         ;
                 
 NegExp:        '-' ExtValue                                                  [* %% = this.createNode('node_op', 'op_neg', %2 ); *]
+        | '+' ExtValue                                                       [* %% = %2; *]
         | ExtValue
         ;
 

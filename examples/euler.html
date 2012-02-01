@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JessieCode example :: Euler line</title>
+    <link rel="stylesheet" type="text/css" href="http://jsxgraph.uni-bayreuth.de/distrib/jsxgraph.css" />
+    <script type="text/javascript" src="../../JSXGraph/src/loadjsxgraph.js"></script>
+    <script type="text/javascript" src="../src/jessiecode.par.js"></script>
+    <script type="text/javascript" src="../bin/jessiecode.bnf.js"></script>
+</head>
+<body>
+
+<h1>Euler line</h1>
+
+<div style="float: left;">
+    <button id="reset">Reset board</button> <button id="parse">Parse code</button>
+</div>
+
+<br /><br />
+
+<div id="jxgbox" class="jxgbox" style="width: 500px; height: 500px; float:left"></div>
+
+<textarea id="code" cols="110" rows="31">// The triangle
+A = point(1, 0);
+B = point(-1, 0);
+C = point(0.2, 1.5);
+
+pol = polygon(A, B, C) << fillColor: '#FFFF00', borders: << strokeWidth: 2, strokeColor: '#009256' >> >>;
+
+// The perpendiculars
+H_c = perpendicular(pol.borders[0], C);
+H_a = perpendicular(pol.borders[1], A);
+H_b = perpendicular(pol.borders[2], B);
+
+// intersection
+H = intersection(H_c, H_b, 0);
+
+// Midpoints
+mAB = midpoint(A, B) << name: 'M_c' >>;
+mBC = midpoint(B, C) << name: 'M_a' >>;
+mCA = midpoint(C, A) << name: 'M_b' >>;
+
+ma = segment(mBC, A);
+mb = segment(mCA, B);
+mc = segment(mAB, C);
+S = intersection(ma, mc, 0) << name: 'S' >>;
+
+c = circumcircle(A, B, C) << strokeColor: '#000000', dash: 3, strokeWidth: 1, center: << name: 'U', visible: true, withLabel: true >> >>;
+
+euler = line(H, S) << strokeWidth: 2, strokeColor:'#901B77' >>;</textarea>
+
+<script type="text/javascript">
+    /* <![CDATA[ */
+
+    (function () {
+        var board,
+            init = function () {
+                board = JXG.JSXGraph.initBoard('jxgbox', {boundingbox: [-1.5, 2, 1.5, -1], keepaspectratio:true});
+                oboard = board;
+            },
+            parse = function () {
+                console.log(board);
+                board.jc.parse(document.getElementById('code').value);
+            };
+
+        init();
+        parse();
+
+        JXG.addEvent(document.getElementById('reset'), 'click', function () {
+            JXG.JSXGraph.freeBoard(board);
+            init();
+        }, this);
+
+        JXG.addEvent(document.getElementById('parse'), 'click', function () {
+            parse();
+        }, this);
+    })();
+
+    /* ]]> */
+</script>
+
+</body>
+</html>
