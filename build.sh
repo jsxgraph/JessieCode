@@ -1,12 +1,18 @@
 #!/bin/bash
 
-if test jessiecode.bnf.js -nt jessiecode.js; then
+
+YUI=~/Tools/yuicompressor/build/yuicompressor*.jar
+
+#if test bin/jessiecode.bnf.js -nt bin/jessiecode.js; then
   echo Recompiling BNF to js...
-  rhino tools/jscc.js -v -w -o jessiecode.bnf.js -p jessie -t tools/driver_jxg.js_ jessiecode.par.bnf
-fi
+  rhino jscc/jscc.js -v -w -o bin/jessiecode.bnf.js -p jessie -t jscc/driver_jxg.js_ src/jessiecode.par.bnf
+#fi
 
 echo Creating jessiecode.js...
-cat jessiecode.par.js jessiecode.bnf.js > jessiecode.js
+cat src/jessiecode.par.js bin/jessiecode.bnf.js > bin/jessiecode.js
 
 echo Copying new version to JSXGraph...
-cp jessiecode.js ../JSXGraph/src/JessieCode.js
+cp bin/jessiecode.js ../JSXGraph/src/JessieCode.js
+
+echo Creating minified version
+java -jar $YUI --type js bin/jessiecode.js >> bin/jessiecode-min.js
