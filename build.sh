@@ -1,7 +1,10 @@
 #!/bin/bash
 
 
-YUI=~/Tools/yuicompressor/build/yuicompressor*.jar
+YUI=~/Tools/yuicompressor/build/yuicompressor-2.4.6.jar
+
+echo Creating output directory
+mkdir -p bin
 
 #if test bin/jessiecode.bnf.js -nt bin/jessiecode.js; then
   echo Recompiling BNF to js...
@@ -15,4 +18,4 @@ echo Copying new version to JSXGraph...
 cp bin/jessiecode.js ../JSXGraph/src/JessieCode.js
 
 echo Creating minified version
-java -jar $YUI --type js bin/jessiecode.js >> bin/jessiecode-min.js
+java -jar $YUI --type js bin/jessiecode.js > bin/jessiecode-min.js
