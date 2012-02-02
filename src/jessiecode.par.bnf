@@ -147,7 +147,7 @@ NegExp:        '-' ExtValue                                                  [* 
 
 ExtValue:      ExtValue '[' AddSubExp ']'                                    [* %% = this.createNode('node_op', 'op_extvalue', %1, %3); *]
         | ExtValue '(' Param_List ')'                                        [* %% = this.createNode('node_op', 'op_execfun', %1, %3); *]
-        | ExtValue '(' Param_List ')' '<<' Prop_List '>>'                    [* %% = this.createNode('node_op', 'op_execfun', %1, %3, %6); *]
+        | ExtValue '(' Param_List ')' Value                                  [* %% = this.createNode('node_op', 'op_execfun', %1, %3, %5); *]
         | ExtValue '.' Identifier                                            [* %% = this.createNode('node_op', 'op_property', %1, %3); *]
         | Value
         ;

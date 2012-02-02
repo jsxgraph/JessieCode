@@ -19,32 +19,58 @@
 
 <div id="jxgbox" class="jxgbox" style="width: 500px; height: 500px; float:left"></div>
 
-<textarea id="code" cols="110" rows="31">// The triangle
-A = point(1, 0);
-B = point(-1, 0);
-C = point(0.2, 1.5);
+<textarea id="code" cols="110" rows="31">// Prepare some visual properties
+cerise = <<
+    strokeColor: '#901B77',
+    fillColor: '#CA147A',
+    visible: true,
+    withLabel: true
+>>;
+grass = <<
+    strokeColor: '#009256',
+    fillColor: '#65B72E',
+    visible: true,
+    withLabel: true
+>>;
+perp = <<
+    strokeColor: 'black',
+    dash: 1,
+    strokeWidth: 1,
+    point: cerise
+>>;
+median = <<
+    strokeWidth: 1,
+    strokeColor: '#333333',
+    dash:2
+>>;
+
+// The triangle
+A = point(1, 0) cerise;
+B = point(-1, 0) cerise;
+C = point(0.2, 1.5) cerise;
 
 pol = polygon(A, B, C) << fillColor: '#FFFF00', borders: << strokeWidth: 2, strokeColor: '#009256' >> >>;
 
 // The perpendiculars
-H_c = perpendicular(pol.borders[0], C);
-H_a = perpendicular(pol.borders[1], A);
-H_b = perpendicular(pol.borders[2], B);
+H_c = perpendicularsegment(pol.borders[0], C) perp;
+H_a = perpendicularsegment(pol.borders[1], A) perp;
+H_b = perpendicularsegment(pol.borders[2], B) perp;
 
 // intersection
-H = intersection(H_c, H_b, 0);
+H = intersection(H_c, H_b, 0) grass;
 
 // Midpoints
-mAB = midpoint(A, B) << name: 'M_c' >>;
-mBC = midpoint(B, C) << name: 'M_a' >>;
-mCA = midpoint(C, A) << name: 'M_b' >>;
+mAB = midpoint(A, B) cerise;
+mBC = midpoint(B, C) cerise;
+mCA = midpoint(C, A) cerise;
 
-ma = segment(mBC, A);
-mb = segment(mCA, B);
-mc = segment(mAB, C);
-S = intersection(ma, mc, 0) << name: 'S' >>;
+ma = segment(mBC, A) median;
+mb = segment(mCA, B) median;
+mc = segment(mAB, C) median;
+S = intersection(ma, mc, 0) grass;
 
-c = circumcircle(A, B, C) << strokeColor: '#000000', dash: 3, strokeWidth: 1, center: << name: 'U', visible: true, withLabel: true >> >>;
+grass.name = 'U';
+c = circumcircle(A, B, C) << strokeColor: '#000000', dash: 3, strokeWidth: 1, center: grass >>;
 
 euler = line(H, S) << strokeWidth: 2, strokeColor:'#901B77' >>;</textarea>
 

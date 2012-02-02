@@ -100,12 +100,6 @@ JXG.JessieCode = function(code, geonext) {
     this.warnLog = 'jcwarn';
 
     /**
-     * Element attributes that are not allowed to be set in JessieCode.
-     * @type Array
-     */
-    this.visPropBlacklist = ['cssclass', 'highlightcssclass'];
-
-    /**
      * Built-in functions and constants
      * @type Object
      */
@@ -411,12 +405,8 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
 
             this.board.update();
         } else if (o.type && o.elementClass && o.visProp) {
-            if (JXG.indexOf(this.visPropBlacklist, what.toLowerCase && what.toLowerCase()) === -1) {
-                par[what] = value;
-                o.setProperty(par);
-            } else {
-                this._warn('Attribute "' + what + '" can not be set with JessieCode.');
-            }
+            par[what] = value;
+            o.setProperty(par);
         } else {
             o[what] = value;
         }
@@ -943,13 +933,10 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         //   [0]: Name of the function
                         //   [1]: Parameter list as a parse subtree
                         //   [2]: Properties, only used in case of a create function
-                        var fun, props, attr, sc;
+                        var fun, attr, sc;
 
                         this.pstack.push([]);
                         this.pscope++;
-
-                        // assume there are no properties given
-                        props = false;
 
                         // parse the parameter list
                         // after this, the parameters are in pstack
@@ -957,11 +944,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
 
                         // parse the properties only if given
                         if (typeof node.children[2] !== 'undefined') {
-                            this.propstack.push({});
-                            this.propscope++;
-
-                            props = true;
-                            this.execute(node.children[2]);
+                            attr = this.execute(node.children[2]);
                         }
 
                         // look up the variables name in the variable table
@@ -979,17 +962,6 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                             parents[i] = this.execute(this.pstack[this.pscope][i]);
                         }
 
-                        // get the properties from the propstack
-                        if (props) {
-                            attr = this.propstack[this.propscope];
-                            for (i in attr) {
-                                if (JXG.indexOf(this.visPropBlacklist, i.toLowerCase()) > -1) {
-                                    this._warn('Attribute "' + i + '" can not be set with JessieCode.');
-                                    delete attr[i];
-                                }
-                            }
-                        }
-
                         // check for the function in the variable table
                         if (typeof fun === 'function' && !fun.creator) {
                             ret = fun.apply(sc, parents);
@@ -997,13 +969,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                             // creator methods are the only ones that take properties, hence this special case
                             ret = fun(parents, attr);
                         } else {
-                            this._error('Error: Function \'' + node.children[0] + '\' is undefined.');
-                        }
-
-                        // clear props stack
-                        if (props) {
-                            this.propstack.pop();
-                            this.propscope--;
+                            this._error('Error: Function \'' + fun + '\' is undefined.');
                         }
 
                         // clear parameter stack
