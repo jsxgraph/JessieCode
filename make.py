@@ -26,7 +26,7 @@ import urllib
 
 # Default values for options. May be overridden via command line options
 yui = "~/Tools/yuicompressor"
-jstest = "~/Tools/JsTestDriver/JsTestDriver-1.3.1.jar"
+jstest = "~/Tools/JsTestDriver/JsTestDriver-1.3.4-a.jar"
 output = "bin"
 version = None
 hint = None
@@ -157,9 +157,9 @@ def makeHint():
     Run Unit Tests
 '''
 def makeTest():
-    global jstest, reset, server
+    global jstest, reset, server, output
 
-    os.system('java -jar ' + jstest + ' ' + reset + ' ' + server + ' --tests all --basePath ./ --config test/jsTestDriver.conf --captureConsole');
+    os.system('java -jar ' + jstest + ' ' + reset + ' ' + server + ' --tests all --basePath ./ --config test/jsTestDriver.conf --captureConsole --testOutput ' + output);
 
 '''
     Run Unit Tests Server

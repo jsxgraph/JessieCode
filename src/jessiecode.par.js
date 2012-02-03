@@ -1068,7 +1068,8 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         ret = this.execute(node.children[0]) / this.execute(node.children[1]);
                         break;
                     case 'op_mod':
-                        ret = this.execute(node.children[0]) % this.execute(node.children[1]);
+                        // use mathematical modulo, JavaScript implements the symmetric modulo.
+                        ret = JXG.Math.mod(this.execute(node.children[0]), this.execute(node.children[1]));
                         break;
                     case 'op_mul':
                         ret = this.execute(node.children[0]) * this.execute(node.children[1]);
@@ -1295,7 +1296,11 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         ret = '(' + this.compile(node.children[0], js) + ' / ' + this.compile(node.children[1], js) + ')';
                         break;
                     case 'op_mod':
-                        ret = '(' + this.compile(node.children[0], js) + ' % ' + this.compile(node.children[1], js) + ')';
+                        if (js) {
+                            ret = 'JXG.Math.mod(' + this.compile(node.children[0], js) + ', ' + this.compile(node.children[1], js) + ')';
+                        } else {
+                            ret = '(' + this.compile(node.children[0], js) + ' % ' + this.compile(node.children[1], js) + ')';
+                        }
                         break;
                     case 'op_mul':
                         ret = '(' + this.compile(node.children[0], js) + ' * ' + this.compile(node.children[1], js) + ')';
