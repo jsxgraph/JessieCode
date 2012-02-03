@@ -25,7 +25,10 @@ TestCase("Arithmetic", {
         expectAsserts(2);
 
         try {
-            this.jc.parse('a = 1; b = 1.5;');
+            this.jc.parse('\
+                a = 1;     \
+                b = 1.5;   \
+            ');
         } catch (e) {
             console.log(e);
         }
@@ -38,7 +41,10 @@ TestCase("Arithmetic", {
         expectAsserts(2);
 
         try {
-            this.jc.parse('a = +1; b = 1+1;');
+            this.jc.parse('\
+                a = +1;    \
+                b = 1+1;   \
+            ');
         } catch (e) {
             console.log(e);
         }
@@ -51,7 +57,11 @@ TestCase("Arithmetic", {
         expectAsserts(2);
 
         try {
-            this.jc.parse('a = -1; b = 1-1;');
+            this.jc.parse('\
+                a = -1;    \
+                b = 1-1;   \
+            ');
+
         } catch (e) {
             console.log(e);
         }
@@ -64,7 +74,11 @@ TestCase("Arithmetic", {
          expectAsserts(3);
 
         try {
-            this.jc.parse('a = 1*2; b = 3*-4; c = -3*-2;');
+            this.jc.parse('\
+                a = 1*2;   \
+                b = 3*-4;  \
+                c = -3*-2; \
+            ');
         } catch (e) {
             console.log(e);
         }
@@ -78,7 +92,12 @@ TestCase("Arithmetic", {
         expectAsserts(4);
 
         try {
-            this.jc.parse('a = 1/2; b = 12/4; c = 4/-2; d = -6/-4;');
+            this.jc.parse('\
+                a = 1/2;   \
+                b = 12/4;  \
+                c = 4/-2;  \
+                d = -6/-4; \
+            ');
         } catch (e) {
             console.log(e);
         }
@@ -93,7 +112,11 @@ TestCase("Arithmetic", {
         expectAsserts(3);
 
         try {
-            this.jc.parse('a = 1%2; b = 12%4; c = 9%-4;');
+            this.jc.parse('\
+                a = 1%2;   \
+                b = 12%4;  \
+                c = 9%-4;  \
+            ');
         } catch (e) {
             console.log(e);
         }
@@ -108,7 +131,11 @@ TestCase("Arithmetic", {
         expectAsserts(3);
 
         try {
-            this.jc.parse('a = 2^3; b = -2^3; c = 2^-3;');
+            this.jc.parse('\
+                a = 2^3;   \
+                b = -2^3;  \
+                c = 2^-3;  \
+            ');
         } catch (e) {
             console.log(e);
         }
@@ -122,7 +149,12 @@ TestCase("Arithmetic", {
         expectAsserts(7);
 
         try {
-            this.jc.parse('a = 3*4+5; b = 7-2*3+4; c = 2^3*4; d = 4^3^2;');
+            this.jc.parse('  \
+                a = 3*4+5;   \
+                b = 7-2*3+4; \
+                c = 2^3*4;   \
+                d = 4^3^2;   \
+            ');
         } catch (e) {
             console.log(e);
         }
@@ -133,7 +165,11 @@ TestCase("Arithmetic", {
         assertEquals('pow precedence order', 262144, this.jc.sstack[0].d);
 
         try {
-            this.jc.parse('a = 3*(4+5); b = (4^3)^2; c = (-2)^3;');
+            this.jc.parse('  \
+                a = 3*(4+5); \
+                b = (4^3)^2; \
+                c = (-2)^3;  \
+            ');
         } catch (e) {
             console.log(e);
         }
