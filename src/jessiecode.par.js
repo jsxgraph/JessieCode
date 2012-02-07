@@ -1059,20 +1059,20 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         ret = !this.execute(node.children[0]);
                         break;
                     case 'op_add':
-                        ret = this.execute(node.children[0]) + this.execute(node.children[1]);
+                        ret = JXG.Math.Statistics.add(this.execute(node.children[0]), this.execute(node.children[1]));
                         break;
                     case 'op_sub':
-                        ret = this.execute(node.children[0]) - this.execute(node.children[1]);
+                        ret = JXG.Math.Statistics.subtract(this.execute(node.children[0]), this.execute(node.children[1]));
                         break;
                     case 'op_div':
-                        ret = this.execute(node.children[0]) / this.execute(node.children[1]);
+                        ret = JXG.Math.Statistics.div(this.execute(node.children[0]), this.execute(node.children[1]));
                         break;
                     case 'op_mod':
                         // use mathematical modulo, JavaScript implements the symmetric modulo.
-                        ret = JXG.Math.mod(this.execute(node.children[0]), this.execute(node.children[1]));
+                        ret = JXG.Math.Statistics.mod(this.execute(node.children[0]), this.execute(node.children[1]), true);
                         break;
                     case 'op_mul':
-                        ret = this.execute(node.children[0]) * this.execute(node.children[1]);
+                        ret = JXG.Math.Statistics.multiply(this.execute(node.children[0]), this.execute(node.children[1]));
                         break;
                     case 'op_exp':
                         ret = Math.pow(this.execute(node.children[0]),  this.execute(node.children[1]));
@@ -1287,23 +1287,39 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         ret = '!(' + this.compile(node.children[0], js) + ')';
                         break;
                     case 'op_add':
-                        ret = '(' + this.compile(node.children[0], js) + ' + ' + this.compile(node.children[1], js) + ')';
+                        if (js) {
+                            ret = 'JXG.Math.Statistics.add(' + this.compile(node.children[0], js) + ', ' + this.compile(node.children[1], js) + ')';
+                        } else {
+                            ret = '(' + this.compile(node.children[0], js) + ' + ' + this.compile(node.children[1], js) + ')';
+                        }
                         break;
                     case 'op_sub':
-                        ret = '(' + this.compile(node.children[0], js) + ' - ' + this.compile(node.children[1], js) + ')';
+                        if (js) {
+                            ret = 'JXG.Math.Statistics.subtract(' + this.compile(node.children[0], js) + ', ' + this.compile(node.children[1], js) + ')';
+                        } else {
+                            ret = '(' + this.compile(node.children[0], js) + ' - ' + this.compile(node.children[1], js) + ')';
+                        }
                         break;
                     case 'op_div':
-                        ret = '(' + this.compile(node.children[0], js) + ' / ' + this.compile(node.children[1], js) + ')';
+                        if (js) {
+                            ret = 'JXG.Math.Statistics.div(' + this.compile(node.children[0], js) + ', ' + this.compile(node.children[1], js) + ')';
+                        } else {
+                            ret = '(' + this.compile(node.children[0], js) + ' / ' + this.compile(node.children[1], js) + ')';
+                        }
                         break;
                     case 'op_mod':
                         if (js) {
-                            ret = 'JXG.Math.mod(' + this.compile(node.children[0], js) + ', ' + this.compile(node.children[1], js) + ')';
+                            ret = 'JXG.Math.mod(' + this.compile(node.children[0], js) + ', ' + this.compile(node.children[1], js) + ', true)';
                         } else {
                             ret = '(' + this.compile(node.children[0], js) + ' % ' + this.compile(node.children[1], js) + ')';
                         }
                         break;
                     case 'op_mul':
-                        ret = '(' + this.compile(node.children[0], js) + ' * ' + this.compile(node.children[1], js) + ')';
+                        if (js) {
+                            ret = 'JXG.Math.Statistics.multiply(' + this.compile(node.children[0], js) + ', ' + this.compile(node.children[1], js) + ')';
+                        } else {
+                            ret = '(' + this.compile(node.children[0], js) + ' * ' + this.compile(node.children[1], js) + ')';
+                        }
                         break;
                     case 'op_exp':
                         if (js) {

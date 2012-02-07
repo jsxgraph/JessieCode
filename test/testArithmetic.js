@@ -38,29 +38,34 @@ TestCase("Arithmetic", {
     },
 
     testAdd: function () {
-        expectAsserts(2);
+        expectAsserts(5);
 
         try {
-            this.jc.parse('\
-                a = +1;    \
-                b = 1+1;   \
-            ');
+            this.jc.parse(
+                'a = +1;'+
+                'b = 1+1;'+
+
+                'c = [1, 2] + [3, 4];');
         } catch (e) {
             console.log(e);
         }
 
         assertEquals('unary add', 1, this.jc.sstack[0].a);
         assertEquals('binary add', 2, this.jc.sstack[0].b);
+        assertEquals('vector add returns array', 2, this.jc.sstack[0].c.length);
+        assertEquals('vector add result 0', 4, this.jc.sstack[0].c[0]);
+        assertEquals('vector add result 1', 6, this.jc.sstack[0].c[1]);
     },
 
     testSub: function () {
-        expectAsserts(2);
+        expectAsserts(5);
 
         try {
-            this.jc.parse('\
-                a = -1;    \
-                b = 1-1;   \
-            ');
+            this.jc.parse(
+                'a = -1;'+
+                'b = 1-1;'+
+
+                'c = [3, 4] - [1, 2];');
 
         } catch (e) {
             console.log(e);
@@ -68,17 +73,21 @@ TestCase("Arithmetic", {
 
         assertEquals('unary minus', -1, this.jc.sstack[0].a);
         assertEquals('subtraction', 0, this.jc.sstack[0].b);
+        assertEquals('vector sub returns array', 2, this.jc.sstack[0].c.length);
+        assertEquals('vector sub result 0', 2, this.jc.sstack[0].c[0]);
+        assertEquals('vector sub result 1', 2, this.jc.sstack[0].c[1]);
     },
 
     testMul: function () {
-         expectAsserts(3);
+         expectAsserts(5);
 
         try {
-            this.jc.parse('\
-                a = 1*2;   \
-                b = 3*-4;  \
-                c = -3*-2; \
-            ');
+            this.jc.parse(
+                'a = 1*2;'+
+                'b = 3*-4;'+
+                'c = -3*-2;'+
+
+                'd = 3*[1, 2];');
         } catch (e) {
             console.log(e);
         }
@@ -86,18 +95,21 @@ TestCase("Arithmetic", {
         assertEquals('multiplication', 2, this.jc.sstack[0].a);
         assertEquals('multiplication with sign change', -12, this.jc.sstack[0].b);
         assertEquals('multiplication with double sign change', 6, this.jc.sstack[0].c);
+        assertEquals('multiplication array result 0', 3, this.jc.sstack[0].d[0]);
+        assertEquals('multiplication array result 1', 6, this.jc.sstack[0].d[1]);
     },
 
     testDiv: function () {
-        expectAsserts(4);
+        expectAsserts(6);
 
         try {
-            this.jc.parse('\
-                a = 1/2;   \
-                b = 12/4;  \
-                c = 4/-2;  \
-                d = -6/-4; \
-            ');
+            this.jc.parse(
+                'a = 1/2;'+
+                'b = 12/4;'+
+                'c = 4/-2;'+
+                'd = -6/-4;'+
+
+                'e = [4, 6] / 2;');
         } catch (e) {
             console.log(e);
         }
@@ -106,17 +118,20 @@ TestCase("Arithmetic", {
         assertEquals('integer division', 3, this.jc.sstack[0].b);
         assertEquals('division with sign change', -2, this.jc.sstack[0].c);
         assertEquals('division with double sign change', 1.5, this.jc.sstack[0].d);
+        assertEquals('div array result 0', 2, this.jc.sstack[0].e[0]);
+        assertEquals('div array result 1', 3, this.jc.sstack[0].e[1]);
     },
 
     testMod: function () {
-        expectAsserts(3);
+        expectAsserts(5);
 
         try {
-            this.jc.parse('\
-                a = 1%2;   \
-                b = 12%4;  \
-                c = 9%-4;  \
-            ');
+            this.jc.parse(
+                'a = 1%2;'+
+                'b = 12%4;'+
+                'c = 9%-4;'+
+
+                'd = [3, 4] % 2;');
         } catch (e) {
             console.log(e);
         }
@@ -125,6 +140,9 @@ TestCase("Arithmetic", {
         assertEquals('mod#2', 0, this.jc.sstack[0].b);
         // assure the mathematical mod is used, not the symmetric
         assertEquals('mod#3', -3, this.jc.sstack[0].c);
+
+        assertEquals('mod vector 0', 1, this.jc.sstack[0].d[0]);
+        assertEquals('mod vector 1', 0, this.jc.sstack[0].d[1]);
     },
 
     testPow: function () {
@@ -149,12 +167,11 @@ TestCase("Arithmetic", {
         expectAsserts(7);
 
         try {
-            this.jc.parse('  \
-                a = 3*4+5;   \
-                b = 7-2*3+4; \
-                c = 2^3*4;   \
-                d = 4^3^2;   \
-            ');
+            this.jc.parse(
+                'a = 3*4+5;'+
+                'b = 7-2*3+4;'+
+                'c = 2^3*4;'+
+                'd = 4^3^2;');
         } catch (e) {
             console.log(e);
         }

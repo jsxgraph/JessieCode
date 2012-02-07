@@ -78,7 +78,7 @@ def makeCore():
 
     # Compile BNF with JS/CC
     print "build BNF"
-    s = "rhino jscc/jscc.js -v -w -o bin/jessiecode.bnf.js -p jessie -t jscc/driver_jxg.js_ src/jessiecode.par.bnf > /dev/null"
+    s = "rhino jscc/jscc.js -v -w -o bin/jessiecode.bnf.js -p jessie -t jscc/driver_jxg.js_ src/jessiecode.par.bnf"
     print s
     os.system(s)
 
