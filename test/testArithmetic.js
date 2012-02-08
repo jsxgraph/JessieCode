@@ -79,7 +79,7 @@ TestCase("Arithmetic", {
     },
 
     testMul: function () {
-         expectAsserts(5);
+         expectAsserts(6);
 
         try {
             this.jc.parse(
@@ -87,7 +87,8 @@ TestCase("Arithmetic", {
                 'b = 3*-4;'+
                 'c = -3*-2;'+
 
-                'd = 3*[1, 2];');
+                'd = 3*[1, 2];'+
+                'e = [1, 2]*[3, 4];');
         } catch (e) {
             console.log(e);
         }
@@ -97,6 +98,7 @@ TestCase("Arithmetic", {
         assertEquals('multiplication with double sign change', 6, this.jc.sstack[0].c);
         assertEquals('multiplication array result 0', 3, this.jc.sstack[0].d[0]);
         assertEquals('multiplication array result 1', 6, this.jc.sstack[0].d[1]);
+        assertEquals('scalar product', 11, this.jc.sstack[0].e);
     },
 
     testDiv: function () {

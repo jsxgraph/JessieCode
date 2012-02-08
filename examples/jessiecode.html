@@ -81,7 +81,7 @@ M = point('(A.X()+B.X())/2', '(A.Y()+B.Y())/2');
 
 M.free();
 
-CC = circumcircle('wrzpfrmpf', B, C) << point: << visible: true, withLabel: true, name: 'The Midpoint' >>, strokeColor: 'red' >>;
+CC = circumcircle('wrzpfrmpf', B, C) << center: << visible: true, withLabel: true, name: 'The Midpoint' >>, strokeColor: 'red' >>;
 
 l = line(A, B);
 //l.strokeColor = A.strokeColor;

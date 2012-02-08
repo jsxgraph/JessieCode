@@ -1072,7 +1072,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         ret = JXG.Math.Statistics.mod(this.execute(node.children[0]), this.execute(node.children[1]), true);
                         break;
                     case 'op_mul':
-                        ret = JXG.Math.Statistics.multiply(this.execute(node.children[0]), this.execute(node.children[1]));
+                        ret = this.mul(this.execute(node.children[0]), this.execute(node.children[1]));
                         break;
                     case 'op_exp':
                         ret = Math.pow(this.execute(node.children[0]),  this.execute(node.children[1]));
@@ -1316,7 +1316,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         break;
                     case 'op_mul':
                         if (js) {
-                            ret = 'JXG.Math.Statistics.multiply(' + this.compile(node.children[0], js) + ', ' + this.compile(node.children[1], js) + ')';
+                            ret = '$jc$.mul(' + this.compile(node.children[0], js) + ', ' + this.compile(node.children[1], js) + ')';
                         } else {
                             ret = '(' + this.compile(node.children[0], js) + ' * ' + this.compile(node.children[1], js) + ')';
                         }
@@ -1411,6 +1411,20 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
         }
 
         return p1.Dist(p2);
+    },
+
+    /**
+     * Multiplication of vectors and numbers
+     * @param {Number|Array} a
+     * @param {Number|Array} b
+     * @returns {Number|Array} (Inner) product of the given input values.
+     */
+    mul: function (a, b) {
+        if (JXG.isArray(a) * JXG.isArray(b)) {
+            return JXG.Math.innerProduct(a, b, Math.min(a.length, b.length));
+        } else {
+            return JXG.Math.Statistics.multiply(a, b);
+        }
     },
 
     /**
