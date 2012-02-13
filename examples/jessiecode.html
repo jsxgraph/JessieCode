@@ -228,6 +228,14 @@ foobar = arr[0]()[1];
     use jxgbox2;
 
     point(1, 2) << name: 'B' >>;
+    point(1, 1) << name: 'A' >>;
+
+    c = circle(A, function () {
+        return dist(A, B);
+    });
+    //c.setRadius(function () {
+    //    return 3;
+    //});
 
     b = 3;
     a = function (x) {
@@ -246,6 +254,9 @@ foobar = arr[0]()[1];
     for (i = 0; i < 10; i = i+1) {
         j = j + 1;
     }
+
+    T = text(1, 1, 'foo');
+    T.setText('bar');
 </textarea>
 
 <pre>
