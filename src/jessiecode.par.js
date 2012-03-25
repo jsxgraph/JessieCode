@@ -451,6 +451,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
         var error_cnt = 0,
             error_off = [],
             error_la = [],
+            that = this,
             to,
             replacegxt = ['Abs', 'ACos', 'ASin', 'ATan','Ceil','Cos','Exp','Factorial','Floor','Log','Max','Min','Random','Round','Sin','Sqrt','Tan','Trunc', 'If', 'Deg', 'Rad', 'Dist'],
             regex,
@@ -475,9 +476,10 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
         code = cleaned.join('\n');
         code = this.utf8_encode(code);
 
-        to = window.setTimeout(this.maxRuntime, function () {
-            this.cancel = true;
-        });
+        to = window.setTimeout(function () {
+            console.log('CANCEL!');
+            that.cancel = true;
+        }, this.maxRuntime);
         this.cancel = false;
 
         if((error_cnt = this._parse(code, error_off, error_la)) > 0) {
@@ -780,7 +782,13 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         } while (this.execute(node.children[1]));
                         break;
                     case 'op_for':
+                        i = new Date().getTime();
                         for (this.execute(node.children[0]); this.execute(node.children[1]); this.execute(node.children[2])) {
+                            if (new Date().getTime() - i > this.maxRuntime || this.cancel) {
+                                this._error('for: max runtime exceeded');
+                                break;
+                            }
+                            console.log('for run...', this.sstack[0].i);
                             this.execute(node.children[3]);
                         }
                         break;
