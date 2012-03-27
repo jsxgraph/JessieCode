@@ -476,18 +476,18 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
         code = cleaned.join('\n');
         code = this.utf8_encode(code);
 
-        to = window.setTimeout(function () {
+        /*to = window.setTimeout(function () {
             console.log('CANCEL!');
             that.cancel = true;
         }, this.maxRuntime);
-        this.cancel = false;
+        this.cancel = false;*/
 
         if((error_cnt = this._parse(code, error_off, error_la)) > 0) {
             for(i = 0; i < error_cnt; i++)
-                this._error("Parse error near >"  + code.substr( error_off[i], 30 ) + "<, expecting \"" + error_la[i].join() + "\"");
+                this._error("Parse error in line " + error_off[i].line + " near >"  + code.substr( error_off[i].offset, 30 ) + "<, expecting \"" + error_la[i].join() + "\"");
         }
 
-        window.clearTimeout(to);
+        /*window.clearTimeout(to);*/
 
         //this.board.update();
     },
@@ -788,7 +788,6 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                                 this._error('for: max runtime exceeded');
                                 break;
                             }
-                            console.log('for run...', this.sstack[0].i);
                             this.execute(node.children[3]);
                         }
                         break;

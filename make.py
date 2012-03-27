@@ -33,6 +33,7 @@ hint = None
 reset = ""
 port = 4224
 server = ""
+jsccv = ""
 
 
 '''
@@ -54,6 +55,7 @@ def usage():
     print "  -v, --version=VERSION  Use VERSION as release version for proper zip archive and"
     print "                         folder names."
     print "  -y, --yui=PATH         Search for YUI Compressor in PATH."
+    print "  -c, --jsccv=VERSION   jscc version."
     print
     print "Targets:"
     print "  Core                   Concatenates and minifies JessieCode source files into"
@@ -69,7 +71,7 @@ def usage():
     Generate jsxgraphcore.js and place it in <output>
 '''
 def makeCore():
-    global yui, version, output, license
+    global yui, version, output, license, jsccv
 
     print "Making Core..."
 
@@ -78,7 +80,7 @@ def makeCore():
 
     # Compile BNF with JS/CC
     print "build BNF"
-    s = "rhino jscc/jscc.js -v -w -o bin/jessiecode.bnf.js -p jessie -t jscc/driver_jxg.js_ src/jessiecode.par.bnf"
+    s = "rhino jscc" + jsccv + "/jscc.js -v -w -o bin/jessiecode.bnf.js -p jessie -t jscc" + jsccv + "/driver_jxg.js_ src/jessiecode.par.bnf"
     print s
     os.system(s)
 
@@ -171,10 +173,10 @@ def makeTestServer():
 
 
 def main(argv):
-    global yui, jsdoc, version, output, hint, jstest, reset, port, server
+    global yui, jsdoc, version, output, hint, jstest, reset, port, server, jsccv
 
     try:
-        opts, args = getopt.getopt(argv, "hy:v:o:l:t:p:s:", ["help", "yui=", "version=", "output=", "hint=", "test=", "reset", "port=", "server="])
+        opts, args = getopt.getopt(argv, "hy:v:o:l:t:p:s:c:", ["help", "yui=", "version=", "output=", "hint=", "test=", "reset", "port=", "server=", "jsccv="])
     except getopt.GetoptError as (errono, strerror):
         usage()
         sys.exit(2)
@@ -201,6 +203,9 @@ def main(argv):
                 server = "--server http://btmdxe.mat.uni-bayreuth.de:4224"
             else:
                 server = "--server " + arg
+        elif opt in ("-c", "--jsccv"):
+            if arg == 'new':
+                jsccv = "-0.33.1"
 
     target = "".join(args)
 
