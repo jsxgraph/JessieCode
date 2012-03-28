@@ -154,6 +154,9 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
         for(i = 2; i < arguments.length; i++)
             n.children.push( arguments[i] );
 
+        n.line = this.parCurLine;
+        n.col = this.parCurColumn;
+
         return n;
     },
 
@@ -694,11 +697,11 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
         }
 
         if (!JXG.exists(e)) {
-            this._error('Error: ' + e + ' is not an object.');
+            this._error(e + ' is not an object.');
         }
 
         if (!JXG.exists(e[v])) {
-            this._error('Error: unknown property ' + v + '.');
+            this._error('unknown property ' + v + '.');
         }
 
         if (compile && typeof e[v] === 'function') {
@@ -726,6 +729,8 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
         if (!node)
             return ret;
 
+        this.line = node.line;
+
 
         switch (node.type) {
             case 'node_op':
@@ -743,7 +748,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         this.lhs[this.scope] = v[1];
 
                         if (v[0].type && v[0].elementClass && v[0].methodMap && v[1] === 'label') {
-                            this._error('Error: Left-hand side of assignment is read-only.');
+                            this._error('Left-hand side of assignment is read-only.');
                         }
 
                         if (v[0] !== this.sstack[this.scope] || (JXG.isArray(v[0]) && typeof v[1] === 'number')) {
@@ -863,7 +868,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         break;
                     case 'op_return':
                         if (this.scope === 0) {
-                            this._error('Error: Unexpected return.');
+                            this._error('Unexpected return.');
                         } else {
                             return this.execute(node.children[0]);
                         }
@@ -995,7 +1000,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                             // creator methods are the only ones that take properties, hence this special case
                             ret = fun(parents, attr);
                         } else {
-                            this._error('Error: Function \'' + fun + '\' is undefined.');
+                            this._error('Function \'' + fun + '\' is undefined.');
                         }
 
                         // clear parameter stack
@@ -1517,7 +1522,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
      * @param {String} msg Error message
      */
     _error: function (msg) {
-        throw new Error(msg);
+        throw new Error('Error(' + this.line + '): ' + msg);
     },
 
     /**
@@ -1526,9 +1531,9 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
      */
     _warn: function (msg) {
         if(typeof console !== "undefined") {
-            console.log('Warning: ' + msg);
+            console.log('Warning(' + this.line + '): ' + msg);
         } else if(document.getElementById(this.warnLog) !== null) {
-            document.getElementById(this.warnLog).innerHTML += 'Warning: ' + msg + '<br />';
+            document.getElementById(this.warnLog).innerHTML += 'Warning(' + this.line + '): ' + msg + '<br />';
         }
     }
 

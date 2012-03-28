@@ -122,6 +122,8 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         if( chr == 10 ) {
                             PCB.line++;
                             PCB.column = 0;
+                            this.parCurLine = PCB.line;
+                            this.parCurColumn = PCB.column;
                         }
                         PCB.column++;
                     }
