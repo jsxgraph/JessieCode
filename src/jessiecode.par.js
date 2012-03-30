@@ -111,6 +111,10 @@ JXG.JessieCode = function(code, geonext) {
      */
     this.board = null;
 
+    this.countLines = true;
+    this.parCurLine = 1;
+    this.parCurColumn = 0;
+
     /**
      * Maximum number of seconds the parser is allowed to run. After that the interpreter is stopped.
      * @type Number
@@ -486,8 +490,10 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
         this.cancel = false;*/
 
         if((error_cnt = this._parse(code, error_off, error_la)) > 0) {
-            for(i = 0; i < error_cnt; i++)
+            for(i = 0; i < error_cnt; i++) {
+                this.line = error_off[i].line;
                 this._error("Parse error in line " + error_off[i].line + " near >"  + code.substr( error_off[i].offset, 30 ) + "<, expecting \"" + error_la[i].join() + "\"");
+            }
         }
 
         /*window.clearTimeout(to);*/
@@ -522,6 +528,8 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
         // just in case...
         tmp = this.sstack[0][vname];
 
+        this.countLines = false;
+
         c = vname + ' = ' + (funwrap ? ' function (' + varname + ') { return ' : '') + code + (funwrap ? '; }' : '') + ';';
         this.parse(c, geonext);
 
@@ -531,6 +539,8 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
         } else {
             delete this.sstack[0][vname];
         }
+
+        this.countLines = true;
 
         return result;
     },
@@ -999,6 +1009,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         } else if (typeof fun === 'function' && !!fun.creator) {
                             // creator methods are the only ones that take properties, hence this special case
                             ret = fun(parents, attr);
+                            ret.jcLine = this.line;
                         } else {
                             this._error('Function \'' + fun + '\' is undefined.');
                         }
@@ -1522,7 +1533,9 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
      * @param {String} msg Error message
      */
     _error: function (msg) {
-        throw new Error('Error(' + this.line + '): ' + msg);
+        var e = new Error('Error(' + this.line + '): ' + msg);
+        e.line = this.line;
+        throw e;
     },
 
     /**
