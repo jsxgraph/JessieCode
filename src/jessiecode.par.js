@@ -797,12 +797,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         } while (this.execute(node.children[1]));
                         break;
                     case 'op_for':
-                        i = new Date().getTime();
                         for (this.execute(node.children[0]); this.execute(node.children[1]); this.execute(node.children[2])) {
-                            if (new Date().getTime() - i > this.maxRuntime || this.cancel) {
-                                this._error('for: max runtime exceeded');
-                                break;
-                            }
                             this.execute(node.children[3]);
                         }
                         break;
