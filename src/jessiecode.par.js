@@ -707,11 +707,11 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
         }
 
         if (!JXG.exists(e)) {
-            this._error(e + ' is not an object.');
+            this._error(e + ' is not an object');
         }
 
         if (!JXG.exists(e[v])) {
-            this._error('unknown property ' + v + '.');
+            this._error('unknown property ' + v);
         }
 
         if (compile && typeof e[v] === 'function') {
@@ -740,7 +740,6 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
             return ret;
 
         this.line = node.line;
-
 
         switch (node.type) {
             case 'node_op':
@@ -987,7 +986,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         fun = this.execute(node.children[0]);
 
                         // determine the scope the function wants to run in
-                        if (fun.sc) {
+                        if (fun && fun.sc) {
                             sc = fun.sc;
                         } else {
                             sc = this;
@@ -1020,7 +1019,10 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         ret = this.resolveProperty(e, v, false);
 
                         // set the scope, in case this is a method the user wants to call
-                        ret.sc = e;
+                        if (JXG.exists(ret)) {
+                            ret.sc = e;
+                        }
+
                         break;
                     case 'op_lhs':
                         v = node.children[0];
