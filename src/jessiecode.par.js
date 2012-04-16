@@ -111,6 +111,12 @@ JXG.JessieCode = function(code, geonext) {
      */
     this.board = null;
 
+    /**
+     * Keep track of which element is created in which line.
+     * @type Object
+     */
+    this.lineToElement = {};
+
     this.countLines = true;
     this.parCurLine = 1;
     this.parCurColumn = 0;
@@ -1001,9 +1007,15 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         if (typeof fun === 'function' && !fun.creator) {
                             ret = fun.apply(sc, parents);
                         } else if (typeof fun === 'function' && !!fun.creator) {
+                            e = this.line;
                             // creator methods are the only ones that take properties, hence this special case
                             ret = fun(parents, attr);
-                            ret.jcLine = this.line;
+                            ret.jcLineStart = e;
+                            ret.jcLineEnd = node.line;
+
+                            for (i = e; i <= node.line; i++) {
+                                this.lineToElement[i] = ret;
+                            }
                         } else {
                             this._error('Function \'' + fun + '\' is undefined.');
                         }
