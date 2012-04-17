@@ -49,6 +49,13 @@ JXG.JessieCode = function(code, geonext) {
     this.pstack = [[]];
 
     /**
+     * A stack to store debug information (like line and column where it was defined) of a parameter
+     * @type Array
+     * @private
+     */
+    this.dpstack = [[]];
+
+    /**
      * Determines the parameter stack scope.
      * @type Number
      * @private
@@ -120,6 +127,8 @@ JXG.JessieCode = function(code, geonext) {
     this.countLines = true;
     this.parCurLine = 1;
     this.parCurColumn = 0;
+    this.line = 1;
+    this.col = 1;
 
     /**
      * Maximum number of seconds the parser is allowed to run. After that the interpreter is stopped.
@@ -746,6 +755,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
             return ret;
 
         this.line = node.line;
+        this.col = node.col;
 
         switch (node.type) {
             case 'node_op':
@@ -813,6 +823,12 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
 
                         ret = node.children[0];
                         this.pstack[this.pscope].push(ret);
+                        if (this.dpstack[this.pscope]) {
+                            this.dpstack[this.pscope].push({
+                                line: node.children[0].line,
+                                col: node.children[0].col
+                            });
+                        }
                         break;
                     case 'op_paramdef':
                         if (node.children[1]) {
@@ -977,6 +993,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         var fun, attr, sc;
 
                         this.pstack.push([]);
+                        this.dpstack.push([]);
                         this.pscope++;
 
                         // parse the parameter list
@@ -1009,12 +1026,22 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         } else if (typeof fun === 'function' && !!fun.creator) {
                             e = this.line;
                             // creator methods are the only ones that take properties, hence this special case
-                            ret = fun(parents, attr);
-                            ret.jcLineStart = e;
-                            ret.jcLineEnd = node.line;
+                            try {
+                                /*this._log(node.children[0].value + '@' + this.line + ':' + node.col);
+                                for (i = 0; i < this.pstack[this.pscope].length; i++) {
+                                    this._log(parents[i] + '@' + this.dpstack[this.pscope][i].line + ':' + this.dpstack[this.pscope][i].col);
+                                }*/
+                                ret = fun(parents, attr);
+                                ret.jcLineStart = e;
+                                ret.jcLineEnd = node.line;
 
-                            for (i = e; i <= node.line; i++) {
-                                this.lineToElement[i] = ret;
+                                for (i = e; i <= node.line; i++) {
+                                    this.lineToElement[i] = ret;
+                                }
+
+                                ret.debugParents = this.dpstack[this.pscope];
+                            } catch (ex) {
+                                this._error(ex.toString(), e);
                             }
                         } else {
                             this._error('Function \'' + fun + '\' is undefined.');
@@ -1022,6 +1049,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
 
                         // clear parameter stack
                         this.pstack.pop();
+                        this.dpstack.pop();
                         this.pscope--;
                         break;
                     case 'op_property':
@@ -1556,6 +1584,14 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
             console.log('Warning(' + this.line + '): ' + msg);
         } else if(document && document.getElementById(this.warnLog) !== null) {
             document.getElementById(this.warnLog).innerHTML += 'Warning(' + this.line + '): ' + msg + '<br />';
+        }
+    },
+
+    _log: function (msg) {
+        if (typeof window === 'undefined' && typeof self !== 'undefined' && self.postMessage) {
+            self.postMessage({type: 'log', msg: 'Log: ' + msg.toString()});
+        } else {
+            console.log('Log: ', arguments);
         }
     }
 

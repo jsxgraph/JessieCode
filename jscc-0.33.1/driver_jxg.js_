@@ -84,10 +84,12 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                             PCB.column = 0;
                             if (this.countLines) {
                                 this.parCurLine = PCB.line;
-                                this.parCurColumn = PCB.column;
                             }
                         }
                         PCB.column++;
+                        if (this.countLines) {
+                            this.parCurColumn = PCB.column;
+                        }
                     }
 
                     pos++;
