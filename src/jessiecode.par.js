@@ -493,6 +493,8 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                 }
 
                 cleaned.push(ccode[i]);
+            } else {
+                cleaned.push('');
             }
         }
         code = cleaned.join('\n');
