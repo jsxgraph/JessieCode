@@ -130,7 +130,7 @@ arr = [function () { return [3, 4]; }];
 foobar = arr[0]()[1];
 </textarea>
 
-<textarea id="code3" cols="90" rows="50">
+<textarea id="code3" cols="90" rows="50" style="display: none">
     use jxgbox2;
     A = point(1, 1) << strokeColor : 'yellow', fillColor : 'green' >>;
     A.strokeColor = 'black';
@@ -201,7 +201,7 @@ foobar = arr[0]()[1];
     testFun();
 </textarea>
 
-<textarea id="code4">
+<textarea id="code4" cols="90" rows="50" style="display: none">
     use jxgbox2;
 
     point(2, 3) << id: 'wrzpfrmpf', name: 'A' >>;
@@ -224,7 +224,7 @@ foobar = arr[0]()[1];
     str = '&#xCCB1;';
 </textarea>
 
-<textarea id="code2">
+<textarea id="code2" cols="90" rows="50">
     use jxgbox2;
 
     point(1, 2) << name: 'B' >>;
@@ -254,7 +254,14 @@ foobar = arr[0]()[1];
 
     T = text(1, 1, 'foo');
     T.setText('bar');
-    a.move(1, 2);
+    //a.move(1, 2);
+    $board.update();
+    hit = function (e) {
+        T.setText('You hit: ' + e.getName());
+    };
+    $board.on('hit', hit);
+
+    $board.setView([-10, 10, 10, -10], true);
 </textarea>
 
 <pre>
