@@ -256,12 +256,17 @@ foobar = arr[0]()[1];
     T.setText('bar');
     //a.move(1, 2);
     $board.update();
-    hit = function (e) {
-        T.setText('You hit: ' + e.getName());
+    hit = function (e, el) {
+        T.setText('You hit: ' + el.getName());
     };
     $board.on('hit', hit);
-
+    
     $board.setView([-10, 10, 10, -10], true);
+
+    (function () {
+        Q = point(5, 5);
+        P = point(3, 3) << color: 'green' >>;
+    })();
 </textarea>
 
 <pre>
