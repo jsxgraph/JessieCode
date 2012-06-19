@@ -974,6 +974,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                             })(this.pstack[this.pscope], this);
                         }
 
+                        ret.node = node;
                         ret.toJS = ret.toString;
                         ret.toString = (function (_that) {
                             return function () {

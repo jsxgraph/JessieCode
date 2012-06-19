@@ -130,19 +130,19 @@ AddSubExp:    AddSubExp '-' MulDivExp                                        [* 
         | MulDivExp
         ;
                 
-MulDivExp:    MulDivExp '*' ExpExp                                           [* %% = this.createNode('node_op', 'op_mul', %1, %3 ); *]
-        | MulDivExp '/' ExpExp                                               [* %% = this.createNode('node_op', 'op_div', %1, %3 ); *]
-        | MulDivExp '%' ExpExp                                               [* %% = this.createNode('node_op', 'op_mod', %1, %3 ); *]
-        | ExpExp
-        ;
-
-ExpExp:      NegExp '^' ExpExp                                               [* %% = this.createNode('node_op', 'op_exp', %1, %3 ); *]
+MulDivExp:    MulDivExp '*' NegExp                                           [* %% = this.createNode('node_op', 'op_mul', %1, %3 ); *]
+        | MulDivExp '/' NegExp                                               [* %% = this.createNode('node_op', 'op_div', %1, %3 ); *]
+        | MulDivExp '%' NegExp                                               [* %% = this.createNode('node_op', 'op_mod', %1, %3 ); *]
         | NegExp
         ;
-                
-NegExp:        '-' ExtValue                                                  [* %% = this.createNode('node_op', 'op_neg', %2 ); *]
-        | '+' ExtValue                                                       [* %% = %2; *]
+
+ExpExp:      ExtValue '^' ExpExp                                               [* %% = this.createNode('node_op', 'op_exp', %1, %3 ); *]
         | ExtValue
+        ;
+                
+NegExp:        '-' ExpExp                                                  [* %% = this.createNode('node_op', 'op_neg', %2 ); *]
+        | '+' ExpExp                                                       [* %% = %2; *]
+        | ExpExp
         ;
 
 ExtValue:      ExtValue '[' AddSubExp ']'                                    [* %% = this.createNode('node_op', 'op_extvalue', %1, %3); *]
