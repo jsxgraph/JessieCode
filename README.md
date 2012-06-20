@@ -8,9 +8,9 @@ Licensed under the LGPL v3. See LICENSE or http://www.gnu.org/licenses/lgpl.txt
 About
 -----
 
-JessieCode is a scripting language designed to provide a simple scripting language to build constructions
-with JSXGraph. It is similar to JavaScript, but prevents access to the DOM. Hence, it can be used in community
-driven Math portals which want to use JSXGraph to display interactive math graphics.
+JessieCode is a scripting language designed to provide a interface to JSXGraph. It is
+similar to JavaScript, but prevents access to the DOM. Hence, it can be used in community
+driven web sites which want to use JSXGraph to display interactive math graphics.
 
 JSXGraph (http://jsxgraph.org) is required to use JessieCode.
 
@@ -22,10 +22,6 @@ Required tools:
 * Rhino
 * YUICompressor
 
-Use the build.sh script to compile the .bnf file into a javascript parser and to create a single .js file. You
-might want to adjust the YUICompressor path in build.sh
+Use the make.py script to compile the .bnf file into a javascript parser and to concatenate
+the parser and interpreter into a single .js file.
 
-Usage
------
-
-See the documentation files under docs/
