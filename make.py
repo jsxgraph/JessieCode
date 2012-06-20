@@ -33,7 +33,7 @@ hint = None
 reset = ""
 port = 4224
 server = ""
-jsccv = ""
+jsccv = "-0.33.1"
 
 
 '''
@@ -55,7 +55,7 @@ def usage():
     print "  -v, --version=VERSION  Use VERSION as release version for proper zip archive and"
     print "                         folder names."
     print "  -y, --yui=PATH         Search for YUI Compressor in PATH."
-    print "  -c, --jsccv=VERSION   jscc version."
+    print "  -c, --jsccv=VERSION    jscc version."
     print
     print "Targets:"
     print "  Core                   Concatenates and minifies JessieCode source files into"
@@ -206,7 +206,9 @@ def main(argv):
         elif opt in ("-c", "--jsccv"):
             if arg == 'new':
                 jsccv = "-0.33.1"
-
+            else:
+                jsccv = ""
+                
     target = "".join(args)
 
     # Search for the version and print it before the license text.
