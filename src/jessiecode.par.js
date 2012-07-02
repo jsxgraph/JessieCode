@@ -1006,7 +1006,23 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
 
                         // parse the properties only if given
                         if (typeof node.children[2] !== 'undefined') {
-                            attr = this.execute(node.children[2]);
+                            if (node.children[3]) {
+                                this.pstack.push([]);
+                                this.dpstack.push([]);
+                                this.pscope++;
+                                
+                                this.execute(node.children[2]);
+                                attr = {};
+                                for (i = 0; i < this.pstack[this.pscope].length; i++) {
+                                    attr = JXG.deepCopy(attr, this.execute(this.pstack[this.pscope][i]), true);
+                                }
+                                
+                                this.pscope--;
+                                this.pstack.pop();
+                                this.dpstack.pop();
+                            } else {
+                                attr = this.execute(node.children[2]);
+                            }
                         }
 
                         // look up the variables name in the variable table

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JessieCode example :: Euler line</title>
+    <link rel="stylesheet" type="text/css" href="http://jsxgraph.uni-bayreuth.de/distrib/jsxgraph.css" />
+    <script type="text/javascript" src="../../JSXGraph/src/loadjsxgraph.js"></script>
+    <script type="text/javascript" src="../src/jessiecode.par.js"></script>
+    <script type="text/javascript" src="../bin/jessiecode.bnf.js"></script>
+</head>
+<body>
+
+<h1>Euler line</h1>
+
+<div style="float: left;">
+    <button id="reset">Reset board</button> <button id="parse">Parse code</button>
+</div>
+
+<br /><br />
+
+<div id="jxgbox" class="jxgbox" style="width: 500px; height: 500px; float:left"></div>
+
+<textarea id="code" cols="110" rows="31">// Prepare some visual properties
+    cerise = <<
+        strokeColor: '#901B77',
+        fillColor: '#CA147A'
+    >>;
+    grass = <<
+        strokeColor: '#009256',
+        fillColor: '#65B72E'
+    >>;
+    
+    visible = <<
+        visible: true,
+        withLabel: true
+    >>;
+
+    thick = << strokeWidth: 4 >>;
+    thin = << strokeWidth: 1>>;
+
+    P = point(1, 1) cerise, thick, visible, << size: 10 >>;
+    Q = point(3, 2) grass, thick, visible;
+    R = point(-2, 3) cerise, thin;
+</textarea>
+
+<script type="text/javascript">
+    /* <![CDATA[ */
+
+    (function () {
+        var board,
+            init = function () {
+                board = JXG.JSXGraph.initBoard('jxgbox', {boundingbox: [-5, 5, 5, -5], keepaspectratio:true});
+            },
+            parse = function () {
+                board.jc.parse(document.getElementById('code').value);
+            };
+
+        init();
+        parse();
+
+        JXG.addEvent(document.getElementById('reset'), 'click', function () {
+            JXG.JSXGraph.freeBoard(board);
+            init();
+        }, this);
+
+        JXG.addEvent(document.getElementById('parse'), 'click', function () {
+            parse();
+        }, this);
+    })();
+
+    /* ]]> */
+</script>
+
+</body>
+</html>
