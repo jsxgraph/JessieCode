@@ -130,13 +130,6 @@ JXG.JessieCode = function(code, geonext) {
     this.line = 1;
     this.col = 1;
 
-    /**
-     * Maximum number of seconds the parser is allowed to run. After that the interpreter is stopped.
-     * @type Number
-     * @default 10000
-     */
-    this.maxRuntime = 10000;
-
     if (typeof code === 'string') {
         this.parse(code);
     }
@@ -347,13 +340,17 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
         }
 
         s = this.isLocalVariable(vname);
-        if (s > -1) {
+        if (s > -1 && !withProps) {
             return '$jc$.sstack[' + s + '][\'' + vname + '\']';
         }
 
         // check for an element with this name
         if (this.isCreator(vname)) {
             return '(function () { var a = Array.prototype.slice.call(arguments, 0), props = ' + (withProps ? 'a.pop()' : '{}') + '; return $jc$.board.create.apply($jc$.board, [\'' + vname + '\'].concat([a, props])); })';
+        }
+        
+        if (withProps) {
+            this._error('Syntax error (attribute values are allowed with element creators only)');
         }
 
         if (this.isMathMethod(vname)) {
@@ -377,6 +374,19 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
         }
 
         return '';
+    },
+
+    /**
+     * 
+     */
+    mergeAttributes: function () {
+        var i, attr = {};
+        
+        for (i = 0; i < arguments.length; i++) {
+            attr = JXG.deepCopy(attr, arguments[i], true);            
+        }
+        
+        return attr;
     },
 
     /**
@@ -404,8 +414,6 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                 x = what === 'x' ? value : o.X();
                 y = what === 'y' ? value : o.Y();
 
-                //o.XEval = function() { return this.coords.usrCoords[1]; };
-                //o.YEval = function() { return this.coords.usrCoords[2]; };
                 o.setPosition(JXG.COORDS_BY_USER, [x, y]);
             } else if (o.isDraggable && (typeof value === 'function' || typeof value === 'string')) {
                 x = what === 'x' ? value : o.coords.usrCoords[1];
@@ -502,22 +510,12 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
         code = cleaned.join('\n');
         code = this.utf8_encode(code);
 
-        /*to = window.setTimeout(function () {
-            console.log('CANCEL!');
-            that.cancel = true;
-        }, this.maxRuntime);
-        this.cancel = false;*/
-
         if((error_cnt = this._parse(code, error_off, error_la)) > 0) {
             for(i = 0; i < error_cnt; i++) {
                 this.line = error_off[i].line;
                 this._error("Parse error in line " + error_off[i].line + " near >"  + code.substr( error_off[i].offset, 30 ) + "<, expecting \"" + error_la[i].join() + "\"");
             }
         }
-
-        /*window.clearTimeout(to);*/
-
-        //this.board.update();
     },
 
     /**
@@ -750,10 +748,6 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
 
         ret = 0;
 
-        if (this.cancel) {
-            this._error('Max runtime exceeded');
-        }
-
         if (!node)
             return ret;
 
@@ -925,7 +919,6 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                             ret = (function ($jc$) {
                                 var p = $jc$.pstack[$jc$.pscope].join(', '),
                                     str = 'var f = function (' + p + ') {\n$jc$.sstack.push([]);\n$jc$.scope++;\nvar r = (function () {\n' + $jc$.compile(node.children[1], true) + '})();\n$jc$.sstack.pop();\n$jc$.scope--;\nreturn r;\n}; f;';
-
                                 // the function code formatted:
                                 /*
                                 var f = function (_parameters_) {
@@ -951,8 +944,9 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
 
                                 try{
                                     return eval(str);
-                                } catch(e) {
-                                    this._error('catch errors. super simple stuff.', e.toString())
+                                } catch (e) {
+                                    //$jc$._error('catch errors. super simple stuff.', e.toString())
+                                    throw e;
                                     return function () {};
                                 }
                             })(this);
@@ -1038,6 +1032,10 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                             sc = fun.sc;
                         } else {
                             sc = this;
+                        }
+                        
+                        if (!fun.creator && typeof node.children[2] !== 'undefined') {
+                            this._error('Unexpected value. Only element creators are allowed to have a value after the function call.');
                         }
 
                         // interpret ALL the parameters
@@ -1316,10 +1314,14 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                     case 'op_execfun':
                         // parse the properties only if given
                         if (node.children[2]) {
-                            e = (js ? '{' : '<<') + this.compile(node.children[2], js) + (js ? '}' : '>>');
+                            e = this.compile(node.children[2], js);
+                            
+                            if (js) {
+                                e = '$jc$.mergeAttributes(' + e + ')';
+                            }
                         }
                         node.children[0].withProps = !!node.children[2];
-                        ret = this.compile(node.children[0], js) + '(' + this.compile(node.children[1], js) + (node.children[2] ? ', ' + e : '') + ')';
+                        ret = this.compile(node.children[0], js) + '(' + this.compile(node.children[1], js) + (node.children[2] && js ? ', ' + e : '') + ')' + (node.children[2] && !js ? e : '');
 
                         // save us a function call when compiled to javascript
                         if (js && node.children[0].value === '$') {
