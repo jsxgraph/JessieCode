@@ -489,7 +489,6 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
             regex,
             ccode = code.replace(/\r\n/g,'\n').split('\n'), i, j, cleaned = [];
         
-        console.log('replacing setText');
         JXG.Text.prototype._setText = JXG.Text.prototype.setText;
         JXG.Text.prototype.setText = JXG.Text.prototype.setTextJessieCode;
 
