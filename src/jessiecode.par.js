@@ -488,6 +488,10 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
             replacegxt = ['Abs', 'ACos', 'ASin', 'ATan','Ceil','Cos','Exp','Factorial','Floor','Log','Max','Min','Random','Round','Sin','Sqrt','Tan','Trunc', 'If', 'Deg', 'Rad', 'Dist'],
             regex,
             ccode = code.replace(/\r\n/g,'\n').split('\n'), i, j, cleaned = [];
+        
+        console.log('replacing setText');
+        JXG.Text.prototype._setText = JXG.Text.prototype.setText;
+        JXG.Text.prototype.setText = JXG.Text.prototype.setTextJessieCode;
 
         if (!JXG.exists(geonext)) {
             geonext = false;
@@ -516,6 +520,8 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                 this._error("Parse error in line " + error_off[i].line + " near >"  + code.substr( error_off[i].offset, 30 ) + "<, expecting \"" + error_la[i].join() + "\"");
             }
         }
+        
+        JXG.Text.prototype.setText = JXG.Text.prototype._setText;
     },
 
     /**
