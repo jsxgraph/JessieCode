@@ -377,7 +377,10 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
     },
 
     /**
-     * 
+     * Merge all atribute values given with an element creator into one object.
+     * @param {Object} ... An arbitrary number of objects
+     * @returns {Object} All given objects merged into one. If properties appear in more (case sensitive) than one
+     * object the last value is taken.
      */
     mergeAttributes: function () {
         var i, attr = {};
