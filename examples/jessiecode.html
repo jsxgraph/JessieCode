@@ -107,7 +107,7 @@ parab = function(x) {
     return A.X()*x^2;
 };
 
-t = text(-4, 2, function () { return 'X(l) = ' + add(2, M.X()) + '; dist(A, B) = ' + dist(A, B);}) << cssClass: 'foobar' >>;
+//t = text(-4, 2, function () { return 'X(l) = ' + add(2, M.X()) + '; dist(A, B) = ' + dist(A, B);}) << cssClass: 'foobar' >>;
 
 circle('wrzpfrmpf', M);
 p = plot(parab);
@@ -122,9 +122,9 @@ plot(function (x) {
 p.strokeColor = '#CDEB8B';
 p.strokeWidth = 4;
 
-//obj = << foo: 3, bar: 'baz', sub: << this: 99 >> >>;
+obj = << foo: 3, bar: 'baz', sub: << this: 99 >> >>;
 
-//val = obj.sub.this;
+val = obj.sub.this;
 
 arr = [function () { return [3, 4]; }];
 foobar = arr[0]()[1];
@@ -154,8 +154,8 @@ foobar = arr[0]()[1];
     ax.ticks.visible = false;
 
     C = point(1, 0);
-    cc = circumcircle(A, B, C);
-    cc.center.visible = true;
+    //cc = circumcircle(A, B, C);
+    //cc.center.visible = true;
 
     B.X = function () {
         return ((function () {
@@ -237,7 +237,8 @@ foobar = arr[0]()[1];
     b = 3;
     a = function (x) {
         if (x > 0) {
-            return B.Y()*cos(x*3+2);
+            return B.Y()*cos(x*3+2);whatthehellhappenedtoyou 9 points : 32 minutes ago reply
+
         } else {
             return B.Y()*sin(x*3+2);
         }
@@ -273,13 +274,20 @@ foobar = arr[0]()[1];
     });
 </textarea>
 
+<textarea id="code7" cols="90" rows="50">
+    use jxgbox2;
+    
+    NAN = point(NaN, NaN);
+    NAN.move([1, 2]);    
+</textarea>
+
 <pre>
 </pre>
 <script type="text/javascript">
   var str = document.getElementById('code').value;
 
   var p1 = new JXG.JessieCode(str);
-  var p2 = new JXG.JessieCode(document.getElementById('code2').value);
+  var p2 = new JXG.JessieCode(document.getElementById('code7').value);
 </script>
 </body>
 </html>

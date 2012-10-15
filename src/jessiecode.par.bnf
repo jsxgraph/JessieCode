@@ -52,6 +52,7 @@
     '\:'
     '\|'
     '\.'
+    'NaN'
     '[A-Za-z_\$][A-Za-z0-9_]*'         Identifier
     '\'([^\']|\\\')*\''                String                                [* %match = %match.substr( 1, %match.length - 2 );
                                                                                 %match = %match.replace( /\\\'/g, "\'" );    *]
@@ -166,5 +167,6 @@ Value:        Integer                                                        [* 
         | '[' Param_List ']'                                                 [* %% = this.createNode('node_op', 'op_array', %2); *]
         | TRUE                                                               [* %% = this.createNode('node_const_bool', %1 ); *]
         | FALSE                                                              [* %% = this.createNode('node_const_bool', %1 ); *]
+        | NaN                                                                [* %% = NaN; *]
         ;
 

@@ -489,10 +489,9 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
             that = this,
             to,
             replacegxt = ['Abs', 'ACos', 'ASin', 'ATan','Ceil','Cos','Exp','Factorial','Floor','Log','Max','Min','Random','Round','Sin','Sqrt','Tan','Trunc', 'If', 'Deg', 'Rad', 'Dist'],
-            regex,
+            regex, setTextBackup = JXG.Text.prototype.setText,
             ccode = code.replace(/\r\n/g,'\n').split('\n'), i, j, cleaned = [];
         
-        JXG.Text.prototype._setText = JXG.Text.prototype.setText;
         JXG.Text.prototype.setText = JXG.Text.prototype.setTextJessieCode;
 
         if (!JXG.exists(geonext)) {
@@ -523,7 +522,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
             }
         }
         
-        JXG.Text.prototype.setText = JXG.Text.prototype._setText;
+        JXG.Text.prototype.setText = setTextBackup;
     },
 
     /**
@@ -1042,15 +1041,17 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                             sc = this;
                         }
                         
-                        if (!fun.creator && typeof node.children[2] !== 'undefined') {
+                        // Nope, this breaks accessing arrays that come as return values of function calls e.g.
+                        //     fun()[0]
+                        // where fun() returns an array of minimum length 1. 
+                        /*if (!fun.creator && typeof node.children[2] !== 'undefined') {
                             this._error('Unexpected value. Only element creators are allowed to have a value after the function call.');
-                        }
+                        }*/
 
                         // interpret ALL the parameters
                         for(i = 0; i < this.pstack[this.pscope].length; i++) {
                             parents[i] = this.execute(this.pstack[this.pscope][i]);
                         }
-
                         // check for the function in the variable table
                         if (typeof fun === 'function' && !fun.creator) {
                             ret = fun.apply(sc, parents);
