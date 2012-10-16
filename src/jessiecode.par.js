@@ -886,7 +886,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         break;
                     case 'op_extvalue':
                         var undef;
-
+                        
                         ret = this.execute(node.children[0]);
                         i = this.execute(node.children[1]);
 
@@ -1005,7 +1005,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         this.pstack.push([]);
                         this.dpstack.push([]);
                         this.pscope++;
-
+                        
                         // parse the parameter list
                         // after this, the parameters are in pstack
                         this.execute(node.children[1]);
@@ -1041,12 +1041,9 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                             sc = this;
                         }
                         
-                        // Nope, this breaks accessing arrays that come as return values of function calls e.g.
-                        //     fun()[0]
-                        // where fun() returns an array of minimum length 1. 
-                        /*if (!fun.creator && typeof node.children[2] !== 'undefined') {
+                        if (!fun.creator && typeof node.children[2] !== 'undefined') {
                             this._error('Unexpected value. Only element creators are allowed to have a value after the function call.');
-                        }*/
+                        }
 
                         // interpret ALL the parameters
                         for(i = 0; i < this.pstack[this.pscope].length; i++) {

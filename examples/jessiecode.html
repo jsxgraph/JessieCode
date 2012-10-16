@@ -277,8 +277,15 @@ foobar = arr[0]()[1];
 <textarea id="code7" cols="90" rows="50">
     use jxgbox2;
     
-    NAN = point(NaN, NaN);
-    NAN.move([1, 2]);    
+    x = 1;
+    y = function () {
+        return [1, 2];
+    };
+    a = y()[1];
+    r = sin(x)*cos(x);
+    
+    text(1, 1, a.toString());
+    text(1, -1, r);
 </textarea>
 
 <pre>
@@ -286,7 +293,7 @@ foobar = arr[0]()[1];
 <script type="text/javascript">
   var str = document.getElementById('code').value;
 
-  var p1 = new JXG.JessieCode(str);
+  //var p1 = new JXG.JessieCode(str);
   var p2 = new JXG.JessieCode(document.getElementById('code7').value);
 </script>
 </body>
