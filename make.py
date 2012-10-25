@@ -25,7 +25,7 @@ import urllib
 
 
 # Default values for options. May be overridden via command line options
-yui = "~/Tools/yuicompressor"
+yuglify = "~/node_modules/yuglify/bin/yuglify"
 jstest = "~/Tools/JsTestDriver/JsTestDriver-1.3.4-a.jar"
 output = "bin"
 version = None
@@ -54,7 +54,7 @@ def usage():
     print "  -s, --server=URL       Overrides the server option in the JsTestDriver config."
     print "  -v, --version=VERSION  Use VERSION as release version for proper zip archive and"
     print "                         folder names."
-    print "  -y, --yui=PATH         Search for YUI Compressor in PATH."
+    print "  -y, --yuglify=PATH     Search for YUI yuglify in PATH."
     print "  -c, --jsccv=VERSION    jscc version."
     print
     print "Targets:"
@@ -71,7 +71,7 @@ def usage():
     Generate jsxgraphcore.js and place it in <output>
 '''
 def makeCore():
-    global yui, version, output, license, jsccv
+    global yuglify, version, output, license, jsccv
 
     print "Making Core..."
 
@@ -105,8 +105,8 @@ def makeCore():
     fout.write(license)
     fout.close()
 
-    # Minify; YUI compressor from Yahoo
-    s = "java -jar " + yui + "/build/yuicompressor*.jar --type js " + tmpfilename + " >>" + minFilename
+    # Minify: Yuglify
+    s = yuglify + " --terminal < " + tmpfilename + " >> " + minFilename
     print s
     os.system(s)
 
@@ -173,10 +173,10 @@ def makeTestServer():
 
 
 def main(argv):
-    global yui, jsdoc, version, output, hint, jstest, reset, port, server, jsccv
+    global yuglify, jsdoc, version, output, hint, jstest, reset, port, server, jsccv
 
     try:
-        opts, args = getopt.getopt(argv, "hy:v:o:l:t:p:s:c:", ["help", "yui=", "version=", "output=", "hint=", "test=", "reset", "port=", "server=", "jsccv="])
+        opts, args = getopt.getopt(argv, "hy:v:o:l:t:p:s:c:", ["help", "yuglify=", "version=", "output=", "hint=", "test=", "reset", "port=", "server=", "jsccv="])
     except getopt.GetoptError as (errono, strerror):
         usage()
         sys.exit(2)
@@ -188,8 +188,8 @@ def main(argv):
             output = os.path.expanduser(arg)
         elif opt in ("-v", "--version"):
             version = arg
-        elif opt in ("-y", "--yui"):
-            yui = arg
+        elif opt in ("-y", "--yuglify"):
+            yuglify = arg
         elif opt in ("-l", "--hint"):
             hint = arg
         elif opt in ("-t", "--test"):
