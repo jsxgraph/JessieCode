@@ -528,15 +528,10 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                     this._error("Parse error in line " + error_off[i].line + " near >"  + code.substr( error_off[i].offset, 30 ) + "<, expecting \"" + error_la[i].join() + "\"");
                 }
             }
-        } catch (e) {
+        } finally {
             // make sure the original text method is back in place
             JXG.Text.prototype.setText = setTextBackup;
-            
-            // rethrow
-            throw e;
         }
-        
-        JXG.Text.prototype.setText = setTextBackup;
     },
 
     /**
