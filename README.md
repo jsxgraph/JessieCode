@@ -21,7 +21,7 @@ Compile
 Required tools:
 
 * Rhino
-* YUICompressor
+* yuglify
 
 Use the make.py script to compile the .bnf file into a javascript parser and to concatenate
 the parser and interpreter into a single .js file.
