@@ -107,6 +107,12 @@ JXG.JessieCode = function(code, geonext) {
     this.warnLog = 'jcwarn';
 
     /**
+     * Store $log messages in case there's no console.
+     * @type {Array}
+     */
+    this.$log = [];
+    
+    /**
      * Built-in functions and constants
      * @type Object
      */
@@ -181,6 +187,14 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
      */
     getElementById: function (id) {
         return this.board.objects[id];
+    },
+    
+    log: function () {
+        this.$log.push(arguments);
+        
+        if (typeof console === 'object' && console.log) {
+            console.log.apply(console, arguments);
+        }
     },
 
     /**
@@ -1602,7 +1616,8 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                 factorial: JXG.Math.factorial,
                 trunc: JXG.trunc,
                 '$': that.getElementById,
-                '$board': that.board
+                '$board': that.board,
+                '$log': that.log
             };
 
         // special scopes for factorial, deg, and rad
@@ -1628,6 +1643,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
         if (builtIn['$board']) {
             builtIn['$board'].src = '$jc$.board';
         }
+        builtIn['$log'].src = '$jc$.log';
 
         return builtIn;
     },
