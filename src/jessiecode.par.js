@@ -8,11 +8,17 @@
     Licensed under the LGPL v3
 */
 
+/*global JXG:true, window:true, console:true, self:true, document:true*/
+
 /**
  * @fileoverview JessieCode is a scripting language designed to provide a simple scripting language to build constructions
  * with JSXGraph. It is similar to JavaScript, but prevents access to the DOM. Hence, it can be used in community driven
  * Math portals which want to use JSXGraph to display interactive math graphics.
  */
+
+(function () {
+
+    "use strict";
 
 /**
  * A JessieCode object provides an interfacce to the parser and stores all variables and objects used within a JessieCode script.
@@ -171,8 +177,9 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
         var n = this.node(type, value, []),
             i;
 
-        for(i = 2; i < arguments.length; i++)
+        for(i = 2; i < arguments.length; i++) {
             n.children.push( arguments[i] );
+        }
 
         n.line = this.parCurLine;
         n.col = this.parCurColumn;
@@ -212,7 +219,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
             // _ccache is global, i.e. it is the same for ALL JessieCode instances.
             // That's why we need the board id here
             if (typeof _ccache[this.board.id + vname] === 'function') {
-                return _ccache[this.board.id + vname];
+                f =  _ccache[this.board.id + vname];
             } else {
                 f = (function (that) {
                     return function (parameters, attributes) {
@@ -224,15 +231,14 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                             attr = {name: (that.lhs[that.scope] !== 0 ? that.lhs[that.scope] : '')};
                         }
                         return that.board.create(vname, parameters, attr);
-                    }
-                })(this);
+                    };
+                }(this));
 
                 f.creator = true;
                 _ccache[this.board.id + vname] = f;
-
-                return f;
             }
 
+            return f;
         };
 
         r.clearCache = function () {
@@ -240,7 +246,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
         };
 
         return r;
-    })(),
+    }()),
 
     /**
      * Assigns a value to a variable in the current scope.
@@ -304,7 +310,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
     /**
      * Looks up the value of the given variable.
      * @param {String} vname Name of the variable
-     * @paran {Boolean} [local=false] Only look up the internal symbol table and don't look for
+     * @param {Boolean} [local=false] Only look up the internal symbol table and don't look for
      * the <tt>vname</tt> in Math or the element list.
      */
     getvar: function (vname, local) {
@@ -346,7 +352,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
      * @param {Boolean} [local=false] Don't resolve ids and names of elements
      */
     getvarJS: function (vname, local, withProps) {
-        var s;
+        var s, r = '';
 
         local = JXG.def(local, false);
         withProps = JXG.def(withProps, false);
@@ -380,13 +386,12 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
 
         if (!local) {
             if (JXG.isId(this.board, vname)) {
-                return '$jc$.board.objects[\'' + vname + '\']';
+                r = '$jc$.board.objects[\'' + vname + '\']';
             } else if (JXG.isName(this.board, vname)) {
-                return '$jc$.board.elementsByName[\'' + vname + '\']';
+                r = '$jc$.board.elementsByName[\'' + vname + '\']';
             } else if (JXG.isGroup(this.board, vname)) {
-                return '$jc$.board.groups[\'' + vname + '\']';
+                r = '$jc$.board.groups[\'' + vname + '\']';
             }
-            //return 'JXG.getRef(JXG.JSXGraph.boards[$jc$.board.id], \'' + vname + '\')';
         }
 
         return '';
@@ -394,11 +399,11 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
 
     /**
      * Merge all atribute values given with an element creator into one object.
-     * @param {Object} ... An arbitrary number of objects
+     * @param {Object} o An arbitrary number of objects
      * @returns {Object} All given objects merged into one. If properties appear in more (case sensitive) than one
      * object the last value is taken.
      */
-    mergeAttributes: function () {
+    mergeAttributes: function (o) {
         var i, attr = {};
         
         for (i = 0; i < arguments.length; i++) {
@@ -603,7 +608,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
         if (node.replaced) {
             // these children exist, if node.replaced is set.
             v = this.board.objects[node.children[1].children[0].value];
-            if (JXG.exists(v) && JXG.exists(v) && v.name !== '') {
+            if (JXG.exists(v) && v.name !== '') {
                 node.type = 'node_var';
                 node.value = v.name;
                 // maybe it's not necessary, but just to be sure that everything's cleaned up we better delete all
@@ -640,9 +645,9 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
         // we are interested only in nodes of type node_var and node_op > op_lhs.
         // currently, we are not checking if the id is a local variable. in this case, we're stuck anyway.
 
-        if (node.type == 'node_op' && v == 'op_lhs' && node.children.length === 1) {
+        if (node.type === 'node_op' && v === 'op_lhs' && node.children.length === 1) {
             this.isLHS = true;
-        } else if (node.type == 'node_var') {
+        } else if (node.type === 'node_var') {
             if (this.isLHS) {
                 this.letvar(v, true);
             } else if (!JXG.exists(this.getvar(v, true)) && JXG.exists(this.board.elementsByName[v])) {
@@ -660,7 +665,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
             }
         }
 
-        if (node.type == 'node_op' && node.value == 'op_lhs' && node.children.length === 1) {
+        if (node.type === 'node_op' && node.value === 'op_lhs' && node.children.length === 1) {
             this.isLHS = false;
         }
 
@@ -700,7 +705,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
 
         v = node.value;
 
-        if (node.type == 'node_var') {
+        if (node.type === 'node_var') {
             e = this.getvar(v);
             if (e && e.visProp && e.type && e.elementClass && e.id) {
                 result[e.id] = e;
@@ -708,7 +713,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
         }
 
         // the $()-function-calls are special because their parameter is given as a string, not as a node_var.
-        if (node.type == 'node_op' && node.value == 'op_execfun' && node.children.length > 1 && node.children[0].value == '$' && node.children[1].children.length > 0) {
+        if (node.type === 'node_op' && node.value === 'op_execfun' && node.children.length > 1 && node.children[0].value === '$' && node.children[1].children.length > 0) {
             e = node.children[1].children[0].value;
             result[e] = this.board.objects[e];
         }
@@ -774,12 +779,19 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
      * @private
      */
     execute: function (node) {
-        var ret, v, i, e, parents = [];
+        var ret, v, i, e, l, undef,
+            parents = [],
+            // exec fun
+            fun, attr, sc,
+            // op_use
+            b,
+            found = false;
 
         ret = 0;
 
-        if (!node)
+        if (!node) {
             return ret;
+        }
 
         this.line = node.line;
         this.col = node.col;
@@ -889,8 +901,6 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         this.propstack[this.propscope][node.children[0]] = this.execute(node.children[1]);
                         break;
                     case 'op_array':
-                        var l;
-
                         this.pstack.push([]);
                         this.pscope++;
 
@@ -908,8 +918,6 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
 
                         break;
                     case 'op_extvalue':
-                        var undef;
-                        
                         ret = this.execute(node.children[0]);
                         i = this.execute(node.children[1]);
 
@@ -973,13 +981,14 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                                 */
 
                                 try{
+                                    // yeah, eval is evil, but we don't have much choice here.
+                                    // the str is well defined and there is no user input in it that we didn't check before
                                     return eval(str);
                                 } catch (e) {
                                     //$jc$._error('catch errors. super simple stuff.', e.toString())
-                                    throw e;
                                     return function () {};
                                 }
-                            })(this);
+                            }(this));
 
                             // clean up scope
                             this.sstack.pop();
@@ -1001,7 +1010,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                                     that.scope--;
                                     return r;
                                 };
-                            })(this.pstack[this.pscope], this);
+                            }(this.pstack[this.pscope], this));
                         }
 
                         ret.node = node;
@@ -1010,7 +1019,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                             return function () {
                                 return _that.compile(_that.replaceIDs(JXG.deepCopy(node)));
                             };
-                        })(this);
+                        }(this));
 
                         ret.deps = {};
                         this.collectDependencies(node.children[1], ret.deps);
@@ -1023,8 +1032,6 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         //   [0]: Name of the function
                         //   [1]: Parameter list as a parse subtree
                         //   [2]: Properties, only used in case of a create function
-                        var fun, attr, sc;
-
                         this.pstack.push([]);
                         this.dpstack.push([]);
                         this.pscope++;
@@ -1034,7 +1041,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         this.execute(node.children[1]);
 
                         // parse the properties only if given
-                        if (typeof node.children[2] !== 'undefined') {
+                        if (JXG.exists(node.children[2])) {
                             if (node.children[3]) {
                                 this.pstack.push([]);
                                 this.dpstack.push([]);
@@ -1064,7 +1071,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                             sc = this;
                         }
                         
-                        if (!fun.creator && typeof node.children[2] !== 'undefined') {
+                        if (!fun.creator && JXG.exists(node.children[2])) {
                             this._error('Unexpected value. Only element creators are allowed to have a value after the function call.');
                         }
 
@@ -1139,18 +1146,20 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                     case 'op_use':
                         // node.children:
                         //   [0]: A string providing the id of the div the board is in.
-                        var found = false;
+                        found = false;
 
                         // search all the boards for the one with the appropriate container div
-                        for(var b in JXG.JSXGraph.boards) {
-                            if(JXG.JSXGraph.boards[b].container === node.children[0].toString()) {
+                        for(b in JXG.JSXGraph.boards) {
+                            if(JXG.JSXGraph.boards.hasOwnProperty(b) && JXG.JSXGraph.boards[b].container === node.children[0].toString()) {
                                 this.use(JXG.JSXGraph.boards[b]);
                                 found = true;
                             }
                         }
 
-                        if(!found)
+                        if(!found) {
                             this._error('Board \'' + node.children[0].toString() + '\' not found!');
+                        }
+                        
                         break;
                     case 'op_delete':
                         v = this.getvar(node.children[0]);
@@ -1160,9 +1169,11 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         }
                         break;
                     case 'op_equ':
+                        // == is intentional
                         ret = this.execute(node.children[0]) == this.execute(node.children[1]);
                         break;
                     case 'op_neq':
+                        // != is intentional
                         ret = this.execute(node.children[0]) != this.execute(node.children[1]);
                         break;
                     case 'op_approx':
@@ -1247,11 +1258,12 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
         ret = '';
 
         if (!JXG.exists(js)) {
-            js = false
+            js = false;
         }
 
-        if (!node)
+        if (!node) {
             return ret;
+        }
 
         switch (node.type) {
             case 'node_op':
@@ -1558,16 +1570,16 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
     mul: function (a, b) {
         if (JXG.isArray(a) * JXG.isArray(b)) {
             return JXG.Math.innerProduct(a, b, Math.min(a.length, b.length));
-        } else {
-            return JXG.Math.Statistics.multiply(a, b);
         }
+        
+        return JXG.Math.Statistics.multiply(a, b);
     },
 
 
     use: function (board) {
         this.board = board;
-        this.builtIn['$board'] = board;
-        this.builtIn['$board'].src = '$jc$.board';
+        this.builtIn.$board = board;
+        this.builtIn.$board.src = '$jc$.board';
     },
 
     /**
@@ -1639,11 +1651,11 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
         builtIn.factorial.src = 'JXG.Math.factorial';
         builtIn.trunc.src = 'JXG.trunc';
         // usually unused, see node_op > op_execfun
-        builtIn['$'].src = '(function (n) { return JXG.getRef($jc$.board, n); })';
-        if (builtIn['$board']) {
-            builtIn['$board'].src = '$jc$.board';
+        builtIn.$.src = '(function (n) { return JXG.getRef($jc$.board, n); })';
+        if (builtIn.$board) {
+            builtIn.$board.src = '$jc$.board';
         }
-        builtIn['$log'].src = '$jc$.log';
+        builtIn.$log.src = '$jc$.log';
 
         return builtIn;
     },
@@ -1655,7 +1667,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
      * @private
      */
     _debug: function (log) {
-        if(typeof console !== "undefined") {
+        if(typeof console === 'object') {
             console.log(log);
         } else if(document && document.getElementById('debug') !== null) {
             document.getElementById('debug').innerHTML += log + '<br />';
@@ -1677,7 +1689,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
      * @param {String} msg
      */
     _warn: function (msg) {
-        if(typeof console !== "undefined") {
+        if(typeof console === 'object') {
             console.log('Warning(' + this.line + '): ' + msg);
         } else if(document && document.getElementById(this.warnLog) !== null) {
             document.getElementById(this.warnLog).innerHTML += 'Warning(' + this.line + '): ' + msg + '<br />';
@@ -1685,7 +1697,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
     },
 
     _log: function (msg) {
-        if (typeof window === 'undefined' && typeof self !== 'undefined' && self.postMessage) {
+        if (typeof window !== 'object' && typeof self === 'object' && self.postMessage) {
             self.postMessage({type: 'log', msg: 'Log: ' + msg.toString()});
         } else {
             console.log('Log: ', arguments);
@@ -1693,3 +1705,5 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
     }
 
 });
+
+}());
