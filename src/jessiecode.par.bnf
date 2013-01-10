@@ -158,16 +158,16 @@ ExtValue:      ExtValue '[' AddSubExp ']'                                    [* 
         | Value
         ;
 
-Value:        Integer                                                        [* %% = this.createNode('node_const', %1 ); *]
-        | Float                                                              [* %% = this.createNode('node_const', %1 ); *]
-        | Identifier                                                         [* %% = this.createNode('node_var', %1 ); *]
+Value:        Integer                                                        [* %% = this.createNode('node_const', %1); *]
+        | Float                                                              [* %% = this.createNode('node_const', %1); *]
+        | Identifier                                                         [* %% = this.createNode('node_var', %1); *]
         | '(' Expression ')'                                                 [* %% = %2; *]
         | String                                                             [* %% = this.createNode('node_str', %1); *]
         | FUNCTION '(' Param_Def_List ')' '{' Stmt_List '}'                  [* %% = this.createNode('node_op', 'op_function', %3, %6); *]
         | '<<' Prop_List '>>'                                                [* %% = this.createNode('node_op', 'op_proplst_val', %2); *]
         | '[' Param_List ']'                                                 [* %% = this.createNode('node_op', 'op_array', %2); *]
-        | TRUE                                                               [* %% = this.createNode('node_const_bool', %1 ); *]
-        | FALSE                                                              [* %% = this.createNode('node_const_bool', %1 ); *]
-        | NaN                                                                [* %% = NaN; *]
+        | TRUE                                                               [* %% = this.createNode('node_const_bool', %1); *]
+        | FALSE                                                              [* %% = this.createNode('node_const_bool', %1); *]
+        | 'NaN'                                                              [* %% = this.createNode('node_const', NaN);; *]
         ;
 
