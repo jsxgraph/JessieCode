@@ -26,10 +26,11 @@
  */
 
 /*global JXG:true, window:true, console:true, self:true, document:true*/
-/*jslint nomen: true, plusplus: true, newcap:true*/
+/*jslint nomen: true, plusplus: true*/
 
 /* depends:
  JXG
+ Text
  Math
  MathGeometry
  MathStatistics
@@ -56,8 +57,6 @@
      * @param {Boolean} [geonext=false] Geonext compatibility mode.
      */
     JXG.JessieCode = function (code, geonext) {
-        var i;
-
         // Control structures
 
         /**
@@ -172,7 +171,7 @@
         this.code = '';
 
         if (typeof code === 'string') {
-            this.parse(code);
+            this.parse(code, geonext);
         }
     };
 
@@ -278,7 +277,7 @@
         /**
          * Assigns a value to a variable in the current scope.
          * @param {String} vname Variable name
-         * @param {%} value Anything
+         * @param value Anything
          * @see JXG.JessieCode#sstack
          * @see JXG.JessieCode#scope
          */
@@ -377,6 +376,7 @@
          * Looks up a variable identifier in various tables and generates JavaScript code that could be eval'd to get the value.
          * @param {String} vname Identifier
          * @param {Boolean} [local=false] Don't resolve ids and names of elements
+         * @param {Boolean} [withProps=false]
          */
         getvarJS: function (vname, local, withProps) {
             var s, r = '';
@@ -442,8 +442,9 @@
 
         /**
          * Sets the property <tt>what</tt> of {@link JXG.JessieCode#propobj} to <tt>value</tt>
+         * @param {JXG.Point|JXG.Text} o
          * @param {String} what
-         * @param {%} value
+         * @param value
          */
         setProp: function (o, what, value) {
             var par = {}, x, y;
@@ -519,7 +520,6 @@
                 } else {
                     utftext.push('&#x' + c.toString(16) + ';');
                 }
-
             }
 
             return utftext.join('');
@@ -532,14 +532,12 @@
          * @param {Boolean} dontstore
          */
         parse: function (code, geonext, dontstore) {
-            var to, i, j,
+            var to, i, j, regex, setTextBackup,
                 error_cnt = 0,
                 error_off = [],
                 error_la = [],
-                that = this,
                 replacegxt = ['Abs', 'ACos', 'ASin', 'ATan', 'Ceil', 'Cos', 'Exp', 'Factorial', 'Floor', 'Log', 'Max',
                     'Min', 'Random', 'Round', 'Sin', 'Sqrt', 'Tan', 'Trunc', 'If', 'Deg', 'Rad', 'Dist'],
-                regex, setTextBackup = JXG.Text.prototype.setText,
                 ccode = code.replace(/\r\n/g, '\n').split('\n'),
                 cleaned = [];
 
@@ -548,6 +546,7 @@
             }
 
             if (JXG.Text) {
+                setTextBackup = JXG.Text.prototype.setText;
                 JXG.Text.prototype.setText = JXG.Text.prototype.setTextJessieCode;
             }
 
@@ -642,10 +641,12 @@
             if (node.replaced) {
                 // these children exist, if node.replaced is set.
                 v = this.board.objects[node.children[1].children[0].value];
-                if (JXG.exists(v) && v.name !== '') {
+
+                if (JXG.exists(v) && v.name !== "") {
                     node.type = 'node_var';
                     node.value = v.name;
-                    // maybe it's not necessary, but just to be sure that everything's cleaned up we better delete all
+
+                    // maybe it's not necessary, but just to be sure that everything is cleaned up we better delete all
                     // children and the replaced flag
                     node.children.length = 0;
                     delete node.replaced;
@@ -805,7 +806,7 @@
         /**
          * Executes a parse subtree.
          * @param {Object} node
-         * @returns Something
+         * @returns {Number|String|Object|Boolean} Something
          * @private
          */
         execute: function (node) {
@@ -985,27 +986,28 @@
                         this.replaceNames(node.children[1]);
 
                         fun = (function ($jc$) {
-                            var p = $jc$.pstack[$jc$.pscope].join(', '),
+                            var fun,
+                                p = $jc$.pstack[$jc$.pscope].join(', '),
                                 str = 'var f = function (' + p + ') {\n$jc$.sstack.push([]);\n$jc$.scope++;\nvar r = (function () {\n' + $jc$.compile(node.children[1], true) + '})();\n$jc$.sstack.pop();\n$jc$.scope--;\nreturn r;\n}; f;';
                             // the function code formatted:
                             /*
                              var f = function (_parameters_) {
-                             // handle the stack
-                             $jc$.sstack.push([]);
-                             $jc$.scope++;
+                                 // handle the stack
+                                 $jc$.sstack.push([]);
+                                 $jc$.scope++;
 
-                             // this is required for stack handling: usually at some point in a function
-                             // there's a return statement, that prevents the cleanup of the stack.
-                             var r = (function () {
-                             _compiledcode_;
-                             })();
+                                 // this is required for stack handling: usually at some point in a function
+                                 // there's a return statement, that prevents the cleanup of the stack.
+                                 var r = (function () {
+                                     _compiledcode_;
+                                })();
 
-                             // clean up the stack
-                             $jc$.sstack.pop();
-                             $jc$.scope--;
+                                 // clean up the stack
+                                 $jc$.sstack.pop();
+                                 $jc$.scope--;
 
-                             // return the result
-                             return r;
+                                 // return the result
+                                 return r;
                              };
                              f;   // the return value of eval()
                              */
@@ -1013,9 +1015,13 @@
                             try {
                                 // yeah, eval is evil, but we don't have much choice here.
                                 // the str is well defined and there is no user input in it that we didn't check before
-                                return eval(str);
+
+                                /*jslint evil:true*/
+                                fun = eval(str);
+                                /*jslint evil:false*/
+
+                                return fun;
                             } catch (e) {
-                                //$jc$._error('catch errors. super simple stuff.', e.toString())
                                 return function () {};
                             }
                         }(this));
@@ -1116,12 +1122,9 @@
                         ret = fun.apply(sc, parents);
                     } else if (typeof fun === 'function' && !!fun.creator) {
                         e = this.line;
+
                         // creator methods are the only ones that take properties, hence this special case
                         try {
-                            /*this._log(node.children[0].value + '@' + this.line + ':' + node.col);
-                             for (i = 0; i < this.pstack[this.pscope].length; i++) {
-                             this._log(parents[i] + '@' + this.dpstack[this.pscope][i].line + ':' + this.dpstack[this.pscope][i].col);
-                             }*/
                             ret = fun(parents, attr);
                             ret.jcLineStart = e;
                             ret.jcLineEnd = node.line;
@@ -1132,7 +1135,7 @@
 
                             ret.debugParents = this.dpstack[this.pscope];
                         } catch (ex) {
-                            this._error(ex.toString(), e);
+                            this._error(ex.toString());
                         }
                     } else {
                         this._error('Function \'' + fun + '\' is undefined.');
@@ -1202,11 +1205,15 @@
                     break;
                 case 'op_equ':
                     // == is intentional
+                    /*jslint eqeq:true*/
                     ret = this.execute(node.children[0]) == this.execute(node.children[1]);
+                    /*jslint eqeq:false*/
                     break;
                 case 'op_neq':
                     // != is intentional
+                    /*jslint eqeq:true*/
                     ret = this.execute(node.children[0]) != this.execute(node.children[1]);
+                    /*jslint eqeq:true*/
                     break;
                 case 'op_approx':
                     ret = Math.abs(this.execute(node.children[0]) - this.execute(node.children[1])) < JXG.Math.eps;
@@ -1285,9 +1292,8 @@
          * @private
          */
         compile: function (node, js) {
-            var ret, i, e, v;
-
-            ret = '';
+            var e,
+                ret = '';
 
             if (!JXG.exists(js)) {
                 js = false;
@@ -1516,7 +1522,6 @@
 
             case 'node_var':
                 if (js) {
-                    //ret = '$jc$.getvar(\'' + node.value + '\')';
                     ret = this.getvarJS(node.value, false, node.withProps);
                 } else {
                     ret = node.value;
@@ -1564,7 +1569,7 @@
         /**
          * This is used as the global V() function.
          * @param {Glider|Slider} e
-         * @returns {%}
+         * @returns {Number}
          */
         V: function (e) {
             return e.Value();
@@ -1616,7 +1621,7 @@
 
         /**
          * Find the first symbol to the given value from the given scope upwards.
-         * @param {%} v Value
+         * @param v Value
          * @param {Number} [scope=-1] The scope, default is to start with current scope (-1).
          * @returns {Array} An array containing the symbol and the scope if a symbol could be found,
          * an empty array otherwise;
@@ -1632,7 +1637,7 @@
 
             for (s = scope; s >= 0; s--) {
                 for (i in this.sstack[s]) {
-                    if (this.sstack[s][i] === v) {
+                    if (this.sstack[s].hasOwnProperty(i) && this.sstack[s][i] === v) {
                         return [i, s];
                     }
                 }
