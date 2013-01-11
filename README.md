@@ -1,9 +1,10 @@
 JessieCode - A script language for JSXGraph
 ===========================================
 
-&copy; 2011-2012 Michael Gerhäuser, michael.gerhaeuser@gmail.com
+(c) 2011-2013
+    Michael Gerhäuser, michael.gerhaeuser@gmail.com
+    Alfred Wassermann, alfred.wassermann@uni-bayreuth.de
 
-Licensed under the LGPL v3. See LICENSE or http://www.gnu.org/licenses/lgpl.txt
 
 About
 -----
@@ -26,3 +27,24 @@ Required tools:
 Use the make.py script to compile the .bnf file into a javascript parser and to concatenate
 the parser and interpreter into a single .js file.
 
+License
+-------
+
+JessieCode is free software dual licensed under the GNU LGPL or MIT License.
+
+You can redistribute it and/or modify it under the terms of the
+
+  * GNU Lesser General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version
+  OR
+  * MIT License: https://github.com/jsxgraph/jsxgraph/blob/master/LICENSE.MIT
+
+JessieCode is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License and
+the MIT License along with JessieCode. If not, see <http://www.gnu.org/licenses/>
+and <http://opensource.org/licenses/MIT/>.
