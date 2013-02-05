@@ -37,6 +37,9 @@
  math/statistics
  utils/array
  utils/type
+ utils/object
+ utils/string
+ utils/number
 
  jsxgraph (for element list and board list, latter one could possibly be removed)
  */
