@@ -30,10 +30,13 @@
 
 /* depends:
  JXG
- Text
- Math
- MathGeometry
- MathStatistics
+ base/constants
+ base/text
+ math/math
+ math/geometry
+ math/statistics
+ utils/array
+ utils/type
 
  jsxgraph (for element list and board list, latter one could possibly be removed)
  */
