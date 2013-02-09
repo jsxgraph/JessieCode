@@ -578,7 +578,7 @@
                 code = cleaned.join('\n');
                 code = this.utf8_encode(code);
 
-                if ((error_cnt = this._parse(code, error_off, error_la)) > 0) {
+                if ((error_cnt = this.genTree(code, error_off, error_la)) > 0) {
                     for (i = 0; i < error_cnt; i++) {
                         this.line = error_off[i].line;
                         this._error("Parse error in line " + error_off[i].line + " near >"  + code.substr(error_off[i].offset, 30) + "<, expecting \"" + error_la[i].join() + "\"");
