@@ -1190,9 +1190,9 @@
                     found = false;
 
                     // search all the boards for the one with the appropriate container div
-                    for (b in JXG.JSXGraph.boards) {
-                        if (JXG.JSXGraph.boards.hasOwnProperty(b) && JXG.JSXGraph.boards[b].container === node.children[0].toString()) {
-                            this.use(JXG.JSXGraph.boards[b]);
+                    for (b in JXG.boards) {
+                        if (JXG.boards.hasOwnProperty(b) && JXG.boards[b].container === node.children[0].toString()) {
+                            this.use(JXG.boards[b]);
                             found = true;
                         }
                     }
@@ -1440,7 +1440,7 @@
                     break;
                 case 'op_use':
                     if (js) {
-                        ret = '$jc$.use(JXG.JSXGraph.boards[\'' + node.children[0] + '\'])';
+                        ret = '$jc$.use(JXG.boards[\'' + node.children[0] + '\'])';
                     } else {
                         ret = 'use ' + node.children[0] + ';';
                     }
