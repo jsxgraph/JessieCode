@@ -29,7 +29,7 @@
 /*jslint nomen: true, plusplus: true*/
 
 /* depends:
- JXG
+ jxg
  base/constants
  base/text
  math/math
@@ -40,8 +40,6 @@
  utils/object
  utils/string
  utils/number
-
- jsxgraph (for element list and board list, latter one could possibly be removed)
  */
 
 /**
@@ -318,7 +316,7 @@
          */
         isCreator: function (vname) {
             // check for an element with this name
-            return !!JXG.JSXGraph.elements[vname];
+            return !!JXG.elements[vname];
         },
 
         /**
