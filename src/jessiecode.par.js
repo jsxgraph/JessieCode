@@ -30,6 +30,7 @@
 
 /* depends:
  jxg
+ parser/geonext
  base/constants
  base/text
  math/math
@@ -367,7 +368,7 @@
             }
 
             if (!local) {
-                s = JXG.getRef(this.board, vname);
+                s = this.board.select(vname);
                 if (s !== vname) {
                     return s;
                 }
@@ -540,8 +541,8 @@
                 error_cnt = 0,
                 error_off = [],
                 error_la = [],
-                replacegxt = ['Abs', 'ACos', 'ASin', 'ATan', 'Ceil', 'Cos', 'Exp', 'Factorial', 'Floor', 'Log', 'Max',
-                    'Min', 'Random', 'Round', 'Sin', 'Sqrt', 'Tan', 'Trunc', 'If', 'Deg', 'Rad', 'Dist'],
+                /*replacegxt = ['Abs', 'ACos', 'ASin', 'ATan', 'Ceil', 'Cos', 'Exp', 'Factorial', 'Floor', 'Log', 'Max',
+                    'Min', 'Random', 'Round', 'Sin', 'Sqrt', 'Tan', 'Trunc', 'If', 'Deg', 'Rad', 'Dist'],*/
                 ccode = code.replace(/\r\n/g, '\n').split('\n'),
                 cleaned = [];
 
@@ -562,10 +563,11 @@
                 for (i = 0; i < ccode.length; i++) {
                     if (!(JXG.trim(ccode[i])[0] === '/' && JXG.trim(ccode[i])[1] === '/')) {
                         if (geonext) {
-                            for (j = 0; j < replacegxt.length; j++) {
+                            ccode[i] = JXG.GeonextParser.geonext2JS(ccode[i], this.board);
+                            /*for (j = 0; j < replacegxt.length; j++) {
                                 regex = new RegExp(replacegxt[j] + "\\(", 'g');
                                 ccode[i] = ccode[i].replace(regex, replacegxt[j].toLowerCase() + '(');
-                            }
+                            }*/
                         }
 
                         cleaned.push(ccode[i]);
@@ -1692,7 +1694,7 @@
             builtIn.factorial.src = 'JXG.Math.factorial';
             builtIn.trunc.src = 'JXG.trunc';
             // usually unused, see node_op > op_execfun
-            builtIn.$.src = '(function (n) { return JXG.getRef($jc$.board, n); })';
+            builtIn.$.src = '(function (n) { return $jc$.board.select(n); })';
             if (builtIn.$board) {
                 builtIn.$board.src = '$jc$.board';
             }
