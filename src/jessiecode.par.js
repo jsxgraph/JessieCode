@@ -1682,8 +1682,8 @@
 
             // set the javascript equivalent for the builtIns
             // some of the anonymous functions should be replaced by global methods later on
-            builtIn.PI.src = 'Math.PI';
-            builtIn.EULER.src = 'Math.E';
+            // EULER and PI don't get a source attribute - they will be lost anyways and apparently
+            // some browser will throw an exception when a property is assigned to a primitive value.
             builtIn.X.src = '$jc$.X';
             builtIn.Y.src = '$jc$.Y';
             builtIn.V.src = '$jc$.V';
