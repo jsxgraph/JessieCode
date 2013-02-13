@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JessieCode example :: creator attr values</title>
+    <link rel="stylesheet" type="text/css" href="http://jsxgraph.uni-bayreuth.de/distrib/jsxgraph.css" />
+    <script type="text/javascript" src="../../JSXGraph/src/loadjsxgraph.js"></script>
+    <script type="text/javascript" src="../src/jessiecode.par.js"></script>
+    <script type="text/javascript" src="../bin/jessiecode.bnf.js"></script>
+</head>
+<body>
+
+<h1>Euler line</h1>
+
+<div style="float: left;">
+    <button id="reset">Reset board</button> <button id="parse">Parse code</button>
+</div>
+
+<br /><br />
+
+<div id="jxgbox" class="jxgbox" style="width: 500px; height: 500px; float:left"></div>
+
+<textarea id="code" cols="110" rows="31">// Prepare some visual properties
+    p = plot(sin);
+    p.generateTerm('x', 'x', tan);
+    $board.update();
+</textarea>
+
+<script type="text/javascript">
+    /* <![CDATA[ */
+
+    (function () {
+        var board,
+            init = function () {
+                board = JXG.JSXGraph.initBoard('jxgbox', {boundingbox: [-5, 5, 5, -5], keepaspectratio:true});
+            },
+            parse = function () {
+                board.jc.parse(document.getElementById('code').value);
+            };
+
+        init();
+        parse();
+        window.board = board;
+
+        JXG.addEvent(document.getElementById('reset'), 'click', function () {
+            JXG.JSXGraph.freeBoard(board);
+            init();
+        }, this);
+
+        JXG.addEvent(document.getElementById('parse'), 'click', function () {
+            parse();
+        }, this);
+    })();
+    /* ]]> */
+</script>
+
+</body>
+</html>
