@@ -36,11 +36,7 @@
  math/math
  math/geometry
  math/statistics
- utils/array
  utils/type
- utils/object
- utils/string
- utils/number
  utils/uuid
  */
 
@@ -51,9 +47,8 @@
  */
 
 define([
-    'jxg', 'base/constants', 'base/text', 'math/math', 'math/geometry', 'math/statistics', 'utils/array',
-    'utils/type', 'utils/object', 'utils/string', 'utils/number', 'utils/uuid', 'utils/env'
-], function (JXG, Const, Text, Mat, Geometry, Statistics, Arr, Type, Obj, Str, Num, UUID, Env) {
+    'jxg', 'base/constants', 'base/text', 'math/math', 'math/geometry', 'math/statistics', 'utils/type', 'utils/uuid', 'utils/env'
+], function (JXG, Const, Text, Mat, Geometry, Statistics, Type, UUID, Env) {
 
     "use strict";
 
@@ -393,7 +388,7 @@ define([
             local = Type.def(local, false);
             withProps = Type.def(withProps, false);
 
-            if (Arr.indexOf(this.pstack[this.pscope], vname) > -1) {
+            if (Type.indexOf(this.pstack[this.pscope], vname) > -1) {
                 return vname;
             }
 
@@ -443,7 +438,7 @@ define([
             var i, attr = {};
 
             for (i = 0; i < arguments.length; i++) {
-                attr = Obj.deepCopy(attr, arguments[i], true);
+                attr = Type.deepCopy(attr, arguments[i], true);
             }
 
             return attr;
@@ -565,7 +560,7 @@ define([
                 }
 
                 for (i = 0; i < ccode.length; i++) {
-                    if (!(Str.trim(ccode[i])[0] === '/' && Str.trim(ccode[i])[1] === '/')) {
+                    if (!(Type.trim(ccode[i])[0] === '/' && Type.trim(ccode[i])[1] === '/')) {
                         if (geonext) {
                             ccode[i] = JXG.GeonextParser.geonext2JS(ccode[i], this.board);
                             /*for (j = 0; j < replacegxt.length; j++) {
@@ -1063,7 +1058,7 @@ define([
                     fun.toJS = fun.toString;
                     fun.toString = (function (_that) {
                         return function () {
-                            return _that.compile(_that.replaceIDs(Obj.deepCopy(node)));
+                            return _that.compile(_that.replaceIDs(Type.deepCopy(node)));
                         };
                     }(this));
 
@@ -1098,7 +1093,7 @@ define([
                             this.execute(node.children[2]);
                             attr = {};
                             for (i = 0; i < this.pstack[this.pscope].length; i++) {
-                                attr = Obj.deepCopy(attr, this.execute(this.pstack[this.pscope][i]), true);
+                                attr = Type.deepCopy(attr, this.execute(this.pstack[this.pscope][i]), true);
                             }
 
                             this.pscope--;
@@ -1673,7 +1668,7 @@ define([
                     rad: Geometry.rad,
                     deg: Geometry.trueAngle,
                     factorial: Mat.factorial,
-                    trunc: Num.trunc,
+                    trunc: Type.trunc,
                     '$': that.getElementById,
                     '$board': that.board,
                     '$log': that.log
