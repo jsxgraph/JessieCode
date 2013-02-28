@@ -71,6 +71,7 @@
     '\)'
     ','
     '#'
+    '\?'
     '\:'
     '\|'
     '\.'
@@ -144,6 +145,7 @@ Expression:    Expression '==' LogExp                                        [*%
         | Expression '>=' LogExp                                             [*%% = this.createNode('node_op', 'op_gre', %1, %3);*]
         | Expression '!=' LogExp                                             [*%% = this.createNode('node_op', 'op_neq', %1, %3);*]
         | Expression '~=' LogExp                                             [*%% = this.createNode('node_op', 'op_approx', %1, %3);*]
+        | Expression '?' Value ':' Value                                     [*%% = this.createNode('node_op', 'op_conditional', %1, %3, %5);*]
         | LogExp
         ;
 

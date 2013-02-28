@@ -871,6 +871,7 @@ define([
                         ret = this.execute(node.children[1]);
                     }
                     break;
+                case 'op_conditional':
                 case 'op_if_else':
                     if (this.execute(node.children[0])) {
                         ret = this.execute(node.children[1]);
@@ -1347,6 +1348,10 @@ define([
                     ret = ' if (' + this.compile(node.children[0], js) + ')' + this.compile(node.children[1], js);
                     ret += ' else ' + this.compile(node.children[2], js);
                     break;
+                case 'op_conditional':
+                    ret = '((' + this.compile(node.children[0], js) + ')?(' + this.compile(node.children[1], js);
+                    ret += '):(' + this.compile(node.children[2], js) + '))';
+                    break;
                 case 'op_while':
                     ret = ' while (' + this.compile(node.children[0], js) + ') {\n' + this.compile(node.children[1], js) + '}\n';
                     break;
@@ -1619,6 +1624,13 @@ define([
             return Statistics.multiply(a, b);
         },
 
+        ifthen: function (cond, v1, v2) {
+            if (cond) {
+                return v1;
+            }
+
+            return v2;
+        },
 
         use: function (board) {
             this.board = board;
@@ -1671,6 +1683,7 @@ define([
                     deg: Geometry.trueAngle,
                     factorial: Mat.factorial,
                     trunc: Type.trunc,
+                    IfThen: that.ifthen,
                     '$': that.getElementById,
                     '$board': that.board,
                     '$log': that.log
@@ -1694,6 +1707,7 @@ define([
             builtIn.deg.src = 'JXG.Math.Geometry.trueAngle';
             builtIn.factorial.src = 'JXG.Math.factorial';
             builtIn.trunc.src = 'JXG.trunc';
+            builtIn.IfThen.src = '$jc$.ifthen';
             // usually unused, see node_op > op_execfun
             builtIn.$.src = '(function (n) { return $jc$.board.select(n); })';
             if (builtIn.$board) {
