@@ -1,3 +1,4 @@
+// $BUILDMARKER$START
 /*
  JessieCode Parser and Compiler
 
@@ -1767,4 +1768,5 @@ define([
 
     });
 
+    // $BUILDMARKER$END
 });

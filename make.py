@@ -85,6 +85,27 @@ def usage():
 
 
 '''
+   Read files and concated them into one string
+'''
+def readFile(f):
+    collect = False
+    file = open(f, 'r')
+    txt = ''
+
+    for line in file:
+        if collect:
+            if '$BUILDMARKER$END' in line:
+                collect = False
+            else:
+                txt += line
+        elif '$BUILDMARKER$START' in line:
+            collect = True
+
+    return txt
+
+
+
+'''
     Generate jsxgraphcore.js and place it in <output>
 '''
 def makeCore():
@@ -106,8 +127,10 @@ def makeCore():
     files = ['src/jessiecode.par.js', 'bin/jessiecode.bnf.js']
     for f in files:
         print 'take ', f
-        jstxt += open(f,'r').read()
+        jstxt += readFile(f)
         jstxt += '\n';
+
+    jstxt += '\n    return JXG.JessieCode;\n});\n'
 
     # tmpfilename = tempfile.mktemp()
     tmpfilename = output + '/jessiecode.js'

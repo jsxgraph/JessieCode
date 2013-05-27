@@ -1,3 +1,4 @@
+// $BUILDMARKER$START
 /*
     Copyright 2008-2011
         Matthias Ehmann,
@@ -41,13 +42,16 @@
     This is in the public domain.
 */
 
+// $BUILDMARKER$END
+
 /*global JXG: true*/
 /*jslint nomen: true, plusplus: true*/
-
 
 (function () {
 
     "use strict";
+
+    // $BUILDMARKER$START
 
     JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
         /**
@@ -283,5 +287,7 @@
     });
 
 ##FOOTER##
+
+    // $BUILDMARKER$END
 
 }());
