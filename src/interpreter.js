@@ -26,7 +26,7 @@
     and <http://opensource.org/licenses/MIT/>.
  */
 
-/*global JXG: true, define: true, window: true, console: true, self: true, document: true*/
+/*global JXG: true, define: true, window: true, console: true, self: true, document: true, parser: true*/
 /*jslint nomen: true, plusplus: true*/
 
 /* depends:
@@ -539,12 +539,7 @@ define([
          * @param {Boolean} dontstore
          */
         parse: function (code, geonext, dontstore) {
-            var to, i, j, regex, setTextBackup,
-                error_cnt = 0,
-                error_off = [],
-                error_la = [],
-                /*replacegxt = ['Abs', 'ACos', 'ASin', 'ATan', 'Ceil', 'Cos', 'Exp', 'Factorial', 'Floor', 'Log', 'Max',
-                    'Min', 'Random', 'Round', 'Sin', 'Sqrt', 'Tan', 'Trunc', 'If', 'Deg', 'Rad', 'Dist'],*/
+            var i, setTextBackup, ast,
                 ccode = code.replace(/\r\n/g, '\n').split('\n'),
                 cleaned = [];
 
@@ -563,29 +558,19 @@ define([
                 }
 
                 for (i = 0; i < ccode.length; i++) {
-                    if (!(Type.trim(ccode[i])[0] === '/' && Type.trim(ccode[i])[1] === '/')) {
-                        if (geonext) {
-                            ccode[i] = JXG.GeonextParser.geonext2JS(ccode[i], this.board);
-                            /*for (j = 0; j < replacegxt.length; j++) {
-                                regex = new RegExp(replacegxt[j] + "\\(", 'g');
-                                ccode[i] = ccode[i].replace(regex, replacegxt[j].toLowerCase() + '(');
-                            }*/
-                        }
-
-                        cleaned.push(ccode[i]);
-                    } else {
-                        cleaned.push('');
+                    if (geonext) {
+                        ccode[i] = JXG.GeonextParser.geonext2JS(ccode[i], this.board);
                     }
+
+                    cleaned.push(ccode[i]);
                 }
                 code = cleaned.join('\n');
                 code = this.utf8_encode(code);
 
-                if ((error_cnt = this.genTree(code, error_off, error_la)) > 0) {
-                    for (i = 0; i < error_cnt; i++) {
-                        this.line = error_off[i].line;
-                        this._error("Parse error in line " + error_off[i].line + " near >"  + code.substr(error_off[i].offset, 30) + "<, expecting \"" + error_la[i].join() + "\"");
-                    }
-                }
+                console.log(code);
+                ast = parser.parse(code);
+                console.log(ast);
+                this.execute(ast);
             } finally {
                 // make sure the original text method is back in place
                 if (Text) {

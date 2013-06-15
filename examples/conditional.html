@@ -4,8 +4,8 @@
     <title>JessieCode example :: creator attr values</title>
     <link rel="stylesheet" type="text/css" href="http://jsxgraph.uni-bayreuth.de/distrib/jsxgraph.css" />
     <script type="text/javascript" src="../../JSXGraph/src/loadjsxgraph.js"></script>
-    <script type="text/javascript" src="../src/jessiecode.par.js"></script>
-    <script type="text/javascript" src="../bin/jessiecode.bnf.js"></script>
+    <script type="text/javascript" src="../src/interpreter.js"></script>
+    <script type="text/javascript" src="../bin/parser.js"></script>
 </head>
 <body>
 
@@ -19,9 +19,13 @@
 
 <div id="jxgbox" class="jxgbox" style="width: 500px; height: 500px; float:left"></div>
 
-<textarea id="code" cols="110" rows="31">// Prepare some visual properties
+<textarea id="code" cols="110" rows="31">
+    $log(true);
     flag = true;
-    res = flag == true ? 'true' : 'false';
+
+    $log(flag);
+
+    res = (flag == true? 'true' : 'false');
     $log(res);
 
     f = function(x) {

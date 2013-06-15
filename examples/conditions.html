@@ -4,8 +4,8 @@
     <title>JessieCode example :: creator attr values</title>
     <link rel="stylesheet" type="text/css" href="http://jsxgraph.uni-bayreuth.de/distrib/jsxgraph.css" />
     <script type="text/javascript" src="../../JSXGraph/src/loadjsxgraph.js"></script>
-    <script type="text/javascript" src="../src/jessiecode.par.js"></script>
-    <script type="text/javascript" src="../bin/jessiecode.bnf.js"></script>
+    <script type="text/javascript" src="../src/interpreter.js"></script>
+    <script type="text/javascript" src="../bin/parser.js"></script>
 </head>
 <body>
 
@@ -20,8 +20,8 @@
 <div id="jxgbox" class="jxgbox" style="width: 500px; height: 500px; float:left"></div>
 
 <textarea id="code" cols="110" rows="31">// Prepare some visual properties
-    a = 2;
-    b = 3;
+    a = (2 + 3) * 4;
+    b = 3 - 2 - 1;
     c = 4;
 
     f = function(x) {
