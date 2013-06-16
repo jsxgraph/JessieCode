@@ -20,6 +20,7 @@
 <div id="jxgbox" class="jxgbox" style="width: 500px; height: 500px; float:left"></div>
 
 <textarea id="code" cols="110" rows="31">// Prepare some visual properties
+    empty = <<>>;
     cerise = <<
         strokeColor: '#901B77',
         fillColor: '#CA147A'
@@ -49,6 +50,9 @@
         var board,
             init = function () {
                 board = JXG.JSXGraph.initBoard('jxgbox', {boundingbox: [-5, 5, 5, -5], keepaspectratio:true});
+                board.jc = new JXG.JessieCode();
+                board.jc.use(board);
+                window.board = board;
             },
             parse = function () {
                 board.jc.parse(document.getElementById('code').value);

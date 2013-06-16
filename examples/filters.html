@@ -30,6 +30,8 @@
         var board,
             init = function () {
                 board = JXG.JSXGraph.initBoard('jxgbox', {boundingbox: [-5, 5, 5, -5], keepaspectratio:true});
+                board.jc = new JXG.JessieCode();
+                board.jc.use(board);
             },
             parse = function () {
                 board.jc.parse(document.getElementById('code').value);

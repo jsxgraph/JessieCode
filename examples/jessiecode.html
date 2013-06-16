@@ -52,7 +52,13 @@
 
 <script type="text/javascript">
     board = JXG.JSXGraph.initBoard('jxgbox', {boundingbox: [-5, 5, 5, -5], axis:true});
+    board.jc = new JXG.JessieCode();
+    board.jc.use(board);
+
     board2 = JXG.JSXGraph.initBoard('jxgbox2', {boundingbox: [-5, 5, 5, -5], axis:true});
+    board2.jc = new JXG.JessieCode();
+    board2.jc.use(board);
+
     board.options.angle.type = 'sector';
 </script>
 

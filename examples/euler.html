@@ -81,6 +81,8 @@ euler = line(H, S) << strokeWidth: 2, strokeColor:'#901B77' >>;</textarea>
         var board,
             init = function () {
                 board = JXG.JSXGraph.initBoard('jxgbox', {boundingbox: [-1.5, 2, 1.5, -1], keepaspectratio:true});
+                board.jc = new JXG.JessieCode();
+                board.jc.use(board);
             },
             parse = function () {
                 board.jc.parse(document.getElementById('code').value);

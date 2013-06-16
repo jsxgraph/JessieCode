@@ -26,8 +26,16 @@
 <script type="text/javascript">
     counter = 0;
     var board = JXG.JSXGraph.initBoard('jxgbox', {boundingbox: [-5, 5, 5, -5], axis:true});
+    board.jc = new JXG.JessieCode();
+    board.jc.use(board);
+
     var board2 = JXG.JSXGraph.initBoard('jxgbox2', {boundingbox: [-5, 5, 5, -5], axis:true});
+    board2.jc = new JXG.JessieCode();
+    board2.jc.use(board);
+
     var board3 = JXG.JSXGraph.initBoard('jxgbox3', {boundingbox: [-5, 5, 5, -5], axis:true});
+    board3.jc = new JXG.JessieCode();
+    board3.jc.use(board);
 
     function resolve (e, v) {
         // is it a geometry element?
