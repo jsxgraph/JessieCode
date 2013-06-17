@@ -1,6 +1,5 @@
-// $BUILDMARKER$START
 /*
- JessieCode Parser and Compiler
+ JessieCode Interpreter and Compiler
 
     Copyright 2011-2013
         Michael Gerhaeuser,
@@ -83,7 +82,7 @@ define([
          * @type Array
          * @private
          */
-        this.pstack = [[]];
+        this.plist = [];
 
         /**
          * A stack to store debug information (like line and column where it was defined) of a parameter
@@ -167,7 +166,6 @@ define([
          */
         this.lineToElement = {};
 
-        this.countLines = true;
         this.parCurLine = 1;
         this.parCurColumn = 0;
         this.line = 1;
@@ -389,7 +387,7 @@ define([
             local = Type.def(local, false);
             withProps = Type.def(withProps, false);
 
-            if (Type.indexOf(this.pstack[this.pscope], vname) > -1) {
+            if (Type.indexOf(this.plist, vname) > -1) {
                 return vname;
             }
 
@@ -517,10 +515,10 @@ define([
          * @param {Boolean} dontstore
          */
         parse: function (code, geonext, dontstore) {
-            var i, setTextBackup, ast,
+            var i, setTextBackup, ast, result,
                 ccode = code.replace(/\r\n/g, '\n').split('\n'),
                 cleaned = [];
-console.log('parse', code);
+
             if (!dontstore) {
                 this.code += code + '\n';
             }
@@ -544,13 +542,15 @@ console.log('parse', code);
 
                 code = cleaned.join('\n');
                 ast = parser.parse(code);
-                this.execute(ast);
+                result = this.execute(ast);
             } finally {
                 // make sure the original text method is back in place
                 if (Text) {
                     Text.Text.prototype.setText = setTextBackup;
                 }
             }
+
+            return result;
         },
 
         /**
@@ -561,40 +561,15 @@ console.log('parse', code);
          * @param {Boolean} [geonext=false] Geonext compatibility mode.
          */
         snippet: function (code, funwrap, varname, geonext) {
-            var vname, c, tmp, result;
+            var c, result;
 
-            vname = 'jxg__tmp__intern_' + UUID.genUUID().replace(/\-/g, '');
+            funwrap = Type.def(funwrap, true);
+            varname = Type.def(varname, '');
+            geonext = Type.def(geonext, false);
 
-            if (!Type.exists(funwrap)) {
-                funwrap = true;
-            }
+            c = (funwrap ? ' function (' + varname + ') { return ' : '') + code + (funwrap ? '; }' : '') + ';';
 
-            if (!Type.exists(varname)) {
-                varname = '';
-            }
-
-            if (!Type.exists(geonext)) {
-                geonext = false;
-            }
-
-            // just in case...
-            tmp = this.sstack[0][vname];
-
-            this.countLines = false;
-
-            c = vname + ' = ' + (funwrap ? ' function (' + varname + ') { return ' : '') + code + (funwrap ? '; }' : '') + ';';
-            this.parse(c, geonext, true);
-
-            result = this.sstack[0][vname];
-            if (Type.exists(tmp)) {
-                this.sstack[0][vname] = tmp;
-            } else {
-                delete this.sstack[0][vname];
-            }
-
-            this.countLines = true;
-
-            return result;
+            return this.parse(c, geonext, true);
         },
 
         /**
@@ -791,6 +766,28 @@ console.log('parse', code);
             return res;
         },
 
+        getLHSCompiler: function (node, js) {
+            var res, t;
+
+            if (node.type === 'node_var') {
+                res = node.value;
+            } else if (node.type === 'node_op' && node.value === 'op_property') {
+                res = [
+                    this.compile(node.children[0], js),
+                    "'" + node.children[1] + "'"
+                ];
+            } else if (node.type === 'node_op' && node.value === 'op_extvalue') {
+                res = [
+                    this.compile(node.children[0]),
+                    node.children[1].type === 'node_const' ? node.children[1].value : this.compile(node.children[1], js)
+                ];
+            } else {
+                throw new Error('Syntax error: Invalid left-hand side of assignment.');
+            }
+
+            return res;
+        },
+
         /**
          * Executes a parse subtree.
          * @param {Object} node
@@ -874,28 +871,6 @@ console.log('parse', code);
                         this.execute(node.children[3]);
                     }
                     break;
-                case 'op_param':
-                    if (node.children[1]) {
-                        this.execute(node.children[1]);
-                    }
-
-                    ret = node.children[0];
-                    this.pstack[this.pscope].push(ret);
-                    if (this.dpstack[this.pscope]) {
-                        this.dpstack[this.pscope].push({
-                            line: node.children[0].line,
-                            col: node.children[0].col
-                        });
-                    }
-                    break;
-                case 'op_paramdef':
-                    if (node.children[1]) {
-                        this.execute(node.children[1]);
-                    }
-
-                    ret = node.children[0];
-                    this.pstack[this.pscope].push(ret);
-                    break;
                 case 'op_proplst':
                     if (node.children[0]) {
                         this.execute(node.children[0]);
@@ -952,12 +927,8 @@ console.log('parse', code);
                     // parse the parameter list
                     // after this, the parameters are in pstack
 
-                    console.log('fun', node);
-
-                    list = [];
-                    for (i = 0; i < node.children[0].length; i++) {
-                        list.push(this.execute(node.children[0][i]));
-                    }
+                    list = node.children[0];
+                    this.plist = list;
 
                     if (this.board.options.jc.compile) {
                         this.sstack.push({});
@@ -974,7 +945,7 @@ console.log('parse', code);
                         fun = (function ($jc$, list) {
                             var fun,
                                 p = list.join(', '),
-                                str = 'var f = function (' + p + ') {\n$jc$.sstack.push([]);\n$jc$.scope++;\nvar r = (function () ' + $jc$.compile(node.children[1], true) + ')();\n$jc$.sstack.pop();\n$jc$.scope--;\nreturn r;\n}; f;';
+                                str = 'var f = function (' + p + ') {\n$jc$.sstack.push([]);\nvar $scope$ = ++$jc$.scope;\nvar r = (function () ' + $jc$.compile(node.children[1], true) + ')();\n$jc$.sstack.pop();\n$jc$.scope--;\nreturn r;\n}; f;';
                             // the function code formatted:
                             /*
                              var f = function (_parameters_) {
@@ -997,7 +968,7 @@ console.log('parse', code);
                              };
                              f;   // the return value of eval()
                              */
-console.log('compile fun', str);
+
                             try {
                                 // yeah, eval is evil, but we don't have much choice here.
                                 // the str is well defined and there is no user input in it that we didn't check before
@@ -1008,7 +979,6 @@ console.log('compile fun', str);
 
                                 return fun;
                             } catch (e) {
-                                console.log('error', e);
                                 return function () {};
                             }
                         }(this, list));
@@ -1054,10 +1024,10 @@ console.log('compile fun', str);
                     //   [0]: Name of the function
                     //   [1]: Parameter list as a parse subtree
                     //   [2]: Properties, only used in case of a create function
-                    this.pstack.push([]);
                     this.dpstack.push([]);
                     this.pscope++;
 
+                    // parameter parsing is done below
                     list = node.children[1];
 
                     // parse the properties only if given
@@ -1091,6 +1061,10 @@ console.log('compile fun', str);
                     // interpret ALL the parameters
                     for (i = 0; i < list.length; i++) {
                         parents[i] = this.execute(list[i]);
+                        this.dpstack.push({
+                            line: node.children[1][i].line,
+                            col: node.children[1][i].col
+                        });
                     }
                     // check for the function in the variable table
                     if (typeof fun === 'function' && !fun.creator) {
@@ -1117,7 +1091,6 @@ console.log('compile fun', str);
                     }
 
                     // clear parameter stack
-                    this.pstack.pop();
                     this.dpstack.pop();
                     this.pscope--;
                     break;
@@ -1132,26 +1105,6 @@ console.log('compile fun', str);
                         ret.sc = e;
                     }
 
-                    break;
-                case 'op_lhs':
-                    v = node.children[0];
-
-                    // we have a subtree here (in case this is an array component)
-                    if (v.children && v.type && v.value) {
-                        v = this.execute(v);
-                    }
-
-                    if (node.children.length === 1) {
-                        e = this.sstack[this.scope];
-                    } else {
-                        e = this.execute(node.children[1]);
-
-                        if (e.type && e.elementClass && v.toLowerCase && v.toLowerCase() !== 'x' && v.toLowerCase() !== 'y') {
-                            v = v.toLowerCase();
-                        }
-                    }
-
-                    ret = [e, v];
                     break;
                 case 'op_use':
                     // node.children:
@@ -1290,10 +1243,11 @@ console.log('compile fun', str);
                     }
                     break;
                 case 'op_assign':
-                    e = this.compile(node.children[0], js);
+                    //e = this.compile(node.children[0], js);
                     if (js) {
+                        e = this.getLHSCompiler(node.children[0]);
                         if (Type.isArray(e)) {
-                            ret = '$jc$.setProp(' + e[0] + ', \'' + e[1] + '\', ' + this.compile(node.children[1], js) + ');\n';
+                            ret = '$jc$.setProp(' + e[0] + ', ' + e[1] + ', ' + this.compile(node.children[1], js) + ');\n';
                         } else {
                             if (this.isLocalVariable(e) !== this.scope) {
                                 this.sstack[this.scope][e] = true;
@@ -1301,6 +1255,7 @@ console.log('compile fun', str);
                             ret = '$jc$.sstack[' + this.scope + '][\'' + e + '\'] = ' + this.compile(node.children[1], js) + ';\n';
                         }
                     } else {
+                        e = this.compile(node.children[0]);
                         ret = e + ' = ' + this.compile(node.children[1], js) + ';\n';
                     }
 
@@ -1324,20 +1279,6 @@ console.log('compile fun', str);
                     break;
                 case 'op_for':
                     ret = ' for (' + this.compile(node.children[0], js) + '; ' + this.compile(node.children[1], js) + '; ' + this.compile(node.children[2], js) + ') {\n' + this.compile(node.children[3], js) + '\n}\n';
-                    break;
-                case 'op_param':
-                    if (node.children[1]) {
-                        ret = this.compile(node.children[1], js) + ', ';
-                    }
-
-                    ret += this.compile(node.children[0], js);
-                    break;
-                case 'op_paramdef':
-                    if (node.children[1]) {
-                        ret = this.compile(node.children[1], js) + ', ';
-                    }
-
-                    ret += node.children[0];
                     break;
                 case 'op_proplst':
                     if (node.children[0]) {
@@ -1371,7 +1312,11 @@ console.log('compile fun', str);
                     ret = ' return ' + this.compile(node.children[0], js) + ';\n';
                     break;
                 case 'op_function':
-                    ret = ' function (' + this.compile(node.children[0], js) + ') ' + this.compile(node.children[1], js);
+                    list = [];
+                    for (i = 0; i < node.children[0].length; i++) {
+                        list.push(this.compile(node.children[0][i]), js);
+                    }
+                    ret = ' function (' + list.join(', ') + ') ' + this.compile(node.children[1], js);
                     break;
                 case 'op_execfun':
                     // parse the properties only if given
@@ -1403,23 +1348,6 @@ console.log('compile fun', str);
                         ret = '$jc$.resolveProperty(' + this.compile(node.children[0], js) + ', \'' + node.children[1] + '\', true)';
                     } else {
                         ret = this.compile(node.children[0], js) + '.' + node.children[1];
-                    }
-                    break;
-                case 'op_lhs':
-                    if (node.children.length === 1) {
-                        ret = node.children[0];
-                    } else if (node.children[2] === 'dot') {
-                        if (js) {
-                            ret = [this.compile(node.children[1], js), node.children[0]];
-                        } else {
-                            ret = this.compile(node.children[1], js) + '.' + node.children[0];
-                        }
-                    } else if (node.children[2] === 'bracket') {
-                        if (js) {
-                            ret = [this.compile(node.children[1], js), this.compile(node.children[0], js)];
-                        } else {
-                            ret = this.compile(node.children[1], js) + '[' + this.compile(node.children[0], js) + ']';
-                        }
                     }
                     break;
                 case 'op_use':

@@ -173,7 +173,7 @@ StatementBlock
 
 StatementList
     : StatementList Statement                                               { $$ = AST.createNode(lc(@1), 'node_op', 'op_none', $1, $2); }
-    |
+    |                                                                       { $$ = AST.createNode(lc(@1), 'node_op', 'op_none'); }
     ;
 
 Statement
@@ -349,8 +349,8 @@ FunctionExpression
     ;
 
 ParameterDefinitionList
-    : IDENTIFIER                                                            { $$ = AST.createNode(lc(@1), 'node_op', 'op_paramdef', $1); }
-    | ParameterDefinitionList "," "IDENTIFIER"                              { $$ = AST.createNode(lc(@1), 'node_op', 'op_paramdef', $3, $1); }
+    : "IDENTIFIER"                                                          { $$ = [$1]; }
+    | ParameterDefinitionList "," "IDENTIFIER"                              { $$ = $1.concat($3); }
     ;
 
 /* previously the noassign node was expressions without assignment */
