@@ -520,7 +520,7 @@ define([
             var i, setTextBackup, ast,
                 ccode = code.replace(/\r\n/g, '\n').split('\n'),
                 cleaned = [];
-
+console.log('parse', code);
             if (!dontstore) {
                 this.code += code + '\n';
             }
@@ -711,8 +711,8 @@ define([
             }
 
             // the $()-function-calls are special because their parameter is given as a string, not as a node_var.
-            if (node.type === 'node_op' && node.value === 'op_execfun' && node.children.length > 1 && node.children[0].value === '$' && node.children[1].children.length > 0) {
-                e = node.children[1].children[0].value;
+            if (node.type === 'node_op' && node.value === 'op_execfun' && node.children.length > 1 && node.children[0].value === '$' && node.children[1].length > 0) {
+                e = node.children[1][0].value;
                 result[e] = this.board.objects[e];
             }
 
@@ -949,12 +949,15 @@ define([
                     }
                     break;
                 case 'op_function':
-                    this.pstack.push([]);
-                    this.pscope++;
-
                     // parse the parameter list
                     // after this, the parameters are in pstack
-                    this.execute(node.children[0]);
+
+                    console.log('fun', node);
+
+                    list = [];
+                    for (i = 0; i < node.children[0].length; i++) {
+                        list.push(this.execute(node.children[0][i]));
+                    }
 
                     if (this.board.options.jc.compile) {
                         this.sstack.push({});
@@ -962,15 +965,15 @@ define([
 
                         this.isLHS = false;
 
-                        for (i = 0; i < this.pstack[this.pscope].length; i++) {
-                            this.sstack[this.scope][this.pstack[this.pscope][i]] = this.pstack[this.pscope][i];
+                        for (i = 0; i < list.length; i++) {
+                            this.sstack[this.scope][list[i]] = list[i];
                         }
 
                         this.replaceNames(node.children[1]);
 
-                        fun = (function ($jc$) {
+                        fun = (function ($jc$, list) {
                             var fun,
-                                p = $jc$.pstack[$jc$.pscope].join(', '),
+                                p = list.join(', '),
                                 str = 'var f = function (' + p + ') {\n$jc$.sstack.push([]);\n$jc$.scope++;\nvar r = (function () ' + $jc$.compile(node.children[1], true) + ')();\n$jc$.sstack.pop();\n$jc$.scope--;\nreturn r;\n}; f;';
                             // the function code formatted:
                             /*
@@ -994,7 +997,7 @@ define([
                              };
                              f;   // the return value of eval()
                              */
-
+console.log('compile fun', str);
                             try {
                                 // yeah, eval is evil, but we don't have much choice here.
                                 // the str is well defined and there is no user input in it that we didn't check before
@@ -1005,9 +1008,10 @@ define([
 
                                 return fun;
                             } catch (e) {
+                                console.log('error', e);
                                 return function () {};
                             }
-                        }(this));
+                        }(this, list));
 
                         // clean up scope
                         this.sstack.pop();
@@ -1029,7 +1033,7 @@ define([
                                 that.scope--;
                                 return r;
                             };
-                        }(this.pstack[this.pscope], this));
+                        }(list, this));
                     }
 
                     fun.node = node;
@@ -1042,9 +1046,6 @@ define([
 
                     fun.deps = {};
                     this.collectDependencies(node.children[1], fun.deps);
-
-                    this.pstack.pop();
-                    this.pscope--;
 
                     ret = fun;
                     break;
@@ -1357,7 +1358,11 @@ define([
                     ret = this.compile(node.children[0], js);
                     break;
                 case 'op_array':
-                    ret = '[' + this.compile(node.children[0], js) + ']';
+                    list = [];
+                    for (i = 0; i < node.children[0].length; i++) {
+                        list.push(this.compile(node.children[0][i]), js);
+                    }
+                    ret = '[' + list.join(', ') + ']';
                     break;
                 case 'op_extvalue':
                     ret = this.compile(node.children[0], js) + '[' + this.compile(node.children[1], js) + ']';
@@ -1389,7 +1394,7 @@ define([
 
                     // save us a function call when compiled to javascript
                     if (js && node.children[0].value === '$') {
-                        ret = '$jc$.board.objects[' + this.compile(node.children[1], js) + ']';
+                        ret = '$jc$.board.objects[' + this.compile(node.children[1][0], js) + ']';
                     }
 
                     break;

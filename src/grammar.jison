@@ -125,7 +125,7 @@
 ","                                 return ','
 <<EOF>>                             return 'EOF'
 
-[A-Za-z_\$][A-Za-z0-9_]*\b          return 'IDENTIFIER'
+[A-Za-z_\$][A-Za-z0-9_]*            return 'IDENTIFIER'
 
 .                                   return 'INVALID'
 
@@ -344,7 +344,7 @@ ElementList
     | ElementList "," AssignmentExpression                                  { $$ = $1.concat($3); }
     ;
 FunctionExpression
-    : "FUNCTION" "(" ")" StatementBlock                                     { $$ = AST.createNode(lc(@1), 'node_op', 'op_function', null, $4); }
+    : "FUNCTION" "(" ")" StatementBlock                                     { $$ = AST.createNode(lc(@1), 'node_op', 'op_function', [], $4); }
     | "FUNCTION" "(" ParameterDefinitionList ")" StatementBlock             { $$ = AST.createNode(lc(@1), 'node_op', 'op_function', $3, $5); }
     ;
 
