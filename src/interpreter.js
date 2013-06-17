@@ -588,7 +588,7 @@ define([
          */
         snippet: function (code, funwrap, varname, geonext) {
             var vname, c, tmp, result;
-
+console.log(code, new Error().stack);
             vname = 'jxg__tmp__intern_' + UUID.genUUID().replace(/\-/g, '');
 
             if (!Type.exists(funwrap)) {
@@ -1135,7 +1135,7 @@ console.log('Function Call!', node.children[0], node.children[1], node.children[
                         ret = fun.apply(sc, parents);
                     } else if (typeof fun === 'function' && !!fun.creator) {
                         e = this.line;
-
+console.log('CREATOR FUN', node)
                         // creator methods are the only ones that take properties, hence this special case
                         try {
                             ret = fun(parents, attr);
