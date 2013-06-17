@@ -19,24 +19,8 @@
 
 <div id="jxgbox" class="jxgbox" style="width: 500px; height: 500px; float:left"></div>
 
-<textarea id="code" cols="110" rows="31">// single line comment
-    '';
-    "";
+<textarea id="code" cols="110" rows="31">
     alpha = 'α';
-    dq = "";
-    sqsidq = "'";
-    dqs = "double quote strings, yay!'";
-    a = [1, 2, 3, 4];
-    e = 1 + true;
-    g = e + ''; // end of line comment
-    f = '' + '';
-
-    o = <<>>;
-    o.test = 3;
-
-    /*
-    multiline comment
-    */
 </textarea>
 
 <script type="text/javascript">
@@ -46,7 +30,8 @@
         var board,
             init = function () {
                 board = JXG.JSXGraph.initBoard('jxgbox', {boundingbox: [-5, 5, 5, -5], keepaspectratio:true});
-                board.jc = new JXG.JessieCode(); board.jc.use(board);
+                board.jc = new JXG.JessieCode();
+                board.jc.use(board);
                 window.board = board;
             },
             parse = function () {

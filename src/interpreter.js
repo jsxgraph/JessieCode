@@ -511,28 +511,6 @@ define([
         },
 
         /**
-         * Encode characters outside the ASCII table into HTML Entities, because JavaScript or JS/CC can't handle a RegEx
-         * applied to a string with unicode characters.
-         * @param {String} string
-         * @returns {String}
-         */
-        utf8_encode : function (string) {
-            var utftext = [], n, c;
-
-            for (n = 0; n < string.length; n++) {
-                c = string.charCodeAt(n);
-
-                if (c < 128) {
-                    utftext.push(String.fromCharCode(c));
-                } else {
-                    utftext.push('&#x' + c.toString(16) + ';');
-                }
-            }
-
-            return utftext.join('');
-        },
-
-        /**
          * Parses JessieCode
          * @param {String} code
          * @param {Boolean} [geonext=false] Geonext compatibility mode.
@@ -561,12 +539,10 @@ define([
                     if (geonext) {
                         ccode[i] = JXG.GeonextParser.geonext2JS(ccode[i], this.board);
                     }
-
                     cleaned.push(ccode[i]);
                 }
-                code = cleaned.join('\n');
-                code = this.utf8_encode(code);
 
+                code = cleaned.join('\n');
                 ast = parser.parse(code);
                 this.execute(ast);
             } finally {
