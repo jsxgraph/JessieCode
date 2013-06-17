@@ -567,9 +567,7 @@ define([
                 code = cleaned.join('\n');
                 code = this.utf8_encode(code);
 
-                console.log(code);
                 ast = parser.parse(code);
-                console.log(ast);
                 this.execute(ast);
             } finally {
                 // make sure the original text method is back in place
@@ -588,7 +586,7 @@ define([
          */
         snippet: function (code, funwrap, varname, geonext) {
             var vname, c, tmp, result;
-console.log(code, new Error().stack);
+
             vname = 'jxg__tmp__intern_' + UUID.genUUID().replace(/\-/g, '');
 
             if (!Type.exists(funwrap)) {
@@ -853,12 +851,8 @@ console.log(code, new Error().stack);
                     }
                     break;
                 case 'op_assign':
-                    console.log('op_assign', node);
                     v = this.getLHS(node.children[0]);
 
-
-                    //v = this.execute(node.children[0]);
-                    console.log(v);
                     this.lhs[this.scope] = v[1];
 
                     if (v.o.type && v.o.elementClass && v.o.methodMap && v.what === 'label') {
@@ -940,7 +934,7 @@ console.log(code, new Error().stack);
                 case 'op_proplst_val':
                     this.propstack.push({});
                     this.propscope++;
-console.log('proplst', node);
+
                     this.execute(node.children[0]);
                     ret = this.propstack[this.propscope];
 
@@ -953,20 +947,12 @@ console.log('proplst', node);
                     this.propstack[this.propscope][node.children[0]] = this.execute(node.children[1]);
                     break;
                 case 'op_array':
-                    this.pstack.push([]);
-                    this.pscope++;
-
-                    this.execute(node.children[0]);
-
                     ret = [];
-                    l = this.pstack[this.pscope].length;
+                    l = node.children[0].length;
 
                     for (i = 0; i < l; i++) {
-                        ret.push(this.execute(this.pstack[this.pscope][i]));
+                        ret.push(this.execute(node.children[0][i]));
                     }
-
-                    this.pstack.pop();
-                    this.pscope--;
 
                     break;
                 case 'op_extvalue':
@@ -1096,7 +1082,6 @@ console.log('proplst', node);
                     this.pscope++;
 
                     list = node.children[1];
-console.log('Function Call!', node.children[0], node.children[1], node.children[2]);
 
                     // parse the properties only if given
                     if (Type.exists(node.children[2])) {
@@ -1135,7 +1120,7 @@ console.log('Function Call!', node.children[0], node.children[1], node.children[
                         ret = fun.apply(sc, parents);
                     } else if (typeof fun === 'function' && !!fun.creator) {
                         e = this.line;
-console.log('CREATOR FUN', node)
+
                         // creator methods are the only ones that take properties, hence this special case
                         try {
                             ret = fun(parents, attr);

@@ -18,8 +18,6 @@
                 n.children.push(arguments[i]);
             }
 
-console.log(type, value, n.children);
-
             n.line = pos[0];
             n.col = pos[1];
 
@@ -67,9 +65,6 @@ console.log(type, value, n.children);
 
 %lex
 
-%x string
-
-%options flex
 %%
 
 \s+                                 /* ignore */
@@ -77,9 +72,9 @@ console.log(type, value, n.children);
 [0-9]+                              return 'NUMBER'
 
 
-"'"                                 this.begin('string');
-<string>"'"                         this.popState();
-<string>(\\\'|[^'])*                { return 'STRING'; }
+'"'("\\"["]|[^"])*'"'				{ return 'STRING'; }
+"'"('\\'[']|[^'])*"'"				{ return 'STRING'; }
+
 
 \/\/.*                              /* ignore comment */
 "/*"(.|\n|\r)*?"*/"                 /* ignore multiline comment */
@@ -258,7 +253,7 @@ UnaryExpression
     : LeftHandSideExpression                                                { $$ = $1; }
     | "!" UnaryExpression                                                   { $$ = AST.createNode(lc(@1), 'node_op', 'op_not', $2); }
     | "+" UnaryExpression               %prec NEG                           { $$ = $2; }
-    | "-" UnaryExpression               %prec NEG                           { $$ = $2; }
+    | "-" UnaryExpression               %prec NEG                           { $$ = -$2; }
     ;
 
 LeftHandSideExpression
@@ -274,7 +269,7 @@ MemberExpression
     ;
 
 PrimaryExpression
-    : "IDENTIFIER"                                                          { $$ = $$ = AST.createNode(lc(@1), 'node_var', $1); }
+    : "IDENTIFIER"                                                          { $$ = AST.createNode(lc(@1), 'node_var', $1); }
     | BasicLiteral                                                          { $$ = $1; }
     | ObjectLiteral                                                         { $$ = $1; }
     | ArrayLiteral                                                          { $$ = $1; }
@@ -298,7 +293,7 @@ BooleanLiteral
     ;
 
 StringLiteral
-    : "STRING"                                                              { $$ = AST.createNode(lc(@1), 'node_str', $1); }
+    : "STRING"                                                              { $$ = AST.createNode(lc(@1), 'node_str', $1.substring(1, $1.length - 1)); }
     ;
 
 NumberLiteral
