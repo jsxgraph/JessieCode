@@ -17,7 +17,7 @@
             for (i = 3; i < arguments.length; i++) {
                 n.children.push(arguments[i]);
             }
-
+console.log(type, value, children);
             n.line = pos[0];
             n.col = pos[1];
 
@@ -252,8 +252,8 @@ ExponentExpression
 UnaryExpression
     : LeftHandSideExpression                                                { $$ = $1; }
     | "!" UnaryExpression                                                   { $$ = AST.createNode(lc(@1), 'node_op', 'op_not', $2); }
-    | "+" UnaryExpression               %prec NEG                           { $$ = $2; }
-    | "-" UnaryExpression               %prec NEG                           { $$ = -$2; }
+    | "+" UnaryExpression                                                   { $$ = $2; }
+    | "-" UnaryExpression                                                   { $$ = AST.createNode(lc(@1), 'node_op', 'op_neg', $2); }
     ;
 
 LeftHandSideExpression
