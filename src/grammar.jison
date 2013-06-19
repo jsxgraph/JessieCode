@@ -17,7 +17,7 @@
             for (i = 3; i < arguments.length; i++) {
                 n.children.push(arguments[i]);
             }
-console.log(type, value, children);
+
             n.line = pos[0];
             n.col = pos[1];
 
