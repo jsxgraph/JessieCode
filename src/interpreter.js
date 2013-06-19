@@ -832,12 +832,13 @@ define([
                         this._error('Left-hand side of assignment is read-only.');
                     }
 
+                    ret = this.execute(node.children[1]);
                     if (v.o !== this.sstack[this.scope] || (Type.isArray(v.o) && typeof v.what === 'number')) {
                         // it is either an array component being set or a property of an object.
-                        this.setProp(v.o, v.what, this.execute(node.children[1]));
+                        this.setProp(v.o, v.what, ret);
                     } else {
                         // this is just a local variable inside JessieCode
-                        this.letvar(v.what, this.execute(node.children[1]));
+                        this.letvar(v.what, ret);
                     }
 
                     this.lhs[this.scope] = 0;
