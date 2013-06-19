@@ -387,7 +387,7 @@ define([
             local = Type.def(local, false);
             withProps = Type.def(withProps, false);
 
-            if (Type.indexOf(this.plist, vname) > -1) {
+            if (Type.indexOf(this.plist[this.plist.length - 1], vname) > -1) {
                 return vname;
             }
 
@@ -923,12 +923,16 @@ define([
                         return this.execute(node.children[0]);
                     }
                     break;
+                case 'op_map':
+                    console.log('DEFINE A MAP');
+                    ret = function () {};
+                    break;
                 case 'op_function':
                     // parse the parameter list
                     // after this, the parameters are in pstack
 
                     list = node.children[0];
-                    this.plist = list;
+                    this.plist.push(list);
 
                     if (this.board.options.jc.compile) {
                         this.sstack.push({});
@@ -1017,7 +1021,13 @@ define([
                     fun.deps = {};
                     this.collectDependencies(node.children[1], fun.deps);
 
+                    this.plist.pop();
+
                     ret = fun;
+                    break;
+                case 'op_execfunmath':
+                    console.log('TODO');
+                    ret = -1;
                     break;
                 case 'op_execfun':
                     // node.children:
@@ -1311,12 +1321,20 @@ define([
                 case 'op_return':
                     ret = ' return ' + this.compile(node.children[0], js) + ';\n';
                     break;
+                case 'op_map':
+                    console.log('DEFINE A MAP');
+                    ret = '';
+                    break;
                 case 'op_function':
                     list = [];
                     for (i = 0; i < node.children[0].length; i++) {
                         list.push(this.compile(node.children[0][i]), js);
                     }
                     ret = ' function (' + list.join(', ') + ') ' + this.compile(node.children[1], js);
+                    break;
+                case 'op_execfunmath':
+                    console.log('TODO');
+                    ret = '-1';
                     break;
                 case 'op_execfun':
                     // parse the properties only if given

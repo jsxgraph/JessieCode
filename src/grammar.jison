@@ -91,6 +91,9 @@ console.log(type, value, children);
 "true"                              return 'TRUE'
 "false"                             return 'FALSE'
 "null"                              return 'NULL'
+"Infinity"                          return 'INFINITY'
+/*"\u221E"                            return 'INFINITY'*/
+"->"                                return '->'
 "<<"                                return '<<'
 ">>"                                return '>>'
 "{"                                 return '{'
@@ -237,6 +240,12 @@ AdditiveExpression
     | AdditiveExpression "-" MultiplicativeExpression                       { $$ = AST.createNode(lc(@1), 'node_op', 'op_sub', $1, $3); }
     ;
 
+AdditiveExpressionMath
+    : MultiplicativeExpressionMath                                          { $$ = $1; }
+    | AdditiveExpressionMath "+" MultiplicativeExpressionMath               { $$ = AST.createNode(lc(@1), 'node_op', 'op_add', $1, $3); }
+    | AdditiveExpressionMath "-" MultiplicativeExpressionMath               { $$ = AST.createNode(lc(@1), 'node_op', 'op_sub', $1, $3); }
+    ;
+
 MultiplicativeExpression
     : ExponentExpression                                                    { $$ = $1; }
     | MultiplicativeExpression "*" ExponentExpression                       { $$ = AST.createNode(lc(@1), 'node_op', 'op_mul', $1, $3); }
@@ -244,9 +253,21 @@ MultiplicativeExpression
     | MultiplicativeExpression "%" ExponentExpression                       { $$ = AST.createNode(lc(@1), 'node_op', 'op_mod', $1, $3); }
     ;
 
+MultiplicativeExpressionMath
+    : ExponentExpressionMath                                                { $$ = $1; }
+    | MultiplicativeExpressionMath "*" ExponentExpressionMath               { $$ = AST.createNode(lc(@1), 'node_op', 'op_mul', $1, $3); }
+    | MultiplicativeExpressionMath "/" ExponentExpressionMath               { $$ = AST.createNode(lc(@1), 'node_op', 'op_div', $1, $3); }
+    | MultiplicativeExpressionMath "%" ExponentExpressionMath               { $$ = AST.createNode(lc(@1), 'node_op', 'op_mod', $1, $3); }
+    ;
+
 ExponentExpression
     : UnaryExpression                                                       { $$ = $1; }
     | UnaryExpression "^" ExponentExpression                                { $$ = AST.createNode(lc(@1), 'node_op', 'op_exp', $1, $3); }
+    ;
+
+ExponentExpressionMath
+    : UnaryExpressionMath                                                   { $$ = $1; }
+    | UnaryExpressionMath "^" ExponentExpressionMath                        { $$ = AST.createNode(lc(@1), 'node_op', 'op_exp', $1, $3); }
     ;
 
 UnaryExpression
@@ -256,16 +277,34 @@ UnaryExpression
     | "-" UnaryExpression                                                   { $$ = AST.createNode(lc(@1), 'node_op', 'op_neg', $2); }
     ;
 
+UnaryExpressionMath
+    : LeftHandSideExpressionMath                                            { $$ = $1; }
+    | "+" UnaryExpressionMath                                               { $$ = $2; }
+    | "-" UnaryExpressionMath                                               { $$ = AST.createNode(lc(@1), 'node_op', 'op_neg', $2); }
+    ;
+
 LeftHandSideExpression
-    : MemberExpression
-    | CallExpression
+    : MemberExpression                                                      { $$ = $1; }
+    | CallExpression                                                        { $$ = $1; }
+    ;
+
+LeftHandSideExpressionMath
+    : MemberExpressionMath                                                  { $$ = $1; }
+    | CallExpressionMath                                                    { $$ = $1; }
     ;
 
 MemberExpression
     : PrimaryExpression                                                     { $$ = $1; }
     | FunctionExpression                                                    { $$ = $1; }
+    | MapExpression                                                         { $$ = $1; }
     | MemberExpression "." "IDENTIFIER"                                     { $$ = AST.createNode(lc(@1), 'node_op', 'op_property', $1, $3); }
     | MemberExpression "[" Expression "]"                                   { $$ = AST.createNode(lc(@1), 'node_op', 'op_extvalue', $1, $3); }
+    ;
+
+MemberExpressionMath
+    : PrimaryExpressionMath                                                 { $$ = $1; }
+    | MemberExpressionMath "." "IDENTIFIER"                                 { $$ = AST.createNode(lc(@1), 'node_op', 'op_property', $1, $3); }
+    | MemberExpressionMath "[" Expression "]"                               { $$ = AST.createNode(lc(@1), 'node_op', 'op_extvalue', $1, $3); }
     ;
 
 PrimaryExpression
@@ -274,6 +313,12 @@ PrimaryExpression
     | ObjectLiteral                                                         { $$ = $1; }
     | ArrayLiteral                                                          { $$ = $1; }
     | "(" Expression ")"                                                    { $$ = $2; }
+    ;
+
+PrimaryExpressionMath
+    : "IDENTIFIER"                                                          { $$ = AST.createNode(lc(@1), 'node_var', $1); }
+    | NumberLiteral                                                         { $$ = $1; }
+    | "(" AdditiveExpressionMath ")"                                        { $$ = $2; }
     ;
 
 BasicLiteral
@@ -299,6 +344,7 @@ StringLiteral
 NumberLiteral
     : "NUMBER"                                                              { $$ = AST.createNode(lc(@1), 'node_const', parseFloat($1)); }
     | "NAN"                                                                 { $$ = AST.createNode(lc(@1), 'node_const', NaN); }
+    | "INFINITY"                                                            { $$ = AST.createNode(lc(@1), 'node_const', Infinity); }
     ;
 
 ArrayLiteral
@@ -334,6 +380,13 @@ CallExpression
     | CallExpression "." "IDENTIFIER"                                       { $$ = AST.createNode(lc(@1), 'node_op', 'op_property', $1, $3); }
     ;
 
+CallExpressionMath
+    : MemberExpressionMath Arguments                                        { $$ = AST.createNode(lc(@1), 'node_op', 'op_execfunmath', $1, $2); }
+    | CallExpressionMath Arguments                                          { $$ = AST.createNode(lc(@1), 'node_op', 'op_execfunmath', $1, $2); }
+    | CallExpressionMath "[" Expression "]"                                 { $$ = AST.createNode(lc(@1), 'node_op', 'op_extvalue', $1, $3); }
+    | CallExpressionMath "." "IDENTIFIER"                                   { $$ = AST.createNode(lc(@1), 'node_op', 'op_property', $1, $3); }
+    ;
+
 Arguments
     : "(" ")"                                                               { $$ = []; }
     | "(" ElementList ")"                                                   { $$ = $2; }
@@ -346,6 +399,10 @@ ElementList
 FunctionExpression
     : "FUNCTION" "(" ")" StatementBlock                                     { $$ = AST.createNode(lc(@1), 'node_op', 'op_function', [], $4); }
     | "FUNCTION" "(" ParameterDefinitionList ")" StatementBlock             { $$ = AST.createNode(lc(@1), 'node_op', 'op_function', $3, $5); }
+    ;
+
+MapExpression
+    : "(" ParameterDefinitionList ")" "->" AdditiveExpressionMath           { $$ = AST.createNode(lc(@1), 'node_op', 'op_map', $2, $5); }
     ;
 
 ParameterDefinitionList
