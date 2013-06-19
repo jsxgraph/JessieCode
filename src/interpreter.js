@@ -1702,5 +1702,6 @@ define([
 
     });
 
-    // $BUILDMARKER$END
+    //#include "parser.js"
+
 });

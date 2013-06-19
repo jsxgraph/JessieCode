@@ -1,4 +1,4 @@
-.PHONY: test test-server
+.PHONY: test test-server clean
 
 # directories
 OUTPUT=bin
@@ -20,6 +20,7 @@ MKDIR=mkdir
 RM=rm
 CD=cd
 ZIP=zip
+SED=sed
 
 # flags
 MKDIRFLAGS=-p
@@ -35,7 +36,12 @@ GRAMMAR=src/grammar.jison
 INTERPRETER=src/interpreter.js
 
 # rules
-all: parser
+all: core
+
+core: parser $(INTERPRETER)
+	$(SED) -e '/#include "parser\.js"/{r '"$(OUTPUT)"'/parser.js' -e 'd}' $(INTERPRETER) > $(OUTPUT)/jessiecode.js
+	$(SED) -i -e 's/"use strict"//' $(OUTPUT)/jessiecode.js
+	$(UGLIFYJS) $(OUTPUT)/jessiecode.js > $(OUTPUT)/jessiecode.min.js
 
 parser: $(GRAMMAR)
 	$(MKDIR) $(MKDIRFLAGS) $(OUTPUT)
@@ -46,3 +52,6 @@ test-server:
 
 test: parser
 	$(JSTESTDRIVER) $(JSTESTSERVER) $(JSTESTFLAGS) --basePath ./ --config test/jsTestDriver.conf
+
+clean:
+	rm -f bin/*
