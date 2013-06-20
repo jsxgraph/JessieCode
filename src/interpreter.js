@@ -660,7 +660,7 @@ define([
 
             node = this.createNode('node_op', 'op_execfun',
                 this.createNode('node_var', '$'),
-                this.createNode('node_op', 'op_param', this.createNode('node_str', el.id)));
+                [this.createNode('node_str', el.id)]);
 
             node.replaced = true;
 
@@ -984,6 +984,7 @@ define([
 
                                 return fun;
                             } catch (e) {
+                                console.log('error compiling function', str, e);
                                 return function () {};
                             }
                         }(this, list));
@@ -1358,7 +1359,7 @@ define([
 
                     // save us a function call when compiled to javascript
                     if (js && node.children[0].value === '$') {
-                        ret = '$jc$.board.objects[' + this.compile(node.children[1].children[0], js) + ']';
+                        ret = '$jc$.board.objects[' + this.compile(node.children[1][0], js) + ']';
                     }
 
                     break;

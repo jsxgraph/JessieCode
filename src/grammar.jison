@@ -333,7 +333,7 @@ PropertyName
 
 CallExpression
     : MemberExpression Arguments                                            { $$ = AST.createNode(lc(@1), 'node_op', 'op_execfun', $1, $2); }
-    | MemberExpression Arguments ElementList                                { $$ = AST.createNode(lc(@1), 'node_op', 'op_execfun', $1, $2, $3, true); }
+    | MemberExpression Arguments AttributeList                              { $$ = AST.createNode(lc(@1), 'node_op', 'op_execfun', $1, $2, $3, true); }
     | CallExpression Arguments                                              { $$ = AST.createNode(lc(@1), 'node_op', 'op_execfun', $1, $2); }
     | CallExpression "[" Expression "]"                                     { $$ = AST.createNode(lc(@1), 'node_op', 'op_extvalue', $1, $3); }
     | CallExpression "." "IDENTIFIER"                                       { $$ = AST.createNode(lc(@1), 'node_op', 'op_property', $1, $3); }
@@ -342,6 +342,16 @@ CallExpression
 Arguments
     : "(" ")"                                                               { $$ = []; }
     | "(" ElementList ")"                                                   { $$ = $2; }
+    ;
+
+AttributeList
+    : Attribute                                                             { $$ = [$1]; }
+    | AttributeList "," Attribute                                           { $$ = $1.concat($3); }
+    ;
+
+Attribute
+    : "IDENTIFIER"                                                          { $$ = AST.createNode(lc(@1), 'node_var', $1); }
+    | ObjectLiteral                                                         { $$ = $1; }
     ;
 
 ElementList
