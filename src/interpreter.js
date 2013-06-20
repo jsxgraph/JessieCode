@@ -1358,7 +1358,7 @@ define([
 
                     // save us a function call when compiled to javascript
                     if (js && node.children[0].value === '$') {
-                        ret = '$jc$.board.objects[' + this.compile(node.children[1][0], js) + ']';
+                        ret = '$jc$.board.objects[' + this.compile(node.children[1].children[0], js) + ']';
                     }
 
                     break;

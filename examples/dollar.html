@@ -4,6 +4,7 @@
     <title>JessieCode example :: creator attr values</title>
     <link rel="stylesheet" type="text/css" href="http://jsxgraph.uni-bayreuth.de/distrib/jsxgraph.css" />
     <script type="text/javascript" src="../../JSXGraph/src/loadjsxgraph.js"></script>
+    <!--script type="text/javascript" src="../bin/jessiecode.js"></script-->
     <script type="text/javascript" src="../src/interpreter.js"></script>
     <script type="text/javascript" src="../bin/parser.js"></script>
 </head>
@@ -20,20 +21,11 @@
 <div id="jxgbox" class="jxgbox" style="width: 500px; height: 500px; float:left"></div>
 
 <textarea id="code" cols="110" rows="31">
-    $log(true);
-    flag = true;
+    A = point(1, 1) <<id: 'p1'>>;
+    $('p1').fillColor = 'green';
 
-    res = flag;
-
-    $log(flag);
-
-    res = flag;
-
-    res = (flag == true? 'true' : 'false');
-    $log(res);
-
-    f = function(x) {
-        return x < 0 ? 'neg' : 'pos';
+    f = function () {
+        return ($('p1').X()==1&&$('p1').Y()==1?(true):(false));
     };
 </textarea>
 

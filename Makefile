@@ -38,6 +38,9 @@ INTERPRETER=src/interpreter.js
 # rules
 all: core
 
+deploy: core
+	$(CP) $(OUTPUT)/jessiecode.js ../JSXGraph/src/parser/jessiecode.js
+
 core: parser $(INTERPRETER)
 	$(SED) -e '/#include "parser\.js"/{r '"$(OUTPUT)"'/parser.js' -e 'd}' $(INTERPRETER) > $(OUTPUT)/jessiecode.js
 	$(SED) -i -e 's/"use strict"//' $(OUTPUT)/jessiecode.js
