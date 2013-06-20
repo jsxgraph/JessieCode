@@ -1328,10 +1328,7 @@ define([
                     ret = '';
                     break;
                 case 'op_function':
-                    list = [];
-                    for (i = 0; i < node.children[0].length; i++) {
-                        list.push(this.compile(node.children[0][i]), js);
-                    }
+                    list = node.children[0];
                     ret = ' function (' + list.join(', ') + ') ' + this.compile(node.children[1], js);
                     break;
                 case 'op_execfunmath':
