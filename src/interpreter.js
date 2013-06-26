@@ -501,8 +501,12 @@ define([
 
                 this.board.update();
             } else if (o.type && o.elementClass && o.visProp) {
-                par[what] = value;
-                o.setProperty(par);
+                if (o[o.methodMap[what]] && typeof o[o.methodMap[what]] !== 'function') {
+                    o[o.methodMap[what]] = value;
+                } else {
+                    par[what] = value;
+                    o.setProperty(par);
+                }
             } else {
                 o[what] = value;
             }
