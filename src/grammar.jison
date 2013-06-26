@@ -195,7 +195,7 @@ ExpressionStatement
 
 Expression
     : AssignmentExpression                                                  { $$ = $1; }
-    | Expression "," AssignmentExpression                                   { $$ = AST.createNode(lc(@1), 'node_op', 'op_none', $1, $3); }
+    /*| Expression "," AssignmentExpression                                   { $$ = AST.createNode(lc(@1), 'node_op', 'op_none', $1, $3); }*/
     ;
 
 AssignmentExpression
