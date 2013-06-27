@@ -85,6 +85,7 @@
 "do"                                return 'DO'
 "for"                               return 'FOR'
 "function"                          return 'FUNCTION'
+"map"                               return 'MAP'
 "use"                               return 'USE'
 "return"                            return 'RETURN'
 "delete"                            return 'DELETE'
@@ -93,7 +94,7 @@
 "null"                              return 'NULL'
 "Infinity"                          return 'INFINITY'
 /*"\u221E"                            return 'INFINITY'*/
-/*"->"                                return '->'*/
+"->"                                return '->'
 "<<"                                return '<<'
 ">>"                                return '>>'
 "{"                                 return '{'
@@ -200,63 +201,63 @@ Expression
 
 AssignmentExpression
     : ConditionalExpression                                                 { $$ = $1; }
-    | LeftHandSideExpression "=" AssignmentExpression                       { $$ = AST.createNode(lc(@1), 'node_op', 'op_assign', $1, $3); }
+    | LeftHandSideExpression "=" AssignmentExpression                       { $$ = AST.createNode(lc(@1), 'node_op', 'op_assign', $1, $3); $$.isMath = false; }
     /* TODO: Implement special assignment operators like +=, -=, ... */
     ;
 
 ConditionalExpression
     : LogicalORExpression                                                   { $$ = $1; }
-    | LogicalORExpression "?" AssignmentExpression ":" AssignmentExpression { $$ = AST.createNode(lc(@1), 'node_op', 'op_conditional', $1, $3, $5); }
+    | LogicalORExpression "?" AssignmentExpression ":" AssignmentExpression { $$ = AST.createNode(lc(@1), 'node_op', 'op_conditional', $1, $3, $5); $$.isMath = false; }
     ;
 
 LogicalORExpression
     : LogicalANDExpression                                                  { $$ = $1; }
-    | LogicalORExpression "||" LogicalANDExpression                         { $$ = AST.createNode(lc(@1), 'node_op', 'op_or', $1, $3); }
+    | LogicalORExpression "||" LogicalANDExpression                         { $$ = AST.createNode(lc(@1), 'node_op', 'op_or', $1, $3); $$.isMath = false; }
     ;
 
 LogicalANDExpression
     : EqualityExpression                                                    { $$ = $1; }
-    | LogicalANDExpression "&&" EqualityExpression                          { $$ = AST.createNode(lc(@1), 'node_op', 'op_and', $1, $3); }
+    | LogicalANDExpression "&&" EqualityExpression                          { $$ = AST.createNode(lc(@1), 'node_op', 'op_and', $1, $3); $$.isMath = false; }
     ;
 
 EqualityExpression
     : RelationalExpression                                                  { $$ = $1; }
-    | EqualityExpression "==" RelationalExpression                          { $$ = AST.createNode(lc(@1), 'node_op', 'op_equ', $1, $3); }
-    | EqualityExpression "!=" RelationalExpression                          { $$ = AST.createNode(lc(@1), 'node_op', 'op_neq', $1, $3); }
-    | EqualityExpression "~=" RelationalExpression                          { $$ = AST.createNode(lc(@1), 'node_op', 'op_approx', $1, $3); }
+    | EqualityExpression "==" RelationalExpression                          { $$ = AST.createNode(lc(@1), 'node_op', 'op_equ', $1, $3); $$.isMath = false; }
+    | EqualityExpression "!=" RelationalExpression                          { $$ = AST.createNode(lc(@1), 'node_op', 'op_neq', $1, $3); $$.isMath = false; }
+    | EqualityExpression "~=" RelationalExpression                          { $$ = AST.createNode(lc(@1), 'node_op', 'op_approx', $1, $3); $$.isMath = false; }
     ;
 
 RelationalExpression
     : AdditiveExpression                                                    { $$ = $1; }
-    | RelationalExpression "<" AdditiveExpression                           { $$ = AST.createNode(lc(@1), 'node_op', 'op_lot', $1, $3); }
-    | RelationalExpression ">" AdditiveExpression                           { $$ = AST.createNode(lc(@1), 'node_op', 'op_grt', $1, $3); }
-    | RelationalExpression "<=" AdditiveExpression                          { $$ = AST.createNode(lc(@1), 'node_op', 'op_loe', $1, $3); }
-    | RelationalExpression ">=" AdditiveExpression                          { $$ = AST.createNode(lc(@1), 'node_op', 'op_gre', $1, $3); }
+    | RelationalExpression "<" AdditiveExpression                           { $$ = AST.createNode(lc(@1), 'node_op', 'op_lot', $1, $3); $$.isMath = false; }
+    | RelationalExpression ">" AdditiveExpression                           { $$ = AST.createNode(lc(@1), 'node_op', 'op_grt', $1, $3); $$.isMath = false; }
+    | RelationalExpression "<=" AdditiveExpression                          { $$ = AST.createNode(lc(@1), 'node_op', 'op_loe', $1, $3); $$.isMath = false; }
+    | RelationalExpression ">=" AdditiveExpression                          { $$ = AST.createNode(lc(@1), 'node_op', 'op_gre', $1, $3); $$.isMath = false; }
     ;
 
 AdditiveExpression
     : MultiplicativeExpression                                              { $$ = $1; }
-    | AdditiveExpression "+" MultiplicativeExpression                       { $$ = AST.createNode(lc(@1), 'node_op', 'op_add', $1, $3); }
-    | AdditiveExpression "-" MultiplicativeExpression                       { $$ = AST.createNode(lc(@1), 'node_op', 'op_sub', $1, $3); }
+    | AdditiveExpression "+" MultiplicativeExpression                       { $$ = AST.createNode(lc(@1), 'node_op', 'op_add', $1, $3); $$.isMath = true; }
+    | AdditiveExpression "-" MultiplicativeExpression                       { $$ = AST.createNode(lc(@1), 'node_op', 'op_sub', $1, $3); $$.isMath = true; }
     ;
 
 MultiplicativeExpression
     : ExponentExpression                                                    { $$ = $1; }
-    | MultiplicativeExpression "*" ExponentExpression                       { $$ = AST.createNode(lc(@1), 'node_op', 'op_mul', $1, $3); }
-    | MultiplicativeExpression "/" ExponentExpression                       { $$ = AST.createNode(lc(@1), 'node_op', 'op_div', $1, $3); }
-    | MultiplicativeExpression "%" ExponentExpression                       { $$ = AST.createNode(lc(@1), 'node_op', 'op_mod', $1, $3); }
+    | MultiplicativeExpression "*" ExponentExpression                       { $$ = AST.createNode(lc(@1), 'node_op', 'op_mul', $1, $3); $$.isMath = true; }
+    | MultiplicativeExpression "/" ExponentExpression                       { $$ = AST.createNode(lc(@1), 'node_op', 'op_div', $1, $3); $$.isMath = true; }
+    | MultiplicativeExpression "%" ExponentExpression                       { $$ = AST.createNode(lc(@1), 'node_op', 'op_mod', $1, $3); $$.isMath = true; }
     ;
 
 ExponentExpression
     : UnaryExpression                                                       { $$ = $1; }
-    | UnaryExpression "^" ExponentExpression                                { $$ = AST.createNode(lc(@1), 'node_op', 'op_exp', $1, $3); }
+    | UnaryExpression "^" ExponentExpression                                { $$ = AST.createNode(lc(@1), 'node_op', 'op_exp', $1, $3); $$.isMath = true; }
     ;
 
 UnaryExpression
     : LeftHandSideExpression                                                { $$ = $1; }
-    | "!" UnaryExpression                                                   { $$ = AST.createNode(lc(@1), 'node_op', 'op_not', $2); }
+    | "!" UnaryExpression                                                   { $$ = AST.createNode(lc(@1), 'node_op', 'op_not', $2); $$.isMath = false; }
     | "+" UnaryExpression                                                   { $$ = $2; }
-    | "-" UnaryExpression                                                   { $$ = AST.createNode(lc(@1), 'node_op', 'op_neg', $2); }
+    | "-" UnaryExpression                                                   { $$ = AST.createNode(lc(@1), 'node_op', 'op_neg', $2); $$.isMath = true; }
     ;
 
 LeftHandSideExpression
@@ -266,25 +267,25 @@ LeftHandSideExpression
 
 MemberExpression
     : PrimaryExpression                                                     { $$ = $1; }
-    | FunctionExpression                                                    { $$ = $1; }
-/*    | MapExpression                                                         { $$ = $1; }*/
-    | MemberExpression "." "IDENTIFIER"                                     { $$ = AST.createNode(lc(@1), 'node_op', 'op_property', $1, $3); }
-    | MemberExpression "[" Expression "]"                                   { $$ = AST.createNode(lc(@1), 'node_op', 'op_extvalue', $1, $3); }
+    | FunctionExpression                                                    { $$ = $1; $$.isMath = false; }
+    | MapExpression                                                         { $$ = $1; }
+    | MemberExpression "." "IDENTIFIER"                                     { $$ = AST.createNode(lc(@1), 'node_op', 'op_property', $1, $3); $$.isMath = true; }
+    | MemberExpression "[" Expression "]"                                   { $$ = AST.createNode(lc(@1), 'node_op', 'op_extvalue', $1, $3); $$.isMath = true; }
     ;
 
 PrimaryExpression
     : "IDENTIFIER"                                                          { $$ = AST.createNode(lc(@1), 'node_var', $1); }
     | BasicLiteral                                                          { $$ = $1; }
-    | ObjectLiteral                                                         { $$ = $1; }
-    | ArrayLiteral                                                          { $$ = $1; }
+    | ObjectLiteral                                                         { $$ = $1; $$.isMath = false; }
+    | ArrayLiteral                                                          { $$ = $1; $$.isMath = false; }
     | "(" Expression ")"                                                    { $$ = $2; }
     ;
 
 BasicLiteral
-    : NullLiteral                                                           { $$ = $1; }
-    | BooleanLiteral                                                        { $$ = $1; }
-    | StringLiteral                                                         { $$ = $1; }
-    | NumberLiteral                                                         { $$ = $1; }
+    : NullLiteral                                                           { $$ = $1; $$.isMath = false; }
+    | BooleanLiteral                                                        { $$ = $1; $$.isMath = false; }
+    | StringLiteral                                                         { $$ = $1; $$.isMath = false; }
+    | NumberLiteral                                                         { $$ = $1; $$.isMath = true; }
     ;
 
 NullLiteral
@@ -332,11 +333,11 @@ PropertyName
     ;
 
 CallExpression
-    : MemberExpression Arguments                                            { $$ = AST.createNode(lc(@1), 'node_op', 'op_execfun', $1, $2); }
-    | MemberExpression Arguments AttributeList                              { $$ = AST.createNode(lc(@1), 'node_op', 'op_execfun', $1, $2, $3, true); }
-    | CallExpression Arguments                                              { $$ = AST.createNode(lc(@1), 'node_op', 'op_execfun', $1, $2); }
-    | CallExpression "[" Expression "]"                                     { $$ = AST.createNode(lc(@1), 'node_op', 'op_extvalue', $1, $3); }
-    | CallExpression "." "IDENTIFIER"                                       { $$ = AST.createNode(lc(@1), 'node_op', 'op_property', $1, $3); }
+    : MemberExpression Arguments                                            { $$ = AST.createNode(lc(@1), 'node_op', 'op_execfun', $1, $2); $$.isMath = true; }
+    | MemberExpression Arguments AttributeList                              { $$ = AST.createNode(lc(@1), 'node_op', 'op_execfun', $1, $2, $3, true); $$.isMath = false; }
+    | CallExpression Arguments                                              { $$ = AST.createNode(lc(@1), 'node_op', 'op_execfun', $1, $2); $$.isMath = true; }
+    | CallExpression "[" Expression "]"                                     { $$ = AST.createNode(lc(@1), 'node_op', 'op_extvalue', $1, $3); $$.isMath = true; }
+    | CallExpression "." "IDENTIFIER"                                       { $$ = AST.createNode(lc(@1), 'node_op', 'op_property', $1, $3); $$.isMath = true; }
     ;
 
 Arguments
@@ -350,8 +351,8 @@ AttributeList
     ;
 
 Attribute
-    : "IDENTIFIER"                                                          { $$ = AST.createNode(lc(@1), 'node_var', $1); }
-    | ObjectLiteral                                                         { $$ = $1; }
+    : "IDENTIFIER"                                                          { $$ = AST.createNode(lc(@1), 'node_var', $1); $$.isMath = true; }
+    | ObjectLiteral                                                         { $$ = $1; $$.isMath = false; }
     ;
 
 ElementList
@@ -359,15 +360,15 @@ ElementList
     | ElementList "," AssignmentExpression                                  { $$ = $1.concat($3); }
     ;
 FunctionExpression
-    : "FUNCTION" "(" ")" StatementBlock                                     { $$ = AST.createNode(lc(@1), 'node_op', 'op_function', [], $4); }
-    | "FUNCTION" "(" ParameterDefinitionList ")" StatementBlock             { $$ = AST.createNode(lc(@1), 'node_op', 'op_function', $3, $5); }
+    : "FUNCTION" "(" ")" StatementBlock                                     { $$ = AST.createNode(lc(@1), 'node_op', 'op_function', [], $4); $$.isMath = false; }
+    | "FUNCTION" "(" ParameterDefinitionList ")" StatementBlock             { $$ = AST.createNode(lc(@1), 'node_op', 'op_function', $3, $5); $$.isMath = false; }
     ;
 
-/*
+
 MapExpression
-    : "(" ParameterDefinitionList ")" "->" AdditiveExpressionMath           { $$ = AST.createNode(lc(@1), 'node_op', 'op_map', $2, $5); }
+    : "MAP" "(" ParameterDefinitionList ")" "->" Expression                 { $$ = AST.createNode(lc(@1), 'node_op', 'op_map', $3, $6); }
     ;
-*/
+
 ParameterDefinitionList
     : "IDENTIFIER"                                                          { $$ = [$1]; }
     | ParameterDefinitionList "," "IDENTIFIER"                              { $$ = $1.concat($3); }

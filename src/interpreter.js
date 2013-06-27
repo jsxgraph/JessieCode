@@ -929,7 +929,7 @@ define([
                     }
                     break;
                 case 'op_map':
-                    console.log('DEFINE A MAP');
+                    console.log('DEFINE A MAP', node);
                     ret = function () {};
                     break;
                 case 'op_function':
