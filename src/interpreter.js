@@ -1706,4 +1706,5 @@ define([
 
     //#include "parser.js"
 
+    return JXG.JessieCode;
 });
