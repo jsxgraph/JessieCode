@@ -430,6 +430,125 @@ define([
         },
 
         /**
+         * Adds the property <tt>isMap</tt> to a function and sets it to true.
+         * @param {function} f
+         * @returns {function}
+         */
+        makeMap: function (f) {
+            f.isMap = true;
+
+            return f;
+        },
+
+        /**
+         * Converts a node type <tt>node_op</tt> and value <tt>op_map</tt> or <tt>op_function</tt> into a executable
+         * function.
+         * @param {Object} node
+         * @returns {function}
+         */
+        defineFunction: function (node) {
+            var fun, i,
+                bo = '',
+                bc = '',
+                list = node.children[0];
+
+            if (this.board.options.jc.compile) {
+                this.sstack.push({});
+                this.scope++;
+
+                if (node.value === 'op_map') {
+                    bo = '{ return  ';
+                    bc = ' }';
+                }
+
+                this.isLHS = false;
+
+                for (i = 0; i < list.length; i++) {
+                    this.sstack[this.scope][list[i]] = list[i];
+                }
+
+                this.replaceNames(node.children[1]);
+
+                fun = (function ($jc$, list) {
+                    var fun,
+                        p = list.join(', '),
+                        str = 'var f = function (' + p + ') {\n$jc$.sstack.push([]);\nvar $scope$ = ++$jc$.scope;\nvar r = (function () ' + bo + $jc$.compile(node.children[1], true) + bc + ')();\n$jc$.sstack.pop();\n$jc$.scope--;\nreturn r;\n}; f;';
+                    // the function code formatted: NEEDS REBUILDING
+                    /*
+                     var f = function (_parameters_) {
+                         // handle the stack
+                         $jc$.sstack.push([]);
+                         $jc$.scope++;
+
+                         // this is required for stack handling: usually at some point in a function
+                         // there's a return statement, that prevents the cleanup of the stack.
+                         var r = (function () {
+                             _compiledcode_;
+                        })();
+
+                         // clean up the stack
+                         $jc$.sstack.pop();
+                         $jc$.scope--;
+
+                         // return the result
+                         return r;
+                     };
+                     f;   // the return value of eval()
+                     */
+
+                    try {
+                        // yeah, eval is evil, but we don't have much choice here.
+                        // the str is well defined and there is no user input in it that we didn't check before
+
+                        /*jslint evil:true*/
+                        fun = eval(str);
+                        /*jslint evil:false*/
+
+                        return fun;
+                    } catch (e) {
+                        $jc$._warn('error compiling function\n\n' + str + '\n\n' + e.toString());
+                        return function () {};
+                    }
+                }(this, list));
+
+                // clean up scope
+                this.sstack.pop();
+                this.scope--;
+            } else {
+                fun = (function (_pstack, that) {
+                    return function () {
+                        var r;
+
+                        that.sstack.push({});
+                        that.scope++;
+                        for (r = 0; r < _pstack.length; r++) {
+                            that.sstack[that.scope][_pstack[r]] = arguments[r];
+                        }
+
+                        r = that.execute(node.children[1]);
+
+                        that.sstack.pop();
+                        that.scope--;
+                        return r;
+                    };
+                }(list, this));
+            }
+
+            fun.node = node;
+            fun.toJS = fun.toString;
+            fun.toString = (function (_that) {
+                return function () {
+                    return _that.compile(_that.replaceIDs(Type.deepCopy(node)));
+                };
+            }(this));
+
+            fun.deps = {};
+            this.collectDependencies(node.children[1], fun.deps);
+
+            return fun;
+        },
+
+        /**
          * Merge all atribute values given with an element creator into one object.
          * @param {Object} o An arbitrary number of objects
          * @returns {Object} All given objects merged into one. If properties appear in more (case sensitive) than one
@@ -929,111 +1048,33 @@ define([
                     }
                     break;
                 case 'op_map':
-                    console.log('DEFINE A MAP', node);
-                    ret = function () {};
-                    break;
-                case 'op_function':
-                    // parse the parameter list
-                    // after this, the parameters are in pstack
-
-                    list = node.children[0];
-                    this.plist.push(list);
-
-                    if (this.board.options.jc.compile) {
-                        this.sstack.push({});
-                        this.scope++;
-
-                        this.isLHS = false;
-
-                        for (i = 0; i < list.length; i++) {
-                            this.sstack[this.scope][list[i]] = list[i];
-                        }
-
-                        this.replaceNames(node.children[1]);
-
-                        fun = (function ($jc$, list) {
-                            var fun,
-                                p = list.join(', '),
-                                str = 'var f = function (' + p + ') {\n$jc$.sstack.push([]);\nvar $scope$ = ++$jc$.scope;\nvar r = (function () ' + $jc$.compile(node.children[1], true) + ')();\n$jc$.sstack.pop();\n$jc$.scope--;\nreturn r;\n}; f;';
-                            // the function code formatted:
-                            /*
-                             var f = function (_parameters_) {
-                                 // handle the stack
-                                 $jc$.sstack.push([]);
-                                 $jc$.scope++;
-
-                                 // this is required for stack handling: usually at some point in a function
-                                 // there's a return statement, that prevents the cleanup of the stack.
-                                 var r = (function () {
-                                     _compiledcode_;
-                                })();
-
-                                 // clean up the stack
-                                 $jc$.sstack.pop();
-                                 $jc$.scope--;
-
-                                 // return the result
-                                 return r;
-                             };
-                             f;   // the return value of eval()
-                             */
-
-                            try {
-                                // yeah, eval is evil, but we don't have much choice here.
-                                // the str is well defined and there is no user input in it that we didn't check before
-
-                                /*jslint evil:true*/
-                                fun = eval(str);
-                                /*jslint evil:false*/
-
-                                return fun;
-                            } catch (e) {
-                                $jc$._warn('error compiling function\n\n' + str + '\n\n' + e.toString());
-                                return function () {};
-                            }
-                        }(this, list));
-
-                        // clean up scope
-                        this.sstack.pop();
-                        this.scope--;
-                    } else {
-                        fun = (function (_pstack, that) {
-                            return function () {
-                                var r;
-
-                                that.sstack.push({});
-                                that.scope++;
-                                for (r = 0; r < _pstack.length; r++) {
-                                    that.sstack[that.scope][_pstack[r]] = arguments[r];
-                                }
-
-                                r = that.execute(node.children[1]);
-
-                                that.sstack.pop();
-                                that.scope--;
-                                return r;
-                            };
-                        }(list, this));
+                    if (!node.children[1].isMath) {
+                        this._error('In a map only function calls and mathematical expressions are allowed.');
                     }
 
-                    fun.node = node;
-                    fun.toJS = fun.toString;
-                    fun.toString = (function (_that) {
-                        return function () {
-                            return _that.compile(_that.replaceIDs(Type.deepCopy(node)));
-                        };
-                    }(this));
+                    // TODO: Move to context object #7
+                    this.plist.push(node.children[0]);
 
-                    fun.deps = {};
-                    this.collectDependencies(node.children[1], fun.deps);
+                    fun = this.defineFunction(node);
+                    fun.isMap = true;
 
                     this.plist.pop();
 
                     ret = fun;
                     break;
-                case 'op_execfunmath':
-                    console.log('TODO');
-                    ret = -1;
+                case 'op_function':
+                    // parse the parameter list
+                    // after this, the parameters are in pstack
+
+                    // TODO: Move to context object #7
+                    this.plist.push(node.children[0]);
+
+                    fun = this.defineFunction(node);
+                    fun.isMap = false;
+
+                    this.plist.pop();
+
+                    ret = fun;
                     break;
                 case 'op_execfun':
                     // node.children:
@@ -1328,8 +1369,16 @@ define([
                     ret = ' return ' + this.compile(node.children[0], js) + ';\n';
                     break;
                 case 'op_map':
-                    console.log('DEFINE A MAP');
-                    ret = '';
+                    if (!node.children[1].isMath) {
+                        this._error('In a map only function calls and mathematical expressions are allowed.');
+                    }
+
+                    list = node.children[0];
+                    if (js) {
+                        ret = ' $jc$.makeMap(function (' + list.join(', ') + ') { return ' + this.compile(node.children[1], js) + '; })';
+                    } else {
+                        ret = 'map (' + list.join(', ') + ') -> ' + this.compile(node.children[1], js);
+                    }
                     break;
                 case 'op_function':
                     list = node.children[0];
