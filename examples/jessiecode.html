@@ -2,8 +2,8 @@
 <head>
   <link rel="stylesheet" type="text/css" href="http://jsxgraph.uni-bayreuth.de/distrib/jsxgraph.css" />
   <script type="text/javascript" src="../../JSXGraph/src/loadjsxgraph.js"></script>
-  <script type="text/javascript" src="../src/interpreter.js"></script>
   <script type="text/javascript" src="../bin/parser.js"></script>
+    <script type="text/javascript" src="../src/interpreter.js"></script>
 </head>
 <body>
 
@@ -267,14 +267,14 @@ foobar = arr[0]()[1];
         T.setText('You hit: ' + el.getName());
     };
     $board.on('hit', hit);
-    
+
     $board.setView([-10, 10, 10, -10], true);
 
     (function () {
         Q = point(5, 5);
         P = point(3, 3) << color: 'green' >>;
     })();
-    
+
     plot(function (x) {
         return EULER*sin(x);
     });
@@ -282,14 +282,14 @@ foobar = arr[0]()[1];
 
 <textarea id="code7" cols="90" rows="50">
     use jxgbox2;
-    
+
     x = 1;
     y = function () {
         return [1, 2];
     };
     a = y()[1];
     r = sin(x)*cos(x);
-    
+
     text(1, 1, a.toString());
     text(1, -1, r);
 </textarea>

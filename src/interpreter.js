@@ -1755,5 +1755,9 @@ define([
 
     //#include "parser.js"
 
+
+    // Work around an issue with browsers that don't support Object.getPrototypeOf()
+    parser.yy.parseError = parser.parseError;
+
     return JXG.JessieCode;
 });
