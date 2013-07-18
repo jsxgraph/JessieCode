@@ -1596,7 +1596,7 @@ console.log('define function', node);
                 break;
 
             case 'node_str':
-                ret = '\'' + node.value.replace(/'/g, '\\\'') + '\'';
+                ret = '\'' + node.value + '\'';
                 break;
             }
 
