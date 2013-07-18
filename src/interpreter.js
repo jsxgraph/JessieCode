@@ -84,13 +84,6 @@ define([
         this.scopes.push(this.scope);
 
         /**
-         * A stack used to store the parameter lists for function definitions and calls.
-         * @type Array
-         * @private
-         */
-        this.plist = [];
-
-        /**
          * A stack to store debug information (like line and column where it was defined) of a parameter
          * @type Array
          * @private
@@ -1109,13 +1102,8 @@ define([
                         this._error('In a map only function calls and mathematical expressions are allowed.');
                     }
 
-                    // TODO: Move to context object #7
-                    this.plist.push(node.children[0]);
-
                     fun = this.defineFunction(node);
                     fun.isMap = true;
-
-                    this.plist.pop();
 
                     ret = fun;
                     break;
@@ -1123,13 +1111,8 @@ define([
                     // parse the parameter list
                     // after this, the parameters are in pstack
 
-                    // TODO: Move to context object #7
-                    this.plist.push(node.children[0]);
-
                     fun = this.defineFunction(node);
                     fun.isMap = false;
-
-                    this.plist.pop();
 
                     ret = fun;
                     break;
