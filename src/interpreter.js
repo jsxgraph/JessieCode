@@ -449,19 +449,22 @@ define([
 
             local = Type.def(local, false);
             withProps = Type.def(withProps, false);
-
-            if (Type.indexOf(this.plist[this.plist.length - 1], vname) > -1) {
+console.log('getvarjs', vname, this.scope);
+            if (Type.indexOf(this.scope.args, vname) > -1) {
+console.log('plist');
                 return vname;
             }
 
             s = this.isLocalVariable(vname);
             if (s !== null && !withProps) {
+console.log('local');
                 //return '$jc$.sstack[' + s + '][\'' + vname + '\']';
                 return '$jc$.resolve(\'' + vname + '\')';
             }
 
             // check for an element with this name
             if (this.isCreator(vname)) {
+console.log('creator');
                 return '(function () { var a = Array.prototype.slice.call(arguments, 0), props = ' + (withProps ? 'a.pop()' : '{}') + '; return $jc$.board.create.apply($jc$.board, [\'' + vname + '\'].concat([a, props])); })';
             }
 
@@ -470,10 +473,12 @@ define([
             }
 
             if (this.isMathMethod(vname)) {
+console.log('math');
                 return 'Math.' + vname;
             }
 
             if (this.isBuiltIn(vname)) {
+console.log('built in');
                 // if src does not exist, it is a number. in that case, just return the value.
                 return this.builtIn[vname].src || this.builtIn[vname];
             }
@@ -486,9 +491,11 @@ define([
                 } else if (Type.isGroup(this.board, vname)) {
                     r = '$jc$.board.groups[\'' + vname + '\']';
                 }
-
+console.log('id');
                 return r;
             }
+
+console.log('not found');
 
             return '';
         },
@@ -504,6 +511,25 @@ define([
             return f;
         },
 
+        functionCodeJS: function (node) {
+            var p = node.children[0].join(', '),
+                bo = '',
+                bc = '';
+
+            if (node.value === 'op_map') {
+                bo = '{ return  ';
+                bc = ' }';
+            }
+
+            return 'function (' + p + ') {\n' +
+                    'var $oldscope$ = $jc$.scope;\n' +
+                    '$jc$.scope = $jc$.scopes[' + this.scope.id + '];\n' +
+                    'var r = (function () ' + bo + this.compile(node.children[1], true) + bc + ')();\n' +
+                    '$jc$.scope = $oldscope$;\n' +
+                    'return r;\n' +
+                '}';
+        },
+
         /**
          * Converts a node type <tt>node_op</tt> and value <tt>op_map</tt> or <tt>op_function</tt> into a executable
          * function.
@@ -516,13 +542,9 @@ define([
                 bc = '',
                 list = node.children[0],
                 scope = this.pushScope(list);
+console.log('define function', node);
 
             if (this.board.options.jc.compile) {
-                if (node.value === 'op_map') {
-                    bo = '{ return  ';
-                    bc = ' }';
-                }
-
                 this.isLHS = false;
 
                 // we currently need to put the parameters into the local scope
@@ -536,29 +558,8 @@ define([
                 fun = (function ($jc$, list) {
                     var fun,
                         p = list.join(', '),
-                        str = 'var f = function (' + p + ') {\nvar $oldscope$ = $jc$.scope;\n$jc$.scope = $jc$.scopes[' + scope.id + '];\nvar r = (function () ' + bo + $jc$.compile(node.children[1], true) + bc + ')();\n$jc$.scope = $oldscope$;\nreturn r;\n}; f;';
-                    // the function code formatted: NEEDS REBUILDING
-                    /*
-                     var f = function (_parameters_) {
-                         // handle the stack
-                         $jc$.sstack.push([]);
-                         $jc$.scope++;
-
-                         // this is required for stack handling: usually at some point in a function
-                         // there's a return statement, that prevents the cleanup of the stack.
-                         var r = (function () {
-                             _compiledcode_;
-                        })();
-
-                         // clean up the stack
-                         $jc$.sstack.pop();
-                         $jc$.scope--;
-
-                         // return the result
-                         return r;
-                     };
-                     f;   // the return value of eval()
-                     */
+                        //str = 'var f = function (' + p + ') {\nvar $oldscope$ = $jc$.scope;\n$jc$.scope = $jc$.scopes[' + scope.id + '];\nvar r = (function () ' + bo + $jc$.compile(node.children[1], true) + bc + ')();\n$jc$.scope = $oldscope$;\nreturn r;\n}; f;';
+                        str = 'var f = ' + $jc$.functionCodeJS(node) + '; f;';
 
                     try {
                         // yeah, eval is evil, but we don't have much choice here.
@@ -1341,7 +1342,7 @@ define([
          * @private
          */
         compile: function (node, js) {
-            var e, i, list,
+            var e, i, list, scope,
                 ret = '';
 
             if (!Type.exists(js)) {
@@ -1446,7 +1447,13 @@ define([
                     break;
                 case 'op_function':
                     list = node.children[0];
-                    ret = ' function (' + list.join(', ') + ') ' + this.compile(node.children[1], js);
+                    scope = this.pushScope(list);
+                    if (js) {
+                        ret = this.functionCodeJS(node);
+                    } else {
+                        ret = ' function (' + list.join(', ') + ') ' + this.compile(node.children[1], js);
+                    }
+                    this.popScope();
                     break;
                 case 'op_execfunmath':
                     console.log('TODO');
