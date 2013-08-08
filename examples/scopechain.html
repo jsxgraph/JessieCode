@@ -34,6 +34,18 @@
             return y+z+x;
         };
     };
+
+    q = function (x) {
+        return function () {
+            return x;
+        };
+    };
+
+    w = q(10);
+    e = q(20);
+
+    r = w();
+    t = e();
 </textarea>
 
 <script type="text/javascript">
