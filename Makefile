@@ -4,6 +4,7 @@
 OUTPUT=bin
 TMP=tmp
 BIN=./node_modules/.bin
+JSXGRAPH=../JSXGraph
 
 # build tools
 REQUIREJS=$(BIN)/r.js
@@ -53,8 +54,11 @@ parser: $(GRAMMAR)
 test-server:
 	$(JSTESTDRIVER) --port $(JSTESTPORT)
 
-test: parser
+test:
 	$(JSTESTDRIVER) $(JSTESTSERVER) $(JSTESTFLAGS) --basePath ./ --config test/jsTestDriver.conf
+
+jsxgraph: deploy
+	$(CD) ../JSXGraph; make OUTPUT=../JessieCode/bin core-min; git checkout -- src/parser/jessiecode.js
 
 clean:
 	rm -f bin/*

@@ -33,8 +33,8 @@ TestCase("Arithmetic", {
             console.log(e);
         }
 
-        assertEquals('int', 1, this.jc.sstack[0].a);
-        assertEquals('float', 1.5, this.jc.sstack[0].b);
+        assertEquals('int', 1, this.jc.scope.locals.a);
+        assertEquals('float', 1.5, this.jc.scope.locals.b);
     },
 
     testAdd: function () {
@@ -50,11 +50,11 @@ TestCase("Arithmetic", {
             console.log(e);
         }
 
-        assertEquals('unary add', 1, this.jc.sstack[0].a);
-        assertEquals('binary add', 2, this.jc.sstack[0].b);
-        assertEquals('vector add returns array', 2, this.jc.sstack[0].c.length);
-        assertEquals('vector add result 0', 4, this.jc.sstack[0].c[0]);
-        assertEquals('vector add result 1', 6, this.jc.sstack[0].c[1]);
+        assertEquals('unary add', 1, this.jc.scope.locals.a);
+        assertEquals('binary add', 2, this.jc.scope.locals.b);
+        assertEquals('vector add returns array', 2, this.jc.scope.locals.c.length);
+        assertEquals('vector add result 0', 4, this.jc.scope.locals.c[0]);
+        assertEquals('vector add result 1', 6, this.jc.scope.locals.c[1]);
     },
 
     testSub: function () {
@@ -71,11 +71,11 @@ TestCase("Arithmetic", {
             console.log(e);
         }
 
-        assertEquals('unary minus', -1, this.jc.sstack[0].a);
-        assertEquals('subtraction', 0, this.jc.sstack[0].b);
-        assertEquals('vector sub returns array', 2, this.jc.sstack[0].c.length);
-        assertEquals('vector sub result 0', 2, this.jc.sstack[0].c[0]);
-        assertEquals('vector sub result 1', 2, this.jc.sstack[0].c[1]);
+        assertEquals('unary minus', -1, this.jc.scope.locals.a);
+        assertEquals('subtraction', 0, this.jc.scope.locals.b);
+        assertEquals('vector sub returns array', 2, this.jc.scope.locals.c.length);
+        assertEquals('vector sub result 0', 2, this.jc.scope.locals.c[0]);
+        assertEquals('vector sub result 1', 2, this.jc.scope.locals.c[1]);
     },
 
     testMul: function () {
@@ -93,12 +93,12 @@ TestCase("Arithmetic", {
             console.log(e);
         }
 
-        assertEquals('multiplication', 2, this.jc.sstack[0].a);
-        assertEquals('multiplication with sign change', -12, this.jc.sstack[0].b);
-        assertEquals('multiplication with double sign change', 6, this.jc.sstack[0].c);
-        assertEquals('multiplication array result 0', 3, this.jc.sstack[0].d[0]);
-        assertEquals('multiplication array result 1', 6, this.jc.sstack[0].d[1]);
-        assertEquals('scalar product', 11, this.jc.sstack[0].e);
+        assertEquals('multiplication', 2, this.jc.scope.locals.a);
+        assertEquals('multiplication with sign change', -12, this.jc.scope.locals.b);
+        assertEquals('multiplication with double sign change', 6, this.jc.scope.locals.c);
+        assertEquals('multiplication array result 0', 3, this.jc.scope.locals.d[0]);
+        assertEquals('multiplication array result 1', 6, this.jc.scope.locals.d[1]);
+        assertEquals('scalar product', 11, this.jc.scope.locals.e);
     },
 
     testDiv: function () {
@@ -116,12 +116,12 @@ TestCase("Arithmetic", {
             console.log(e);
         }
 
-        assertEquals('float division', 0.5, this.jc.sstack[0].a);
-        assertEquals('integer division', 3, this.jc.sstack[0].b);
-        assertEquals('division with sign change', -2, this.jc.sstack[0].c);
-        assertEquals('division with double sign change', 1.5, this.jc.sstack[0].d);
-        assertEquals('div array result 0', 2, this.jc.sstack[0].e[0]);
-        assertEquals('div array result 1', 3, this.jc.sstack[0].e[1]);
+        assertEquals('float division', 0.5, this.jc.scope.locals.a);
+        assertEquals('integer division', 3, this.jc.scope.locals.b);
+        assertEquals('division with sign change', -2, this.jc.scope.locals.c);
+        assertEquals('division with double sign change', 1.5, this.jc.scope.locals.d);
+        assertEquals('div array result 0', 2, this.jc.scope.locals.e[0]);
+        assertEquals('div array result 1', 3, this.jc.scope.locals.e[1]);
     },
 
     testMod: function () {
@@ -138,13 +138,13 @@ TestCase("Arithmetic", {
             console.log(e);
         }
 
-        assertEquals('mod#1', 1, this.jc.sstack[0].a);
-        assertEquals('mod#2', 0, this.jc.sstack[0].b);
+        assertEquals('mod#1', 1, this.jc.scope.locals.a);
+        assertEquals('mod#2', 0, this.jc.scope.locals.b);
         // assure the mathematical mod is used, not the symmetric
-        assertEquals('mod#3', -3, this.jc.sstack[0].c);
+        assertEquals('mod#3', -3, this.jc.scope.locals.c);
 
-        assertEquals('mod vector 0', 1, this.jc.sstack[0].d[0]);
-        assertEquals('mod vector 1', 0, this.jc.sstack[0].d[1]);
+        assertEquals('mod vector 0', 1, this.jc.scope.locals.d[0]);
+        assertEquals('mod vector 1', 0, this.jc.scope.locals.d[1]);
     },
 
     testPow: function () {
@@ -160,9 +160,9 @@ TestCase("Arithmetic", {
             console.log(e);
         }
 
-        assertEquals('pow', 8, this.jc.sstack[0].a);
-        assertEquals('neg pow with base', -8, this.jc.sstack[0].b);
-        assertEquals('pow with neg exp', 1/8, this.jc.sstack[0].c);
+        assertEquals('pow', 8, this.jc.scope.locals.a);
+        assertEquals('neg pow with base', -8, this.jc.scope.locals.b);
+        assertEquals('pow with neg exp', 1/8, this.jc.scope.locals.c);
     },
 
     testPrecedence: function () {
@@ -178,10 +178,10 @@ TestCase("Arithmetic", {
             console.log(e);
         }
 
-        assertEquals('mul vs add', 17, this.jc.sstack[0].a);
-        assertEquals('mul vs sub and add', 5, this.jc.sstack[0].b);
-        assertEquals('pow vs mul', 32, this.jc.sstack[0].c);
-        assertEquals('pow precedence order', 262144, this.jc.sstack[0].d);
+        assertEquals('mul vs add', 17, this.jc.scope.locals.a);
+        assertEquals('mul vs sub and add', 5, this.jc.scope.locals.b);
+        assertEquals('pow vs mul', 32, this.jc.scope.locals.c);
+        assertEquals('pow precedence order', 262144, this.jc.scope.locals.d);
 
         try {
             this.jc.parse('  \
@@ -193,9 +193,9 @@ TestCase("Arithmetic", {
             console.log(e);
         }
 
-        assertEquals('caged add', 27, this.jc.sstack[0].a);
-        assertEquals('change precedence of pow', 4096, this.jc.sstack[0].b);
-        assertEquals('pow with neg base', -8, this.jc.sstack[0].c);
+        assertEquals('caged add', 27, this.jc.scope.locals.a);
+        assertEquals('change precedence of pow', 4096, this.jc.scope.locals.b);
+        assertEquals('pow with neg base', -8, this.jc.scope.locals.c);
     }
 
 });

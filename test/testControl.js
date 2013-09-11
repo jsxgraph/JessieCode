@@ -53,9 +53,9 @@ TestCase("Control", {
             console.log(e);
         }
 
-        assertEquals('if', 1, this.jc.sstack[0].a);
-        assertEquals('else', 2, this.jc.sstack[0].b);
-        assertEquals('else if', 2, this.jc.sstack[0].c);
+        assertEquals('if', 1, this.jc.scope.locals.a);
+        assertEquals('else', 2, this.jc.scope.locals.b);
+        assertEquals('else if', 2, this.jc.scope.locals.c);
     },
 
     testFor: function () {
@@ -71,7 +71,7 @@ TestCase("Control", {
             console.log(e);
         }
 
-        assertEquals('for', 10, this.jc.sstack[0].j);
+        assertEquals('for', 10, this.jc.scope.locals.j);
     },
 
     testWhile: function () {
@@ -87,6 +87,6 @@ TestCase("Control", {
             console.log(e);
         }
 
-        assertEquals('while', 10, this.jc.sstack[0].i);
+        assertEquals('while', 10, this.jc.scope.locals.i);
     }
 });
