@@ -1270,17 +1270,17 @@ define([
                     ret = !this.execute(node.children[0]);
                     break;
                 case 'op_add':
-                    ret = Statistics.add(this.execute(node.children[0]), this.execute(node.children[1]));
+                    ret = this.add(this.execute(node.children[0]), this.execute(node.children[1]));
                     break;
                 case 'op_sub':
-                    ret = Statistics.subtract(this.execute(node.children[0]), this.execute(node.children[1]));
+                    ret = this.sub(this.execute(node.children[0]), this.execute(node.children[1]));
                     break;
                 case 'op_div':
-                    ret = Statistics.div(this.execute(node.children[0]), this.execute(node.children[1]));
+                    ret = this.div(this.execute(node.children[0]), this.execute(node.children[1]));
                     break;
                 case 'op_mod':
                     // use mathematical modulo, JavaScript implements the symmetric modulo.
-                    ret = Statistics.mod(this.execute(node.children[0]), this.execute(node.children[1]), true);
+                    ret = this.mod(this.execute(node.children[0]), this.execute(node.children[1]), true);
                     break;
                 case 'op_mul':
                     ret = this.mul(this.execute(node.children[0]), this.execute(node.children[1]));
@@ -1526,28 +1526,28 @@ define([
                     break;
                 case 'op_add':
                     if (js) {
-                        ret = 'JXG.Math.Statistics.add(' + this.compile(node.children[0], js) + ', ' + this.compile(node.children[1], js) + ')';
+                        ret = '$jc$.add(' + this.compile(node.children[0], js) + ', ' + this.compile(node.children[1], js) + ')';
                     } else {
                         ret = '(' + this.compile(node.children[0], js) + ' + ' + this.compile(node.children[1], js) + ')';
                     }
                     break;
                 case 'op_sub':
                     if (js) {
-                        ret = 'JXG.Math.Statistics.subtract(' + this.compile(node.children[0], js) + ', ' + this.compile(node.children[1], js) + ')';
+                        ret = '$jc$.sub(' + this.compile(node.children[0], js) + ', ' + this.compile(node.children[1], js) + ')';
                     } else {
                         ret = '(' + this.compile(node.children[0], js) + ' - ' + this.compile(node.children[1], js) + ')';
                     }
                     break;
                 case 'op_div':
                     if (js) {
-                        ret = 'JXG.Math.Statistics.div(' + this.compile(node.children[0], js) + ', ' + this.compile(node.children[1], js) + ')';
+                        ret = '$jc$.div(' + this.compile(node.children[0], js) + ', ' + this.compile(node.children[1], js) + ')';
                     } else {
                         ret = '(' + this.compile(node.children[0], js) + ' / ' + this.compile(node.children[1], js) + ')';
                     }
                     break;
                 case 'op_mod':
                     if (js) {
-                        ret = 'JXG.Math.mod(' + this.compile(node.children[0], js) + ', ' + this.compile(node.children[1], js) + ', true)';
+                        ret = '$jc$.mod(' + this.compile(node.children[0], js) + ', ' + this.compile(node.children[1], js) + ', true)';
                     } else {
                         ret = '(' + this.compile(node.children[0], js) + ' % ' + this.compile(node.children[1], js) + ')';
                     }
@@ -1651,17 +1651,153 @@ define([
         },
 
         /**
+         * + operator implementation
+         * @param {Number|Array|JXG.Point} a
+         * @param {Number|Array|JXG.Point} b
+         * @returns {Number|Array}
+         */
+        add: function (a, b) {
+            var i, len, res;
+
+            a = Type.evalSlider(a);
+            b = Type.evalSlider(b);
+
+            if (Type.isArray(a) && Type.isArray(b)) {
+                len = Math.min(a.length, b.length);
+                res = [];
+
+                for (i = 0; i < len; i++) {
+                    res[i] = a[i] + b[i];
+                }
+            } else if (Type.isNumber(a) && Type.isNumber(b)) {
+                res = a + b;
+            } else {
+                this._error('Operation + not defined on operands ' + typeof a + ' and ' + typeof b);
+            }
+
+            return res;
+        },
+
+        /**
+         * + operator implementation
+         * @param {Number|Array|JXG.Point} a
+         * @param {Number|Array|JXG.Point} b
+         * @returns {Number|Array}
+         */
+        sub: function (a, b) {
+            var i, len, res;
+
+            a = Type.evalSlider(a);
+            b = Type.evalSlider(b);
+
+            if (Type.isArray(a) && Type.isArray(b)) {
+                len = Math.min(a.length, b.length);
+                res = [];
+
+                for (i = 0; i < len; i++) {
+                    res[i] = a[i] - b[i];
+                }
+            } else if (Type.isNumber(a) && Type.isNumber(b)) {
+                res = a - b;
+            } else {
+                this._error('Operation - not defined on operands ' + typeof a + ' and ' + typeof b);
+            }
+
+            return res;
+        },
+
+        /**
          * Multiplication of vectors and numbers
          * @param {Number|Array} a
          * @param {Number|Array} b
          * @returns {Number|Array} (Inner) product of the given input values.
          */
         mul: function (a, b) {
-            if (Type.isArray(a) * Type.isArray(b)) {
-                return Mat.innerProduct(a, b, Math.min(a.length, b.length));
+            var i, len, res;
+
+            a = Type.evalSlider(a);
+            b = Type.evalSlider(b);
+
+            if (Type.isArray(a) && Type.isNumber(b)) {
+                // swap b and a
+                i = a;
+                a = b;
+                b = a;
             }
 
-            return Statistics.multiply(a, b);
+            if (Type.isArray(a) && Type.isArray(b)) {
+                len = Math.min(a.length, b.length);
+                res = Mat.innerProduct(a, b, len);
+            } else if (Type.isNumber(a) && Type.isArray(b)) {
+                len = b.length;
+                res = [];
+
+                for (i = 0; i < len; i++) {
+                    res[i] = a * b[i];
+                }
+            } else if (Type.isNumber(a) && Type.isNumber(b)) {
+                res = a * b;
+            } else {
+                this._error('Operation * not defined on operands ' + typeof a + ' and ' + typeof b);
+            }
+
+            return res;
+        },
+
+        /**
+         * Implementation of the / operator.
+         * @param {Number|Array} a
+         * @param {Number} b
+         * @returns {Number|Array}
+         */
+        div: function (a, b) {
+            var i, len, res;
+
+            a = Type.evalSlider(a);
+            b = Type.evalSlider(b);
+
+            if (Type.isArray(a) && Type.isNumber(b)) {
+                len = a.length;
+                res = [];
+
+                for (i = 0; i < len; i++) {
+                    res[i] = a[i] / b;
+                }
+            } else if (Type.isNumber(a) && Type.isNumber(b)) {
+                res = a / b;
+            } else {
+                this._error('Operation * not defined on operands ' + typeof a + ' and ' + typeof b);
+            }
+
+            return res;
+        },
+
+        /**
+         * Implementation of the % operator.
+         * @param {Number|Array} a
+         * @param {Number} b
+         * @returns {Number|Array}
+         */
+        mod: function (a, b) {
+            var i, len, res;
+
+            a = Type.evalSlider(a);
+            b = Type.evalSlider(b);
+
+            if (Type.isArray(a) && Type.isNumber(b)) {
+                len = a.length;
+                res = [];
+
+                for (i = 0; i < len; i++) {
+                    res[i] = Mat.mod(a[i], b, true);
+                }
+            } else if (Type.isNumber(a) && Type.isNumber(b)) {
+                res = Mat.mod(a, b, true);
+            } else {
+                this._error('Operation * not defined on operands ' + typeof a + ' and ' + typeof b);
+            }
+
+            return res;
         },
 
         /**
