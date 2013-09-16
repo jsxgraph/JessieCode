@@ -1671,6 +1671,8 @@ define([
                 }
             } else if (Type.isNumber(a) && Type.isNumber(b)) {
                 res = a + b;
+            } else if (Type.isString(a) || Type.isString(b)) {
+                res = a.toString() + b.toString();
             } else {
                 this._error('Operation + not defined on operands ' + typeof a + ' and ' + typeof b);
             }

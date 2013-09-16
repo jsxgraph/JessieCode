@@ -38,14 +38,18 @@ TestCase("Arithmetic", {
     },
 
     testAdd: function () {
-        expectAsserts(5);
+        expectAsserts(7);
 
         try {
             this.jc.parse(
                 'a = +1;'+
                 'b = 1+1;'+
 
-                'c = [1, 2] + [3, 4];');
+                'c = [1, 2] + [3, 4];'+
+                's = \'hello\';' +
+                'r = s + \' world\';' +
+                't = s + b;'
+            );
         } catch (e) {
             console.log(e);
         }
@@ -55,6 +59,8 @@ TestCase("Arithmetic", {
         assertEquals('vector add returns array', 2, this.jc.scope.locals.c.length);
         assertEquals('vector add result 0', 4, this.jc.scope.locals.c[0]);
         assertEquals('vector add result 1', 6, this.jc.scope.locals.c[1]);
+        assertEquals('string/string add', 'hello world', this.jc.scope.locals.r);
+        assertEquals('string/number add', 'hello2', this.jc.scope.locals.t);
     },
 
     testSub: function () {
