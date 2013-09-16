@@ -58,6 +58,27 @@ TestCase("Control", {
         assertEquals('else if', 2, this.jc.scope.locals.c);
     },
 
+    testDanglingElse: function () {
+        expectAsserts(1);
+
+        try {
+            this.jc.parse(
+                'e = 1;'+
+
+                'if (true) '+
+                '  if (false) '+
+                '    e = 0;'+
+                '  else' +
+                '    e = 2;'+
+
+                '');
+        } catch (e) {
+            console.log(e);
+        }
+
+        assertEquals('dangling else', 2, this.jc.scope.locals.e);
+    },
+
     testFor: function () {
         expectAsserts(1);
 
