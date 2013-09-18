@@ -64,12 +64,14 @@ TestCase("Arithmetic", {
     },
 
     testSub: function () {
-        expectAsserts(5);
+        expectAsserts(7);
 
         try {
             this.jc.parse(
                 'a = -1;'+
-                'b = 1-1;'+
+                'b = 1-1;' +
+                'd = 1--1;' +
+                'e = 1---1;'+
 
                 'c = [3, 4] - [1, 2];');
 
@@ -82,6 +84,8 @@ TestCase("Arithmetic", {
         assertEquals('vector sub returns array', 2, this.jc.scope.locals.c.length);
         assertEquals('vector sub result 0', 2, this.jc.scope.locals.c[0]);
         assertEquals('vector sub result 1', 2, this.jc.scope.locals.c[1]);
+        assertEquals('double minus result', 2, this.jc.scope.locals.d);
+        assertEquals('double minus result', 0, this.jc.scope.locals.e);
     },
 
     testMul: function () {
@@ -202,6 +206,18 @@ TestCase("Arithmetic", {
         assertEquals('caged add', 27, this.jc.scope.locals.a);
         assertEquals('change precedence of pow', 4096, this.jc.scope.locals.b);
         assertEquals('pow with neg base', -8, this.jc.scope.locals.c);
+    },
+
+    testUnaryMinus: function () {
+        expectAsserts(1);
+
+        try {
+            this.jc.parse('y = -2^4;');
+        } catch (e) {
+            console.log(e);
+        }
+
+        assertEquals('unary minus test -x^n', -16, this.jc.scope.locals.y);
     }
 
 });

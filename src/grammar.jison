@@ -242,19 +242,19 @@ AdditiveExpression
     ;
 
 MultiplicativeExpression
-    : ExponentExpression                                                    { $$ = $1; }
-    | MultiplicativeExpression "*" ExponentExpression                       { $$ = AST.createNode(lc(@1), 'node_op', 'op_mul', $1, $3); $$.isMath = true; }
-    | MultiplicativeExpression "/" ExponentExpression                       { $$ = AST.createNode(lc(@1), 'node_op', 'op_div', $1, $3); $$.isMath = true; }
-    | MultiplicativeExpression "%" ExponentExpression                       { $$ = AST.createNode(lc(@1), 'node_op', 'op_mod', $1, $3); $$.isMath = true; }
+    : UnaryExpression                                                       { $$ = $1; }
+    | MultiplicativeExpression "*" UnaryExpression                          { $$ = AST.createNode(lc(@1), 'node_op', 'op_mul', $1, $3); $$.isMath = true; }
+    | MultiplicativeExpression "/" UnaryExpression                          { $$ = AST.createNode(lc(@1), 'node_op', 'op_div', $1, $3); $$.isMath = true; }
+    | MultiplicativeExpression "%" UnaryExpression                          { $$ = AST.createNode(lc(@1), 'node_op', 'op_mod', $1, $3); $$.isMath = true; }
     ;
 
 ExponentExpression
-    : UnaryExpression                                                       { $$ = $1; }
-    | UnaryExpression "^" ExponentExpression                                { $$ = AST.createNode(lc(@1), 'node_op', 'op_exp', $1, $3); $$.isMath = true; }
+    : LeftHandSideExpression                                                { $$ = $1; }
+    | LeftHandSideExpression "^" UnaryExpression                            { $$ = AST.createNode(lc(@1), 'node_op', 'op_exp', $1, $3); $$.isMath = true; }
     ;
 
 UnaryExpression
-    : LeftHandSideExpression                                                { $$ = $1; }
+    : ExponentExpression                                                    { $$ = $1; }
     | "!" UnaryExpression                                                   { $$ = AST.createNode(lc(@1), 'node_op', 'op_not', $2); $$.isMath = false; }
     | "+" UnaryExpression                                                   { $$ = $2; }
     | "-" UnaryExpression                                                   { $$ = AST.createNode(lc(@1), 'node_op', 'op_neg', $2); $$.isMath = true; }
