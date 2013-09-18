@@ -158,13 +158,16 @@ TestCase("Arithmetic", {
     },
 
     testPow: function () {
-        expectAsserts(3);
+        expectAsserts(5);
 
         try {
             this.jc.parse('\
                 a = 2^3;   \
                 b = -2^3;  \
                 c = 2^-3;  \
+                d = 2^3^2; \
+                e = -2^2;\
+                2^3;\
             ');
         } catch (e) {
             console.log(e);
@@ -173,6 +176,8 @@ TestCase("Arithmetic", {
         assertEquals('pow', 8, this.jc.scope.locals.a);
         assertEquals('neg pow with base', -8, this.jc.scope.locals.b);
         assertEquals('pow with neg exp', 1/8, this.jc.scope.locals.c);
+        assertEquals('pow associativity', 512, this.jc.scope.locals.d);
+        assertEquals('pow -2^2', -4, this.jc.scope.locals.e);
     },
 
     testPrecedence: function () {
