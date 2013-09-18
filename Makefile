@@ -54,7 +54,7 @@ parser: $(GRAMMAR)
 test-server:
 	$(JSTESTDRIVER) --port $(JSTESTPORT)
 
-test:
+test: jsxgraph
 	$(JSTESTDRIVER) $(JSTESTSERVER) $(JSTESTFLAGS) --basePath ./ --config test/jsTestDriver.conf
 
 jsxgraph: deploy
