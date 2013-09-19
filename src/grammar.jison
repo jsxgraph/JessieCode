@@ -185,7 +185,7 @@
 
 
 %nonassoc '{' '}'
-%nonassic IFNOEELSE
+%nonassoc IFNOEELSE
 %nonassoc 'ELSE'
 
 %start Program
