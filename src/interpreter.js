@@ -1928,6 +1928,12 @@ define([
                     deg: Geometry.trueAngle,
                     factorial: Mat.factorial,
                     trunc: Type.trunc,
+                    ln: Math.log,
+                    log10: Mat.log10,
+                    lg: Mat.log10,
+                    log2: Mat.log2,
+                    lb: Mat.log2,
+                    ld: Mat.log2,
                     IfThen: that.ifthen,
                     'import': that.importModule,
                     'use': that.use,
@@ -1955,6 +1961,12 @@ define([
             builtIn.deg.src = 'JXG.Math.Geometry.trueAngle';
             builtIn.factorial.src = 'JXG.Math.factorial';
             builtIn.trunc.src = 'JXG.trunc';
+            builtIn.ln.src = 'Math.log';
+            builtIn.log10.src = 'JXG.Math.log10';
+            builtIn.lg.src = 'JXG.Math.log10';
+            builtIn.log2.src = 'JXG.Math.log2';
+            builtIn.lb.src = 'JXG.Math.log2';
+            builtIn.ld.src = 'JXG.Math.log2';
             builtIn['import'].src = '$jc$.importModule';
             builtIn.use.src = '$jc$.use';
             builtIn.remove.src = '$jc$.del';
