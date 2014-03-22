@@ -20,13 +20,15 @@
 
             n.line = pos[0];
             n.col = pos[1];
+            n.eline = pos[2];
+            n.ecol = pos[3];
 
             return n;
         }
     };
 
     var lc = function (lc1) {
-        return [lc1.first_line, lc1.first_column];
+        return [lc1.first_line, lc1.first_column, lc1.last_line, lc1.last_column];
     };
 
 %}
