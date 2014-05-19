@@ -1179,11 +1179,15 @@ define([
                     // interpret ALL the parameters
                     for (i = 0; i < list.length; i++) {
                         parents[i] = this.execute(list[i]);
-                        this.dpstack.push({
+                        this.dpstack[this.pscope].push({
                             line: node.children[1][i].line,
-                            col: node.children[1][i].col
+                            // SketchBin currently works only if the last column of the
+                            // parent position is taken. This is due to how I patched JS/CC
+                            // to count the lines and columns. So, ecol will do for now
+                            col: node.children[1][i].ecol
                         });
                     }
+
                     // check for the function in the variable table
                     if (typeof fun === 'function' && !fun.creator) {
                         ret = fun.apply(sc, parents);
@@ -1194,7 +1198,7 @@ define([
                         try {
                             ret = fun(parents, attr);
                             ret.jcLineStart = e;
-                            ret.jcLineEnd = node.line;
+                            ret.jcLineEnd = node.eline;
 
                             for (i = e; i <= node.line; i++) {
                                 this.lineToElement[i] = ret;
