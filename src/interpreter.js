@@ -322,7 +322,6 @@ define([
                 this._warn('"' + vname + '" is a predefined value.');
             }
 
-            //this.sstack[this.scope][vname] = value;
             this.scope.locals[vname] = value;
         },
 
@@ -399,7 +398,7 @@ define([
          * the <tt>vname</tt> in Math or the element list.
          */
         getvar: function (vname, local) {
-            var s, undef;
+            var s;
 
             local = Type.def(local, false);
 
@@ -427,8 +426,6 @@ define([
                     return s;
                 }
             }
-
-            return undef;
         },
 
         /**
@@ -446,8 +443,6 @@ define([
 
                 s = s.previous;
             }
-
-            return;
         },
 
         /**
@@ -470,7 +465,6 @@ define([
 
             s = this.isLocalVariable(vname);
             if (s !== null && !withProps) {
-                //return '$jc$.sstack[' + s + '][\'' + vname + '\']';
                 return '$jc$.resolve(\'' + vname + '\')';
             }
 
@@ -545,8 +539,6 @@ define([
          */
         defineFunction: function (node) {
             var fun, i,
-                bo = '',
-                bc = '',
                 list = node.children[0],
                 scope = this.pushScope(list);
 
@@ -561,10 +553,8 @@ define([
 
                 this.replaceNames(node.children[1]);
 
-                fun = (function ($jc$, list) {
+                fun = (function ($jc$) {
                     var fun,
-                        p = list.join(', '),
-                        //str = 'var f = function (' + p + ') {\nvar $oldscope$ = $jc$.scope;\n$jc$.scope = $jc$.scopes[' + scope.id + '];\nvar r = (function () ' + bo + $jc$.compile(node.children[1], true) + bc + ')();\n$jc$.scope = $oldscope$;\nreturn r;\n}; f;';
                         str = 'var f = ' + $jc$.functionCodeJS(node) + '; f;';
 
                     try {
@@ -580,7 +570,7 @@ define([
                         $jc$._warn('error compiling function\n\n' + str + '\n\n' + e.toString());
                         return function () {};
                     }
-                }(this, list));
+                }(this));
 
                 // clean up scope
                 this.popScope();
@@ -649,7 +639,7 @@ define([
 
                 what = what.toLowerCase();
 
-                // be advised, we've spotted three cases in your AO:
+                // we have to deal with three cases here:
                 // o.isDraggable && typeof value === number:
                 //   stay draggable, just set the new coords (e.g. via moveTo)
                 // o.isDraggable && typeof value === function:
@@ -755,7 +745,7 @@ define([
          * @param {Boolean} [geonext=false] Geonext compatibility mode.
          */
         snippet: function (code, funwrap, varname, geonext) {
-            var c, result;
+            var c;
 
             funwrap = Type.def(funwrap, true);
             varname = Type.def(varname, '');
@@ -961,7 +951,7 @@ define([
         },
 
         getLHSCompiler: function (node, js) {
-            var res, t;
+            var res;
 
             if (node.type === 'node_var') {
                 res = node.value;
@@ -992,10 +982,7 @@ define([
             var ret, v, i, e, l, undef, list, ilist,
                 parents = [],
                 // exec fun
-                fun, attr, sc,
-                // op_use
-                b,
-                found = false;
+                fun, attr, sc;
 
             ret = 0;
 
