@@ -665,7 +665,7 @@ define([
                 }
 
                 this.board.update();
-            } else if (o.elementClass === Const.OBJECT_CLASS && (what === 'X' || what === 'Y')) {
+            } else if (o.elementClass === Const.OBJECT_CLASS_TEXT && (what === 'X' || what === 'Y')) {
                 if (typeof value === 'number') {
                     o[what] = function () { return value; };
                 } else if (typeof value === 'function') {
@@ -685,7 +685,7 @@ define([
                     o[o.methodMap[what]] = value;
                 } else {
                     par[what] = value;
-                    o.setProperty(par);
+                    o.setAttribute(par);
                 }
             } else {
                 o[what] = value;
