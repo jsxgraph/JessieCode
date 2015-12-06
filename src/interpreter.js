@@ -972,7 +972,7 @@ define([
                 ];
             } else if (node.type === 'node_op' && node.value === 'op_extvalue') {
                 res = [
-                    this.compile(node.children[0]),
+                    this.compile(node.children[0], js),
                     node.children[1].type === 'node_const' ? node.children[1].value : this.compile(node.children[1], js)
                 ];
             } else {
@@ -1354,7 +1354,7 @@ define([
                 case 'op_assign':
                     //e = this.compile(node.children[0], js);
                     if (js) {
-                        e = this.getLHSCompiler(node.children[0]);
+                        e = this.getLHSCompiler(node.children[0], js);
                         if (Type.isArray(e)) {
                             ret = '$jc$.setProp(' + e[0] + ', ' + e[1] + ', ' + this.compile(node.children[1], js) + ');\n';
                         } else {
@@ -1410,7 +1410,7 @@ define([
                 case 'op_array':
                     list = [];
                     for (i = 0; i < node.children[0].length; i++) {
-                        list.push(this.compile(node.children[0][i]), js);
+                        list.push(this.compile(node.children[0][i], js));
                     }
                     ret = '[' + list.join(', ') + ']';
                     break;
