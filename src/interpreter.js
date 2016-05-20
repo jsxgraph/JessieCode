@@ -1,7 +1,7 @@
 /*
  JessieCode Interpreter and Compiler
 
-    Copyright 2011-2013
+    Copyright 2011-2016
         Michael Gerhaeuser,
         Alfred Wassermann
 
@@ -52,6 +52,22 @@ define([
 
     "use strict";
 
+    // IE 6-8 compatibility
+    if (!Object.create) {
+        Object.create = function(o, properties) {
+            if (typeof o !== 'object' && typeof o !== 'function') throw new TypeError('Object prototype may only be an Object: ' + o);
+            else if (o === null) throw new Error("This browser's implementation of Object.create is a shim and doesn't support 'null' as the first argument.");
+
+            if (typeof properties != 'undefined') throw new Error("This browser's implementation of Object.create is a shim and doesn't support a second argument.");
+
+            function F() {}
+
+            F.prototype = o;
+
+            return new F();
+        };
+    }
+
     var priv = {
             modules: {
                 'math': Mat,
@@ -62,7 +78,7 @@ define([
         };
 
     /**
-     * A JessieCode object provides an interfacce to the parser and stores all variables and objects used within a JessieCode script.
+     * A JessieCode object provides an interface to the parser and stores all variables and objects used within a JessieCode script.
      * The optional argument <tt>code</tt> is interpreted after initializing. To evaluate more code after initializing a JessieCode instance
      * please use {@link JXG.JessieCode#parse}. For code snippets like single expressions use {@link JXG.JessieCode#snippet}.
      * @constructor
@@ -727,6 +743,7 @@ define([
                 code = cleaned.join('\n');
                 ast = parser.parse(code);
                 result = this.execute(ast);
+            } catch (e) {  // catch is mandatory in old IEs
             } finally {
                 // make sure the original text method is back in place
                 if (Text) {
