@@ -1823,6 +1823,10 @@ define([
             return Math.pow(a, b);
         },
 
+        derivative: function(f) {
+            console.log(f.node);
+        },
+
         /**
          * Implementation of the ?: operator
          * @param {Boolean} cond Condition
@@ -1951,7 +1955,8 @@ define([
                     'remove': that.del,
                     '$': that.getElementById,
                     '$board': that.board,
-                    '$log': that.log
+                    '$log': that.log,
+                    D: that.derivative
                 };
 
             // special scopes for factorial, deg, and rad
