@@ -743,7 +743,7 @@ define([
                 code = cleaned.join('\n');
                 ast = parser.parse(code);
                 console.log('After parse', ast);
-                ast = this.handleDerivative(ast, ast);
+                ast = this.handleDerivatives(ast, ast);
                 console.log('After derivative');
                 result = this.execute(ast);
             } catch (e) {  // catch is mandatory in old IEs
@@ -1614,9 +1614,9 @@ define([
         findMapNode: function(mapname, node) {
             var i, len, ret;
 
-            console.log("FINDMAP", node);
+            //console.log("FINDMAP", node);
             if (node.value === 'op_assign' && node.children[0].value === mapname) {
-                console.log(node.children[0].value, node.children[1]);
+                //console.log(node.children[0].value, node.children[1]);
                 return node.children[1];
             } else if (node.children) {
                 len = node.children.length;
@@ -1630,15 +1630,129 @@ define([
             return null;
         },
 
-        derivative: function(node, variable, order) {
-            return node;
+        derivative: function(node, variable, order, ast) {
+            var i, len, newNode;
+
+/*
+            if (!node.isMath) {
+                console.log("isMath is false");
+                return node;
+            }
+*/
+
+            switch (node.type) {
+            case 'node_op':
+                switch (node.value) {
+                case 'op_map':
+                    newNode = this.createNode('node_op',
+                                'op_map',
+                                node.children[0],
+                                this.derivative(node.children[1], variable, order, ast)
+                            );
+                    break;
+                    
+                case 'op_execfun':
+                    // f'(g(x))g'(x)
+                    newNode = this.createNode('node_op',
+                                'op_mul',
+                                this.createNode('node_op', 'op_execfun',
+                                    this.derivative(node.children[0], variable, order, ast),
+                                    node.children[1]
+                                ),
+                                this.derivative(node.children[1], variable, order, ast)
+                            );
+                    break;
+
+                case 'op_div':
+                    // (f'g − g'f )/(g*g)
+                    newNode = this.createNode('node_op',
+                                'op_div',
+                                this.createNode('node_op', 'op_sub',
+                                    this.createNode('node_op', 'op_mul',
+                                        this.derivative(node.children[0], variable, order, ast),
+                                        node.children[1]
+                                    ),
+                                    this.createNode('node_op', 'op_mul',
+                                        node.children[0],
+                                        this.derivative(node.children[1], variable, order, ast)
+                                    )
+                                ),
+                                this.createNode('node_op', 'op_mul',
+                                    node.children[0],
+                                    node.children[1]
+                                )
+                            );
+                    break;
+
+                case 'op_mul':
+                    // fg' + f'g
+                    newNode = this.createNode('node_op',
+                                'op_add',
+                                this.createNode('node_op', 'op_mul',
+                                    node.children[0],
+                                    this.derivative(node.children[1], variable, order, ast)),
+                                this.createNode('node_op', 'op_mul',
+                                    this.derivative(node.children[0], variable, order, ast),
+                                    node.children[1])
+                            );
+                    break;
+
+                case 'op_neg':
+                    newNode = this.createNode('node_op',
+                                'op_neg',
+                                this.derivative(node.children[0], variable, order, ast)
+                            );
+                    break;
+                    
+                case 'op_add':
+                case 'op_sub':
+                    newNode = this.createNode('node_op',
+                                node.value,
+                                this.derivative(node.children[0], variable, order, ast),
+                                this.derivative(node.children[1], variable, order, ast)
+                            );
+                    break;
+
+                case 'op_exp':
+                    break;
+                }
+                break;
+
+            case 'node_var':
+                console.log('node_var', node);
+                if (node.value === variable) {
+                    newNode = this.createNode('node_const', 1.0);
+                } else {
+                    switch (node.value) {
+                    case 'sin':
+                        newNode = this.createNode('node_var', 'cos');
+                        break;
+                    case 'cos':
+                        newNode = this.createNode('node_op', 'op_neg',
+                                this.createNode('node_var', 'sin')
+                            );
+                        break;
+                    }
+                }
+                break;
+            case 'node_const':
+                //console.log("const", node);
+                newNode = this.createNode('node_const', 0.0);
+                break;
+            case 'node_const_bool':
+                break;
+            case 'node_str':
+                break;
+            }
+
+            return newNode;
         },
 
-        handleDerivative: function(node, ast) {
-            console.log("DERIVATIVE");
+        handleDerivatives: function(node, ast) {
+            //console.log("DERIVATIVE");
             //console.log(node);
 
-            var len, i, mapNode;
+            var len, i, mapNode, ret;
 
             ret = 0;
             if (!node) {
@@ -1651,34 +1765,35 @@ define([
             switch (node.type) {
             case 'node_op':
                 switch (node.value) {
-                case 'op_execfun':
-                    if (node.children[0] && node.children[0].value === 'D') {
+                    case 'op_execfun':
+                        if (node.children[0] && node.children[0].value === 'D') {
 
-                        console.log("FOUND derivative", node.children[1][0].value);
-                        //console.log("AST", ast);
-                        mapNode = this.findMapNode(node.children[1][0].value, ast);
-                        console.log('mapNode', mapNode);
+                            console.log("FOUND derivative", node.children[1][0].value);
+                            //console.log("AST", ast);
+                            mapNode = this.findMapNode(node.children[1][0].value, ast);
+                            console.log("FUNC", mapNode);
 
-                        node = this.derivative(mapNode, 'x', 1);
+                            node = this.derivative(mapNode, 'x', 1, ast);
+                            console.log("RESULT", node);
+                        }
+                        //break;
+
+                    default:
+                         len = node.children.length;
+                         for (i = 0; i < len; ++i) {
+                             if (node.children[i]) {
+                                 node.children[i] = this.handleDerivatives(node.children[i], ast);
+                             }
+                         }
+                         break;
                     }
                     break;
-
-                default:
-                    console.log("default", node);
-                    len = node.children.length;
-                    for (i = 0; i < len; ++i) {
-                        if (node.children[i]) {
-                            node.children[i] = this.handleDerivative(node.children[i], ast);
-                        }
-                    }
-                }
-                break;
 
             case 'node_var':
             case 'node_const':
             case 'node_const_bool':
             case 'node_str':
-                return false;
+                //return false;
                 break;
             }
 

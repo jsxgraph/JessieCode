@@ -20,12 +20,13 @@
 <div id="jxgbox" class="jxgbox" style="width: 500px; height: 500px; float:left"></div>
 
 <textarea id="code" cols="110" rows="31">
-    e = 3 * (sin(2) + cos(1));
-    f = map (x) -> 3 * (sin(x) + cos(x));
-    // doesn't work
-    //g = map (x) -> 3 * (sin(x) + cos(x)) > 3;
-
-    y = f(4);
+//e = 3 * (sin(2) + cos(1));
+//f = map (x) -> 3 * (sin(x) + cos(x));
+// doesn't work
+//g = map (x) -> 3 * (sin(x) + cos(x)) > 3;
+f = map (x) -> 3 + x;
+h = D(f, x);
+y = f(4);
 </textarea>
 
 <script type="text/javascript">
