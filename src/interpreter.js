@@ -1635,7 +1635,7 @@ define([
         },
 
         handleDerivative: function(node, ast) {
-            //console.log("DERIVATIVE");
+            console.log("DERIVATIVE");
             //console.log(node);
 
             var len, i, mapNode;
@@ -1664,6 +1664,7 @@ define([
                     break;
 
                 default:
+                    console.log("default", node);
                     len = node.children.length;
                     for (i = 0; i < len; ++i) {
                         if (node.children[i]) {
@@ -1677,6 +1678,7 @@ define([
             case 'node_const':
             case 'node_const_bool':
             case 'node_str':
+                return false;
                 break;
             }
 
