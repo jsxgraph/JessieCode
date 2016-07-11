@@ -37,7 +37,7 @@
 /*  Grammar definition of JessieCode                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/* Copyright 2011-2014                                               */
+/* Copyright 2011-2016                                               */
 /*   Michael Gerhaeuser,                                             */
 /*   Alfred Wassermann                                               */
 /*                                                                   */
@@ -417,7 +417,6 @@ FunctionExpression
     | "FUNCTION" "(" ParameterDefinitionList ")" StatementBlock             { $$ = AST.createNode(lc(@1), 'node_op', 'op_function', $3, $5); $$.isMath = false; }
     ;
 
-
 MapExpression
     : "MAP" "(" ParameterDefinitionList ")" "->" Expression                 { $$ = AST.createNode(lc(@1), 'node_op', 'op_map', $3, $6); }
     ;
@@ -429,4 +428,3 @@ ParameterDefinitionList
 
 /* previously the noassign node was expressions without assignment */
 /* { $$ = AST.createNode(lc(@1), 'node_op', 'op_noassign', $1); } */
-
