@@ -743,7 +743,7 @@ define([
                 code = cleaned.join('\n');
                 ast = parser.parse(code);
                 console.log('After parse', ast);
-                ast = this.derivative(ast, ast);
+                ast = this.handleDerivative(ast, ast);
                 console.log('After derivative');
                 result = this.execute(ast);
             } catch (e) {  // catch is mandatory in old IEs
@@ -1611,7 +1611,7 @@ define([
             return ret;
         },
 
-        findMap: function(mapname, node) {
+        findMapNode: function(mapname, node) {
             var i, len, ret;
 
             console.log("FINDMAP", node);
@@ -1621,7 +1621,7 @@ define([
             } else if (node.children) {
                 len = node.children.length;
                 for (i = 0; i < len; ++i) {
-                    ret = this.findMap(mapname, node.children[i]);
+                    ret = this.findMapNode(mapname, node.children[i]);
                     if (ret !== null) {
                         return ret;
                     }
@@ -1630,14 +1630,15 @@ define([
             return null;
         },
 
-        derivative: function(node, ast) {
+        derivative: function(node, variable, order) {
+            return node;
+        },
+
+        handleDerivative: function(node, ast) {
             //console.log("DERIVATIVE");
             //console.log(node);
 
-            var len, i, map,
-                ret, v, e, l, undef, list, ilist,
-                parents = [],
-                fun, attr, sc;
+            var len, i, mapNode;
 
             ret = 0;
             if (!node) {
@@ -1650,82 +1651,32 @@ define([
             switch (node.type) {
             case 'node_op':
                 switch (node.value) {
-                    case 'op_none':
-                    case 'op_assign':
-                    case 'op_proplst':
-                    case 'op_if':
-                    case 'op_conditional':
-                    case 'op_if_else':
-                    case 'op_while':
-                    case 'op_do':
-                    case 'op_for':
-                    case 'op_proplst_val':
-                    case 'op_prop':
-                    case 'op_array':
-                    case 'op_extvalue':
-                    case 'op_return':
-                    case 'op_function':
-                    case 'op_property':
-                    case 'op_use':
-                    case 'op_delete':
-                    case 'op_equ':
-                    case 'op_neq':
-                    case 'op_approx':
-                    case 'op_grt':
-                    case 'op_lot':
-                    case 'op_gre':
-                    case 'op_loe':
-                    case 'op_or':
-                    case 'op_and':
-                    case 'op_not':
+                case 'op_execfun':
+                    if (node.children[0] && node.children[0].value === 'D') {
 
-                    case 'op_map':
-                    case 'op_add':
-                    case 'op_sub':
-                    case 'op_div':
-                    case 'op_mod':
-                    case 'op_mul':
-                    case 'op_exp':
-                    case 'op_neg':
-                    case 'op_emptyobject':
-                        len = node.children.length;
-                        for (i = 0; i < len; ++i) {
-                            if (node.children[i]) {
-                                node.children[i] = this.derivative(node.children[i], ast);
-                            }
-                        }
-                        break;
+                        console.log("FOUND derivative", node.children[1][0].value);
+                        //console.log("AST", ast);
+                        mapNode = this.findMapNode(node.children[1][0].value, ast);
+                        console.log('mapNode', mapNode);
 
-                    case 'op_execfun':
-                        if (node.children[0] && node.children[0].value === 'D') {
-
-                            console.log("FOUND derivative", node.children[1][0].value);
-                            console.log("AST", ast);
-                            map = this.findMap(node.children[1][0].value, ast);
-                            console.log(map);
-                        }
-                        break;
-
-
+                        node = this.derivative(mapNode, 'x', 1);
                     }
                     break;
 
+                default:
+                    len = node.children.length;
+                    for (i = 0; i < len; ++i) {
+                        if (node.children[i]) {
+                            node.children[i] = this.handleDerivative(node.children[i], ast);
+                        }
+                    }
+                }
+                break;
+
             case 'node_var':
-                break;
-
             case 'node_const':
-                //ret = Number(node.value);
-                break;
-
             case 'node_const_bool':
-                //ret = node.value;
-                break;
-
             case 'node_str':
-                //ret = node.value.replace(/\\'/, "'").replace(/\\"/, '"').replace(/\\\\/, '\\');
-                /*jslint regexp:true*/
-                //ret = node.value.replace(/\\(.)/, '$1');
-                /*jslint regexp:false*/
                 break;
             }
 
