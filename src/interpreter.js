@@ -1611,17 +1611,17 @@ define([
             return ret;
         },
 
-        findMap: function(mapname, node) {
+        findMapNode: function(mapname, node) {
             var i, len, ret;
 
-            console.log("FINDMAP", node);
+            //console.log("FINDMAP", node);
             if (node.value === 'op_assign' && node.children[0].value === mapname) {
-                console.log(node.children[0].value, node.children[1]);
+                //console.log(node.children[0].value, node.children[1]);
                 return node.children[1];
             } else if (node.children) {
                 len = node.children.length;
                 for (i = 0; i < len; ++i) {
-                    ret = this.findMap(mapname, node.children[i]);
+                    ret = this.findMapNode(mapname, node.children[i]);
                     if (ret !== null) {
                         return ret;
                     }
@@ -1630,7 +1630,65 @@ define([
             return null;
         },
 
-        derivative: function(node, variable, order) {
+        derivative: function(node, variable, order, ast) {
+            var i, len;
+
+/*
+            if (!node.isMath) {
+                console.log("isMath is false");
+                return node;
+            }
+*/
+
+            switch (node.type) {
+            case 'node_op':
+                switch (node.value) {
+                case 'op_map':
+                case 'op_execfun':
+                case 'op_div':
+                case 'op_mul':
+                case 'op_exp':
+                    len = node.children.length;
+                    for (i = 0; i < len; ++i) {
+                        if (node.children[i]) {
+                            node.children[i] = this.derivative(node.children[i], variable, order, ast);
+                        }
+                    }
+                    break;
+
+                case 'op_neg':
+                case 'op_add':
+                case 'op_sub':
+                    len = node.children.length;
+                    for (i = 0; i < len; ++i) {
+                        if (node.children[i]) {
+                            node.children[i] = this.derivative(node.children[i], variable, order, ast);
+                        }
+                    }
+
+                    break;
+                }
+                break;
+
+            case 'node_var':
+                console.log(node);
+                if (node.value === variable) {
+                    node.type = 'node_const';
+                    node.value = 1.0;
+                } else {
+                    //node.value = 0.0;
+                }
+                break;
+            case 'node_const':
+                //console.log("const", node);
+                node.value = 0.0;
+                break;
+            case 'node_const_bool':
+                break;
+            case 'node_str':
+                break;
+            }
+
             return node;
         },
 
@@ -1638,10 +1696,7 @@ define([
             //console.log("DERIVATIVE");
             //console.log(node);
 
-            var len, i, mapNode,
-                ret, v, e, l, undef, list, ilist,
-                parents = [],
-                fun, attr, sc;
+            var len, i, mapNode, mapNode2, ret;
 
             ret = 0;
             if (!node) {
@@ -1659,9 +1714,12 @@ define([
 
                             console.log("FOUND derivative", node.children[1][0].value);
                             //console.log("AST", ast);
-                            mapNode = this.findMap(node.children[1][0].value, ast);
-                            console.log(mapNode);
-                            node = this.derivative(mapNode, 'x', 1);
+                            mapNode = this.findMapNode(node.children[1][0].value, ast);
+                            //console.log(mapNode);
+                            mapNode2 = Type.deepCopy(mapNode);
+                            //console.log(mapNode2);
+
+                            node = this.derivative(mapNode2, 'x', 1, ast);
                         }
                         //break;
 
