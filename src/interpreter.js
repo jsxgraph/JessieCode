@@ -743,7 +743,7 @@ define([
                 code = cleaned.join('\n');
                 ast = parser.parse(code);
                 ast = this.handleDerivatives(ast, ast);
-                //console.log(this.compile(ast));
+                console.log(this.compile(ast));
                 result = this.execute(ast);
             } catch (e) {  // catch is mandatory in old IEs
             } finally {
@@ -1788,7 +1788,7 @@ define([
                                     )
                                 ),
                                 this.createNode('node_op', 'op_mul',
-                                    node.children[0],
+                                    node.children[1],
                                     node.children[1]
                                 )
                             );
