@@ -745,6 +745,7 @@ define([
                 console.log('After parse', ast);
                 ast = this.handleDerivatives(ast, ast);
                 console.log('After derivative');
+                console.log(this.compile(ast));
                 result = this.execute(ast);
             } catch (e) {  // catch is mandatory in old IEs
             } finally {
@@ -1374,7 +1375,6 @@ define([
                         e = this.compile(node.children[0]);
                         ret = e + ' = ' + this.compile(node.children[1], js) + ';\n';
                     }
-
                     break;
                 case 'op_if':
                     ret = ' if (' + this.compile(node.children[0], js) + ') ' + this.compile(node.children[1], js);
@@ -1438,6 +1438,7 @@ define([
                     } else {
                         ret = 'map (' + list.join(', ') + ') -> ' + this.compile(node.children[1], js);
                     }
+
                     break;
                 case 'op_function':
                     list = node.children[0];
@@ -1629,12 +1630,32 @@ define([
             return null;
         },
 
+        setMath: function(node) {
+            var i, len;
+
+            if ((node.type == 'node_op' && (
+                node.value == 'op_add' || node.value == 'op_sub' ||
+                node.value == 'op_mul' || node.value == 'op_div' ||
+                node.value == 'op_neg' || node.value == 'op_execfun' ||
+                node.value == 'op_exp')) ||
+                node.type == 'node_var' || node.type == 'node_const') {
+
+                node.isMath = true;
+            }
+            if (node.children) {
+                len = node.children.length;
+                for (i = 0; i < len; ++i) {
+                    this.setMath(node.children[i]);
+                }
+            }
+        },
+
         diffElementary: function(node) {
             var fun = node.children[0].value,
                 arg = node.children[1],
                 newNode;
-            
-            
+
+
             switch (fun) {
             case 'sqrt':
                 newNode = this.createNode('node_op', 'op_div',
@@ -1661,7 +1682,7 @@ define([
                             )
                         );
                 break;
-                
+
             case 'tan':
                 newNode = this.createNode('node_op', 'op_div',
                             this.createNode('node_const', 1.0),
@@ -1674,7 +1695,7 @@ define([
                             )
                         );
                 break;
-                
+
             case 'exp':
                 newNode = this.createNode(node.type, node.value,
                             node.children[0],
@@ -1690,11 +1711,11 @@ define([
                             arg[0]
                         );
                 break;
-                
+
             case 'log2':
             case 'lb':
             case 'ld':
-                newNode = this.createNode('node_op', 'op-mul',
+                newNode = this.createNode('node_op', 'op_mul',
                             this.createNode('node_op', 'op_div',
                                 this.createNode('node_const', 1.0),
                                 // Attention: single variable mode
@@ -1703,10 +1724,10 @@ define([
                             this.createNode('node_const', 1.4426950408889634)  // 1/log(2)
                         );
                 break;
-            
+
             case 'log10':
             case 'lg':
-                newNode = this.createNode('node_op', 'op-mul',
+                newNode = this.createNode('node_op', 'op_mul',
                             this.createNode('node_op', 'op_div',
                                 this.createNode('node_const', 1.0),
                                 // Attention: single variable mode
@@ -1715,7 +1736,7 @@ define([
                             this.createNode('node_const', 0.43429448190325176)  // 1/log(10)
                         );
                 break;
-                
+
             case 'asin':
             case 'acos':
             case 'atan':
@@ -1729,19 +1750,12 @@ define([
                 console.log('derivative of ' + fun + ' not yet implemented');
                 newNode = this.createNode('node_const', 0.0);
             }
-            
+
             return newNode;
         },
-        
+
         derivative: function(node, variable, order, ast) {
             var i, len, newNode;
-
-/*
-            if (!node.isMath) {
-                console.log("isMath is false");
-                return node;
-            }
-*/
 
             switch (node.type) {
             case 'node_op':
@@ -1752,10 +1766,9 @@ define([
                                 this.derivative(node.children[1], variable, order, ast)
                             );
                     break;
-                    
+
                 case 'op_execfun':
                     // f'(g(x))g'(x)
-                    console.log("EXEC", node.children[1][0]);
                     newNode = this.createNode('node_op', 'op_mul',
                                 this.diffElementary(node),
                                 // Warning: single variable mode
@@ -1800,7 +1813,7 @@ define([
                                 this.derivative(node.children[0], variable, order, ast)
                             );
                     break;
-                    
+
                 case 'op_add':
                 case 'op_sub':
                     newNode = this.createNode('node_op', node.value,
@@ -1859,10 +1872,7 @@ define([
         },
 
         handleDerivatives: function(node, ast) {
-            //console.log("DERIVATIVE");
-            //console.log(node);
-
-            var len, i, mapNode, ret;
+            var len, i, mapNode, ret, node2;
 
             ret = 0;
             if (!node) {
@@ -1878,13 +1888,13 @@ define([
                     case 'op_execfun':
                         if (node.children[0] && node.children[0].value === 'D') {
 
-                            console.log("FOUND derivative", node.children[1][0].value);
-                            //console.log("AST", ast);
                             mapNode = this.findMapNode(node.children[1][0].value, ast);
-                            console.log("FUNC", mapNode);
-
-                            node = this.derivative(mapNode, 'x', 1, ast);
-                            console.log("RESULT", node);
+                            node2 = this.derivative(mapNode, 'x', 1, ast);
+                            this.setMath(node2);
+                            node.type = node2.type;
+                            node.value = node2.value;
+                            node.children[0] = node2.children[0];
+                            node.children[1] = node2.children[1];
                         }
                         //break;
 
@@ -1903,7 +1913,6 @@ define([
             case 'node_const':
             case 'node_const_bool':
             case 'node_str':
-                //return false;
                 break;
             }
 
