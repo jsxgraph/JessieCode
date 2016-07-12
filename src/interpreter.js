@@ -1616,7 +1616,6 @@ define([
 
             //console.log("FINDMAP", node);
             if (node.value === 'op_assign' && node.children[0].value === mapname) {
-                //console.log(node.children[0].value, node.children[1]);
                 return node.children[1];
             } else if (node.children) {
                 len = node.children.length;
@@ -1628,6 +1627,26 @@ define([
                 }
             }
             return null;
+        },
+
+        
+        containsVariable: function(varName, node) {
+            var i, len, ret;
+
+            //console.log("FINDVAR", node);
+            if (node.type === 'node_var' && node.value === varName) {
+                //console.log(node.children[0].value, node.children[1]);
+                return true;
+            } else if (node.children) {
+                len = node.children.length;
+                for (i = 0; i < len; ++i) {
+                    ret = this.containsVariable(varName, node.children[i]);
+                    if (ret !== false) {
+                        return ret;
+                    }
+                }
+            }
+            return false;
         },
 
         derivative: function(node, variable, order, ast) {
@@ -1714,6 +1733,24 @@ define([
                     break;
 
                 case 'op_exp':
+                    console.log("XXX");
+                    console.log(this.containsVariable(variable, node.children[1]));
+                    if (!this.containsVariable(variable, node.children[1])) {
+                        newNode = this.createNode('node_op',
+                                'op_mul',
+                                node.children[1],
+                                this.createNode('node_op', 'op_mul',
+                                    this.derivative(node.children[0], variable, order, ast),
+                                    this.createNode('node_op', 'op_exp',
+                                        node.children[0],
+                                        this.createNode('node_op', 'op_sub',
+                                            node.children[1],
+                                            this.createNode('node_const', 1.0)
+                                        )
+                                    )
+                                )
+                            );
+                    }
                     break;
                 }
                 break;
