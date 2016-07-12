@@ -1655,12 +1655,29 @@ define([
 
 
             switch (fun) {
+            case 'abs':
+                // x / sqrt(x * x)
+                newNode = this.createNode('node_op', 'op_div',
+                        arg[0],
+                        this.createNode('node_op', 'op_execfun',
+                            this.createNode('node_var', 'sqrt'),
+                            [this.createNode('node_op', 'op_mul',
+                                arg[0],
+                                arg[0]
+                            )]
+                        )
+                    );
+                break;
+                
             case 'sqrt':
                 newNode = this.createNode('node_op', 'op_div',
-                        this.createNode('node_const', 0.5),
-                        this.createNode(node.type, node.value,
-                            node.children[0],
-                            node.children[1]
+                        this.createNode('node_const', 1.0),
+                        this.createNode('node_op', 'op_mul',
+                            this.createNode('node_const', 2.0),
+                            this.createNode(node.type, node.value,
+                                node.children[0],
+                                node.children[1]
+                            )
                         )
                     );
                 break;
@@ -1736,15 +1753,134 @@ define([
                 break;
 
             case 'asin':
+                newNode = this.createNode('node_op', 'op_div',
+                            this.createNode('node_const', 1.0),
+                            this.createNode('node_op', 'op_execfun',
+                                this.createNode('node_var', 'sqrt'),
+                                [
+                                    this.createNode('node_op', 'op_sub',
+                                        this.createNode('node_const', 1.0),
+                                        this.createNode('node_op', 'op_mul',
+                                            arg[0],
+                                            arg[0]
+                                        )
+                                    )
+                                ]
+                            )
+                        );
+                break;
+                
             case 'acos':
+                newNode = this.createNode('node_op', 'op_neg',
+                        this.createNode('node_op', 'op_div',
+                            this.createNode('node_const', 1.0),
+                            this.createNode('node_op', 'op_execfun',
+                                this.createNode('node_var', 'sqrt'),
+                                [
+                                    this.createNode('node_op', 'op_sub',
+                                        this.createNode('node_const', 1.0),
+                                        this.createNode('node_op', 'op_mul',
+                                            arg[0],
+                                            arg[0]
+                                        )
+                                    )
+                                ]
+                            )
+                        )
+                    );
+                break;
+                
             case 'atan':
-            case 'atan2':
+                newNode = this.createNode('node_op', 'op_div',
+                            this.createNode('node_const', 1.0),
+                            this.createNode('node_op', 'op_add',
+                                this.createNode('node_const', 1.0),
+                                this.createNode('node_op', 'op_mul',
+                                    arg[0],
+                                    arg[0]
+                                )
+                            )
+                        );
+                break;
+                
+            //case 'atan2':
             case 'sinh':
+                newNode = this.createNode('node_op', 'op_execfun',
+                            this.createNode('node_var', 'cosh'),
+                            [arg[0]]
+                        );
+                break;
+
             case 'cosh':
+                newNode = this.createNode('node_op', 'op_execfun',
+                            this.createNode('node_var', 'sinh'),
+                            [arg[0]]
+                        );
+                break;
+
             case 'tanh':
+                newNode = this.createNode('node_op', 'op_sub',
+                            this.createNode('node_const', 1.0),
+                            this.createNode('node_op', 'op_exp',
+                                this.createNode('node_op', 'op_execfun',
+                                    this.createNode('node_var', 'tanh'),
+                                    [arg[0]]
+                                ),
+                                this.createNode('node_const', 2.0)
+                            )
+                        );
+                break;
+
             case 'asinh':
+                newNode = this.createNode('node_op', 'op_div',
+                            this.createNode('node_const', 1.0),
+                            this.createNode('node_op', 'op_execfun',
+                                this.createNode('node_var', 'sqrt'),
+                                [
+                                    this.createNode('node_op', 'op_add',
+                                        this.createNode('node_op', 'op_mul',
+                                            arg[0],
+                                            arg[0]
+                                        ),
+                                        this.createNode('node_const', 1.0)
+                                    )
+                                ]
+                            )
+                        );
+                break;
+                
             case 'acosh':
+                newNode = this.createNode('node_op', 'op_div',
+                            this.createNode('node_const', 1.0),
+                            this.createNode('node_op', 'op_execfun',
+                                this.createNode('node_var', 'sqrt'),
+                                [
+                                    this.createNode('node_op', 'op_sub',
+                                        this.createNode('node_op', 'op_mul',
+                                            arg[0],
+                                            arg[0]
+                                        ),
+                                        this.createNode('node_const', 1.0)
+                                    )
+                                ]
+                            )
+                        );
+                break;
+
             case 'atanh':
+                newNode = this.createNode('node_op', 'op_div',
+                            this.createNode('node_const', 1.0),
+                            this.createNode('node_op', 'op_sub',
+                                this.createNode('node_const', 1.0),
+                                this.createNode('node_op', 'op_mul',
+                                    arg[0],
+                                    arg[0]
+                                )
+                            )
+                        );
+                break;
+
+            default:
                 console.log('derivative of ' + fun + ' not yet implemented');
                 newNode = this.createNode('node_const', 0.0);
             }
