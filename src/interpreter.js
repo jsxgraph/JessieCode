@@ -1629,26 +1629,85 @@ define([
             return null;
         },
 
-        
-        containsVariable: function(varName, node) {
-            var i, len, ret;
+        diffElementary: function(node) {
+            var fun = node.children[0].value,
+                arg = node.children[1],
+                newNode;
+            
+            
+            switch (fun) {
+            case 'sin':
+                newNode = this.createNode('node_op', 'op_execfun',
+                        this.createNode('node_var', 'cos'),
+                        arg
+                    );
+                break;
+            case 'cos':
+                newNode = this.createNode('node_op', 'op_neg',
+                            this.createNode('node_op', 'op_execfun',
+                                this.createNode('node_var', 'sin'),
+                                arg
+                            )
+                        );
+                break;
+            case 'tan':
+                newNode = this.createNode('node_op', 'op_div',
+                            this.createNode('node_const', 1.0),
+                            this.createNode('node_op', 'op_exp',
+                                this.createNode('node_op', 'op_exexcfun',
+                                    this.createNode('node_var', 'cos'),
+                                    arg
+                                ),
+                                this.createNode('node_const', 2)
+                            )
+                        );
+                break;
+                
+            case 'exp':
+                newNode = this.createNode(node.type, node.value,
+                            node.children[0],
+                            node.children[1]
+                        );
+                break;
 
-            //console.log("FINDVAR", node);
-            if (node.type === 'node_var' && node.value === varName) {
-                //console.log(node.children[0].value, node.children[1]);
-                return true;
-            } else if (node.children) {
-                len = node.children.length;
-                for (i = 0; i < len; ++i) {
-                    ret = this.containsVariable(varName, node.children[i]);
-                    if (ret !== false) {
-                        return ret;
-                    }
-                }
+            case 'log':
+            case 'ln':
+                newNode = this.createNode('node_op', 'op_div',
+                            this.createNode('node_const', 1.0),
+                            // Attention: single variable mode
+                            arg[0]
+                        );
+                break;
+                
+            case 'log2':
+            case 'lb':
+            case 'ld':
+                newNode = this.createNode('node_op', 'op-mul',
+                            this.createNode('node_op', 'op_div',
+                                this.createNode('node_const', 1.0),
+                                // Attention: single variable mode
+                                arg[0]
+                            ),
+                            this.createNode('node_const', 1.4426950408889634)  // 1/log(2)
+                        );
+                break;
+            
+            case 'log10':
+            case 'lg':
+                newNode = this.createNode('node_op', 'op-mul',
+                            this.createNode('node_op', 'op_div',
+                                this.createNode('node_const', 1.0),
+                                // Attention: single variable mode
+                                arg[0]
+                            ),
+                            this.createNode('node_const', 0.43429448190325176)  // 1/log(10)
+                        );
+                break;
             }
-            return false;
+            
+            return newNode;
         },
-
+        
         derivative: function(node, variable, order, ast) {
             var i, len, newNode;
 
@@ -1663,8 +1722,7 @@ define([
             case 'node_op':
                 switch (node.value) {
                 case 'op_map':
-                    newNode = this.createNode('node_op',
-                                'op_map',
+                    newNode = this.createNode('node_op', 'op_map',
                                 node.children[0],
                                 this.derivative(node.children[1], variable, order, ast)
                             );
@@ -1672,20 +1730,17 @@ define([
                     
                 case 'op_execfun':
                     // f'(g(x))g'(x)
-                    newNode = this.createNode('node_op',
-                                'op_mul',
-                                this.createNode('node_op', 'op_execfun',
-                                    this.derivative(node.children[0], variable, order, ast),
-                                    node.children[1]
-                                ),
-                                this.derivative(node.children[1], variable, order, ast)
+                    console.log("EXEC", node.children[1][0]);
+                    newNode = this.createNode('node_op', 'op_mul',
+                                this.diffElementary(node),
+                                // Warning: single variable mode
+                                this.derivative(node.children[1][0], variable, order, ast)
                             );
                     break;
 
                 case 'op_div':
                     // (f'g − g'f )/(g*g)
-                    newNode = this.createNode('node_op',
-                                'op_div',
+                    newNode = this.createNode('node_op', 'op_div',
                                 this.createNode('node_op', 'op_sub',
                                     this.createNode('node_op', 'op_mul',
                                         this.derivative(node.children[0], variable, order, ast),
@@ -1705,8 +1760,7 @@ define([
 
                 case 'op_mul':
                     // fg' + f'g
-                    newNode = this.createNode('node_op',
-                                'op_add',
+                    newNode = this.createNode('node_op', 'op_add',
                                 this.createNode('node_op', 'op_mul',
                                     node.children[0],
                                     this.derivative(node.children[1], variable, order, ast)),
@@ -1717,16 +1771,14 @@ define([
                     break;
 
                 case 'op_neg':
-                    newNode = this.createNode('node_op',
-                                'op_neg',
+                    newNode = this.createNode('node_op', 'op_neg',
                                 this.derivative(node.children[0], variable, order, ast)
                             );
                     break;
                     
                 case 'op_add':
                 case 'op_sub':
-                    newNode = this.createNode('node_op',
-                                node.value,
+                    newNode = this.createNode('node_op', node.value,
                                 this.derivative(node.children[0], variable, order, ast),
                                 this.derivative(node.children[1], variable, order, ast)
                             );
@@ -1753,27 +1805,6 @@ define([
                                     )
                                 )
                             );
-                                
-                    
-                    /*
-                    if (!this.containsVariable(variable, node.children[1])) {
-                        newNode = this.createNode('node_op',
-                                'op_mul',
-                                node.children[1],
-                                this.createNode('node_op', 'op_mul',
-                                    this.derivative(node.children[0], variable, order, ast),
-                                    this.createNode('node_op', 'op_exp',
-                                        node.children[0],
-                                        this.createNode('node_op', 'op_sub',
-                                            node.children[1],
-                                            this.createNode('node_const', 1.0)
-                                        )
-                                    )
-                                )
-                            );
-                    } else {
-                        console.log("OTHER");
-                    }*/
                     break;
                 }
                 break;
