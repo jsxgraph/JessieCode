@@ -1636,12 +1636,23 @@ define([
             
             
             switch (fun) {
+            case 'sqrt':
+                newNode = this.createNode('node_op', 'op_div',
+                        this.createNode('node_const', 0.5),
+                        this.createNode(node.type, node.value,
+                            node.children[0],
+                            node.children[1]
+                        )
+                    );
+                break;
+
             case 'sin':
                 newNode = this.createNode('node_op', 'op_execfun',
                         this.createNode('node_var', 'cos'),
                         arg
                     );
                 break;
+
             case 'cos':
                 newNode = this.createNode('node_op', 'op_neg',
                             this.createNode('node_op', 'op_execfun',
@@ -1650,6 +1661,7 @@ define([
                             )
                         );
                 break;
+                
             case 'tan':
                 newNode = this.createNode('node_op', 'op_div',
                             this.createNode('node_const', 1.0),
@@ -1703,6 +1715,19 @@ define([
                             this.createNode('node_const', 0.43429448190325176)  // 1/log(10)
                         );
                 break;
+                
+            case 'asin':
+            case 'acos':
+            case 'atan':
+            case 'atan2':
+            case 'sinh':
+            case 'cosh':
+            case 'tanh':
+            case 'asinh':
+            case 'acosh':
+            case 'atanh':
+                console.log('derivative of ' + fun + ' not yet implemented');
+                newNode = this.createNode('node_const', 0.0);
             }
             
             return newNode;
@@ -1810,30 +1835,24 @@ define([
                 break;
 
             case 'node_var':
-                console.log('node_var', node);
+                //console.log('node_var', node);
                 if (node.value === variable) {
                     newNode = this.createNode('node_const', 1.0);
                 } else {
-                    switch (node.value) {
-                    case 'sin':
-                        newNode = this.createNode('node_var', 'cos');
-                        break;
-                    case 'cos':
-                        newNode = this.createNode('node_op', 'op_neg',
-                                this.createNode('node_var', 'sin')
-                            );
-                        break;
-                    }
+                    newNode = this.createNode('node_const', 0.0);
                 }
                 break;
+
             case 'node_const':
-                //console.log("const", node);
                 newNode = this.createNode('node_const', 0.0);
                 break;
+
             case 'node_const_bool':
                 break;
+
             case 'node_str':
                 break;
+
             }
 
             return newNode;
