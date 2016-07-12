@@ -1733,8 +1733,29 @@ define([
                     break;
 
                 case 'op_exp':
-                    console.log("XXX");
-                    console.log(this.containsVariable(variable, node.children[1]));
+                    // (f^g)' = f^g*(f'g/f + g' log(f))
+                    newNode = this.createNode('node_op', 'op_mul',
+                                node,
+                                this.createNode('node_op', 'op_plus',
+                                    this.createNode('node_op', 'op_mul',
+                                        this.derivative(node.children[0], variable, order, ast),
+                                        this.createNode('node_op', 'op_div',
+                                            node.children[1],
+                                            node.children[0]
+                                        )
+                                    ),
+                                    this.createNode('node_op', 'op_mul',
+                                        this.derivative(node.children[0], variable, order, ast),
+                                        this.createNode('node_op', 'op_execfun',
+                                            this.createNode('node_var', 'log'),
+                                            node.children[0]
+                                        )
+                                    )
+                                )
+                            );
+                                
+                    
+                    /*
                     if (!this.containsVariable(variable, node.children[1])) {
                         newNode = this.createNode('node_op',
                                 'op_mul',
@@ -1750,7 +1771,9 @@ define([
                                     )
                                 )
                             );
-                    }
+                    } else {
+                        console.log("OTHER");
+                    }*/
                     break;
                 }
                 break;
