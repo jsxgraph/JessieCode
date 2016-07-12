@@ -743,7 +743,7 @@ define([
                 code = cleaned.join('\n');
                 ast = parser.parse(code);
                 ast = this.handleDerivatives(ast, ast);
-                console.log(this.compile(ast));
+                //console.log(this.compile(ast));
                 result = this.execute(ast);
             } catch (e) {  // catch is mandatory in old IEs
             } finally {
@@ -1824,7 +1824,7 @@ define([
                     // (f^g)' = f^g*(f'g/f + g' log(f))
                     newNode = this.createNode('node_op', 'op_mul',
                                 node,
-                                this.createNode('node_op', 'op_plus',
+                                this.createNode('node_op', 'op_add',
                                     this.createNode('node_op', 'op_mul',
                                         this.derivative(node.children[0], variable, order),
                                         this.createNode('node_op', 'op_div',
@@ -1833,10 +1833,10 @@ define([
                                         )
                                     ),
                                     this.createNode('node_op', 'op_mul',
-                                        this.derivative(node.children[0], variable, order),
+                                        this.derivative(node.children[1], variable, order),
                                         this.createNode('node_op', 'op_execfun',
                                             this.createNode('node_var', 'log'),
-                                            node.children[0]
+                                            [node.children[0]]
                                         )
                                     )
                                 )
@@ -1886,7 +1886,7 @@ define([
                 switch (node.value) {
                 case 'op_execfun':
                     if (node.children[0] && node.children[0].value === 'D') {
-                        //console.log(node);
+                        //console.log(ast);
                         mapName = node.children[1][0].value;
                         vName = node.children[1][1].value;
                         order = node.children[1][2].value;
