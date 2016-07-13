@@ -1648,7 +1648,7 @@ define([
             }
         },
 
-        diffElementary: function(node) {
+        diffElementary: function(node, variable, order) {
             var fun = node.children[0].value,
                 arg = node.children[1],
                 newNode;
@@ -1716,6 +1716,32 @@ define([
                             node.children[0],
                             node.children[1]
                         );
+                break;
+
+            case 'pow':
+                // (f^g)' = f^g*(f'g/f + g' log(f))
+                newNode = this.createNode('node_op', 'op_mul',
+                        this.createNode('node_op', 'op_execfun',
+                            node.children[0],
+                            node.children[1]
+                        ),
+                        this.createNode('node_op', 'op_add',
+                            this.createNode('node_op', 'op_mul',
+                                this.derivative(node.children[1][0], variable, order),
+                                this.createNode('node_op', 'op_div',
+                                    node.children[1][1],
+                                    node.children[1][0]
+                                )
+                            ),
+                            this.createNode('node_op', 'op_mul',
+                                this.derivative(node.children[1][1], variable, order),
+                                this.createNode('node_op', 'op_execfun',
+                                    this.createNode('node_var', 'log'),
+                                    [node.children[1][0]]
+                                )
+                            )
+                        )
+                    );
                 break;
 
             case 'log':
@@ -1881,8 +1907,8 @@ define([
                 break;
 
             default:
-                console.log('derivative of ' + fun + ' not yet implemented');
                 newNode = this.createNode('node_const', 0.0);
+                this._error('Derivative of "' + fun + '" not yet implemented');
             }
 
             return newNode;
@@ -1903,11 +1929,16 @@ define([
 
                 case 'op_execfun':
                     // f'(g(x))g'(x)
-                    newNode = this.createNode('node_op', 'op_mul',
-                                this.diffElementary(node),
-                                // Warning: single variable mode
-                                this.derivative(node.children[1][0], variable, order)
-                            );
+                    if (node.children[0].value == 'pow') {
+                        newNode = this.diffElementary(node, variable, order);
+                    } else {
+                        newNode = this.createNode('node_op', 'op_mul',
+                                    this.diffElementary(node, variable, order),
+                                    // Warning: single variable mode
+                                    this.derivative(node.children[1][0], variable, order)
+                                );
+
+                    }
                     break;
 
                 case 'op_div':
