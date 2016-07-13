@@ -1668,7 +1668,7 @@ define([
                         )
                     );
                 break;
-                
+
             case 'sqrt':
                 newNode = this.createNode('node_op', 'op_div',
                         this.createNode('node_const', 1.0),
@@ -1769,7 +1769,7 @@ define([
                             )
                         );
                 break;
-                
+
             case 'acos':
                 newNode = this.createNode('node_op', 'op_neg',
                         this.createNode('node_op', 'op_div',
@@ -1789,7 +1789,7 @@ define([
                         )
                     );
                 break;
-                
+
             case 'atan':
                 newNode = this.createNode('node_op', 'op_div',
                             this.createNode('node_const', 1.0),
@@ -1802,7 +1802,7 @@ define([
                             )
                         );
                 break;
-                
+
             //case 'atan2':
             case 'sinh':
                 newNode = this.createNode('node_op', 'op_execfun',
@@ -1848,7 +1848,7 @@ define([
                             )
                         );
                 break;
-                
+
             case 'acosh':
                 newNode = this.createNode('node_op', 'op_div',
                             this.createNode('node_const', 1.0),
@@ -2022,11 +2022,18 @@ define([
                 switch (node.value) {
                 case 'op_execfun':
                     if (node.children[0] && node.children[0].value === 'D') {
-                        //console.log(ast);
                         mapName = node.children[1][0].value;
-                        vName = node.children[1][1].value;
-                        order = node.children[1][2].value;
                         mapNode = this.findMapNode(mapName, ast);
+                        if (node.children[1].length >= 2) {
+                            vName = node.children[1][1].value;
+                        } else {
+                            vName = mapNode.children[0][0]; // Usually it's 'x'
+                        }
+                        if (false && node.children[1].length >= 3) {
+                            order = node.children[1][2].value;
+                        } else {
+                            order = 1;
+                        }
                         node2 = this.derivative(mapNode, vName, order);
                         this.setMath(node2);
                         node.type = node2.type;
