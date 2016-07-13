@@ -742,7 +742,7 @@ define([
 
                 code = cleaned.join('\n');
                 ast = parser.parse(code);
-                ast = this.handleDerivatives(ast, ast);
+                ast = this.expandDerivatives(ast, null, ast);
                 console.log(this.compile(ast));
                 result = this.execute(ast);
             } catch (e) {  // catch is mandatory in old IEs
@@ -1920,13 +1920,18 @@ define([
             switch (node.type) {
             case 'node_op':
                 switch (node.value) {
+                /*
                 case 'op_map':
-                    newNode = this.createNode('node_op', 'op_map',
+                    if (true) {
+                        newNode = this.createNode('node_op', 'op_map',
                                 node.children[0],
                                 this.derivative(node.children[1], variable, order)
                             );
+                    } else {
+                        newNode = this.derivative(node.children[1], variable, order);
+                    }
                     break;
-
+                */
                 case 'op_execfun':
                     // f'(g(x))g'(x)
                     if (node.children[0].value == 'pow') {
@@ -2036,9 +2041,20 @@ define([
             return newNode;
         },
 
-        handleDerivatives: function(node, ast) {
-            var len, i, mapNode, ret, node2,
-                mapName, vName, order;
+        /**
+         * f = map (x) -> x*sin(x);
+         * Usages:
+         * h = D(f,x);
+         * h = map (x) -> D(f,x);
+         *
+         * @param  {[type]} node   [description]
+         * @param  {[type]} parent [description]
+         * @param  {[type]} ast    [description]
+         * @return {[type]}        [description]
+         */
+        expandDerivatives: function(node, parent, ast) {
+            var len, i, j, mapNode, codeNode, ret, node2, newNode,
+                mapName, vName, vArray, order;
 
             ret = 0;
             if (!node) {
@@ -2048,38 +2064,80 @@ define([
             this.line = node.line;
             this.col = node.col;
 
+            // First we have to go down in the tree.
+            // This ensures that in cases like D(D(f,x),x) the inner D is expanded first.
+            len = node.children.length;
+            for (i = 0; i < len; ++i) {
+                if (node.children[i] && node.children[i].type) {
+                    node.children[i] = this.expandDerivatives(node.children[i], node, ast);
+                } else if (Type.isArray(node.children[i])) {
+                    for (j = 0; j < node.children[i].length; ++j) {
+                        if (node.children[i][j] && node.children[i][j].type) {
+                            node.children[i][j] = this.expandDerivatives(node.children[i][j], node, ast);
+                        }
+                    }
+                }
+            }
+
             switch (node.type) {
             case 'node_op':
                 switch (node.value) {
                 case 'op_execfun':
                     if (node.children[0] && node.children[0].value === 'D') {
-                        mapName = node.children[1][0].value;
-                        mapNode = this.findMapNode(mapName, ast);
-                        if (node.children[1].length >= 2) {
-                            vName = node.children[1][1].value;
+                        if (node.children[1][0].type == 'node_var') {
+                            // Derive map, e.g. D(f,x) where e.g. f = map (x) -> x^2
+                            // Find node where the map is defined
+                            mapName = node.children[1][0].value;
+                            mapNode = this.findMapNode(mapName, ast);
+                            vArray = mapNode.children[0];
+
+                            // Variable name for differentiation
+                            if (node.children[1].length >= 2) {
+                                vName = node.children[1][1].value;
+                            } else {
+                                vName = mapNode.children[0][0]; // Usually it's 'x'
+                            }
+                            codeNode = mapNode.children[1];
                         } else {
-                            vName = mapNode.children[0][0]; // Usually it's 'x'
+                            // Derive expression, e.g. D(2*x,x)
+                            codeNode = node.children[1][0];
+                            vArray = ['x'];
+
+                            // Variable name for differentiation and order
+                            if (node.children[1].length >= 2) {
+                                vName = node.children[1][1].value;
+                            } else {
+                                vName = 'x';
+                            }
                         }
+
+                        // Differentiation order (unused)
                         if (false && node.children[1].length >= 3) {
                             order = node.children[1][2].value;
                         } else {
                             order = 1;
                         }
-                        node2 = this.derivative(mapNode, vName, order);
+
+                        // Create node which contains the derivative
+                        newNode = this.derivative(codeNode, vName, order);
+
+                        // Replace the node containing e.g. D(f,x) by the derivative.
+                        if (parent.type == 'node_op' && parent.value == 'op_assign') {
+                            // If D is an assignment it has to be replaced by a map
+                            // h = D(f, x)
+                            node2 = this.createNode('node_op', 'op_map',
+                                    vArray,
+                                    newNode
+                                );
+                        } else {
+                            node2 = newNode;
+                        }
+
                         this.setMath(node2);
                         node.type = node2.type;
                         node.value = node2.value;
                         node.children[0] = node2.children[0];
                         node.children[1] = node2.children[1];
-                    }
-                    //break;
-
-                default:
-                    len = node.children.length;
-                    for (i = 0; i < len; ++i) {
-                        if (node.children[i]) {
-                            node.children[i] = this.handleDerivatives(node.children[i], ast);
-                        }
                     }
                 }
                 break;
