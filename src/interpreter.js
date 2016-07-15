@@ -2207,6 +2207,7 @@ define([
 
             // 0 - a -> -a
             // a - 0 -> a
+            // a - a -> 0
             case 'op_sub':
                 n0 = node.children[0];
                 n1 = node.children[1];
@@ -2215,6 +2216,14 @@ define([
                 }
                 if (n1.type == 'node_const' && n1.value == 0.0) {
                     return n0;
+                }
+                if (n0.type == 'node_const' && n1.type == 'node_const' &&
+                    n0.value == n1.value) {
+                    return this.createNode('node_const', 0.0);
+                }
+                if (n0.type == 'node_var' && n1.type == 'node_var' &&
+                    n0.value == n1.value) {
+                    return this.createNode('node_const', 0.0);
                 }
                 break;
 
@@ -2226,8 +2235,8 @@ define([
                 }
                 break;
 
-            // const / const -> 1, const != 0
-            // 0 / const -> 0, const != 0
+            // a / a -> 1, a != 0
+            // 0 / a -> 0, a != 0
             case 'op_div':
                 n0 = node.children[0];
                 n1 = node.children[1];
@@ -2241,6 +2250,11 @@ define([
                     n0.value = 0.0;
                     return n0;
                 }
+                if (n0.type == 'node_var' && n1.type == 'node_var' &&
+                    n0.value == n1.value) {
+                    return this.createNode('node_const', 1.0);
+                }
+
                 break;
 
             // a^0 = 1
@@ -2263,6 +2277,40 @@ define([
                 if (n0.type == 'node_const' && n0.value == 0.0 &&
                     n1.type == 'node_const' && n1.value != 0.0) {
                     return n0;
+                }
+                break;
+            }
+
+            switch (node.value) {
+            // a + a -> 2*a
+            // a + (-b) = a - b
+            case 'op_add':
+                n0 = node.children[0];
+                n1 = node.children[1];
+                if (n0.type == 'node_const' && n1.type == 'node_const' &&
+                    n0.value == n1.value) {
+                    n0.value += n1.value;
+                    return n0;
+                }
+
+                if (n0.type == 'node_var' && n1.type == 'node_var' &&
+                    n0.value == n1.value) {
+                    node.children[0] = this.createNode('node_const', 2.0);
+                    node.value = 'op_mul';
+                    return node;
+                }
+
+                if (n0.type == 'node_op' && n0.value == 'op_neg') {
+                    node.value = 'op_sub';
+                    node.children[0] = n1;
+                    node.children[1] = n0.children[0];
+                    return node;
+                }
+                if (n1.type == 'node_op' && n1.value == 'op_neg') {
+                    console.log(node);
+                    node.value = 'op_sub';
+                    node.children[1] = n1.children[0];
+                    return node;
                 }
                 break;
             }
