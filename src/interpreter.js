@@ -743,6 +743,7 @@ define([
                 code = cleaned.join('\n');
                 ast = parser.parse(code);
                 ast = this.expandDerivatives(ast, null, ast);
+                ast = this.removeTrivialNodes(ast);
                 console.log(this.compile(ast));
                 result = this.execute(ast);
             } catch (e) {  // catch is mandatory in old IEs
@@ -1628,6 +1629,10 @@ define([
             return null;
         },
 
+        /**
+         * Declare all subnodes as math nodes,
+         * i.e recursively set node.isMath = true;
+         */
         setMath: function(node) {
             var i, len;
 
@@ -2085,8 +2090,9 @@ define([
                 case 'op_execfun':
                     if (node.children[0] && node.children[0].value === 'D') {
                         if (node.children[1][0].type == 'node_var') {
-                            // Derive map, e.g. D(f,x) where e.g. f = map (x) -> x^2
-                            // Find node where the map is defined
+                            // Derive map, that is compute  D(f,x)
+                            // where e.g. f = map (x) -> x^2
+                            // First, find node where the map is defined
                             mapName = node.children[1][0].value;
                             mapNode = this.findMapNode(mapName, ast);
                             vArray = mapNode.children[0];
@@ -2146,6 +2152,118 @@ define([
             case 'node_const':
             case 'node_const_bool':
             case 'node_str':
+                break;
+            }
+
+            return node;
+        },
+
+        removeTrivialNodes: function(node) {
+            var i, len, n0, n1;
+
+            if (node.type != 'node_op' || !node.children) {
+                return node;
+            }
+
+            len = node.children.length;
+            for (i = 0; i < len; ++i) {
+                node.children[i] = this.removeTrivialNodes(node.children[i]);
+            }
+
+            switch (node.value) {
+            // a + 0 -> a
+            // 0 + a -> a
+            case 'op_add':
+                n0 = node.children[0];
+                n1 = node.children[1];
+                if (n0.type == 'node_const' && n0.value == 0.0) {
+                    return n1;
+                }
+                if (n1.type == 'node_const' && n1.value == 0.0) {
+                    return n0;
+                }
+                break;
+
+            // 1 * a = a
+            // a * 1 = a
+            // a * 0 = 0 ???
+            // 0 * a = 0 ???
+            case 'op_mul':
+                n0 = node.children[0];
+                n1 = node.children[1];
+                if (n0.type == 'node_const' && n0.value == 1.0) {
+                    return n1;
+                }
+                if (n1.type == 'node_const' && n1.value == 1.0) {
+                    return n0;
+                }
+                if (n0.type == 'node_const' && n0.value == 0.0) {
+                    return n0;
+                }
+                if (n1.type == 'node_const' && n1.value == 0.0) {
+                    return n1;
+                }
+                break;
+
+            // 0 - a -> -a
+            // a - 0 -> a
+            case 'op_sub':
+                n0 = node.children[0];
+                n1 = node.children[1];
+                if (n0.type == 'node_const' && n0.value == 0.0) {
+                    return this.createNode('node_op', 'op_neg', n1);
+                }
+                if (n1.type == 'node_const' && n1.value == 0.0) {
+                    return n0;
+                }
+                break;
+
+            // -0 -> 0
+            case 'op_neg':
+                n0 = node.children[0];
+                if (n0.type == 'node_const' && n0.value == 0.0) {
+                    return n0;
+                }
+                break;
+
+            // const / const -> 1, const != 0
+            // 0 / const -> 0, const != 0
+            case 'op_div':
+                n0 = node.children[0];
+                n1 = node.children[1];
+                if (n0.type == 'node_const' && n1.type == 'node_const' &&
+                    n0.value == n1.value && n0.value != 0) {
+                    n0.value = 1.0;
+                    return n0;
+                }
+                if (n0.type == 'node_const' && n0.value == 0 &&
+                    n1.type == 'node_const' && n1.value != 0) {
+                    n0.value = 0.0;
+                    return n0;
+                }
+                break;
+
+            // a^0 = 1
+            // a^1 -> a
+            // 1^a -> 1
+            // 0^a -> 0: a const != 0
+            case 'op_exp':
+                n0 = node.children[0];
+                n1 = node.children[1];
+                if (n1.type == 'node_const' && n1.value == 0.0) {
+                    n1.value = 1.0;
+                    return n1;
+                }
+                if (n1.type == 'node_const' && n1.value == 1.0) {
+                    return n0;
+                }
+                if (n0.type == 'node_const' && n0.value == 1.0) {
+                    return n0;
+                }
+                if (n0.type == 'node_const' && n0.value == 0.0 &&
+                    n1.type == 'node_const' && n1.value != 0.0) {
+                    return n0;
+                }
                 break;
             }
 
