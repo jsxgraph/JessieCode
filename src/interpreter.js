@@ -2306,13 +2306,33 @@ define([
                     node.children[1] = n0.children[0];
                     return node;
                 }
+
                 if (n1.type == 'node_op' && n1.value == 'op_neg') {
-                    console.log(node);
                     node.value = 'op_sub';
                     node.children[1] = n1.children[0];
                     return node;
                 }
                 break;
+
+            // a - (-b) = a + b
+            case 'op_sub':
+                n0 = node.children[0];
+                n1 = node.children[1];
+                if (n1.type == 'node_op' && n1.value == 'op_neg') {
+                    node.value = 'op_add';
+                    node.children[1] = n1.children[0];
+                    return node;
+                }
+                break;
+
+            // -(-b) = b
+            case 'op_neg':
+                n0 = node.children[0];
+                if (n0.type == 'node_op' && n0.value == 'op_neg') {
+                    return n0.children[0];
+                }
+                break;
+
             }
 
             return node;
