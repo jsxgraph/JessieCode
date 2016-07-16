@@ -1653,7 +1653,7 @@ define([
             }
         },
 
-        diffElementary: function(node, variable, order) {
+        diffElementary: function(node, varname, order) {
             var fun = node.children[0].value,
                 arg = node.children[1],
                 newNode;
@@ -1732,14 +1732,14 @@ define([
                         ),
                         this.createNode('node_op', 'op_add',
                             this.createNode('node_op', 'op_mul',
-                                this.derivative(node.children[1][0], variable, order),
+                                this.derivative(node.children[1][0], varname, order),
                                 this.createNode('node_op', 'op_div',
                                     node.children[1][1],
                                     node.children[1][0]
                                 )
                             ),
                             this.createNode('node_op', 'op_mul',
-                                this.derivative(node.children[1][1], variable, order),
+                                this.derivative(node.children[1][1], varname, order),
                                 this.createNode('node_op', 'op_execfun',
                                     this.createNode('node_var', 'log'),
                                     [node.children[1][0]]
@@ -1919,7 +1919,7 @@ define([
             return newNode;
         },
 
-        derivative: function(node, variable, order) {
+        derivative: function(node, varname, order) {
             var i, len, newNode;
 
             switch (node.type) {
@@ -1930,22 +1930,22 @@ define([
                     if (true) {
                         newNode = this.createNode('node_op', 'op_map',
                                 node.children[0],
-                                this.derivative(node.children[1], variable, order)
+                                this.derivative(node.children[1], varname, order)
                             );
                     } else {
-                        newNode = this.derivative(node.children[1], variable, order);
+                        newNode = this.derivative(node.children[1], varname, order);
                     }
                     break;
                 */
                 case 'op_execfun':
                     // f'(g(x))g'(x)
                     if (node.children[0].value == 'pow') {
-                        newNode = this.diffElementary(node, variable, order);
+                        newNode = this.diffElementary(node, varname, order);
                     } else {
                         newNode = this.createNode('node_op', 'op_mul',
-                                    this.diffElementary(node, variable, order),
+                                    this.diffElementary(node, varname, order),
                                     // Warning: single variable mode
-                                    this.derivative(node.children[1][0], variable, order)
+                                    this.derivative(node.children[1][0], varname, order)
                                 );
 
                     }
@@ -1956,12 +1956,12 @@ define([
                     newNode = this.createNode('node_op', 'op_div',
                                 this.createNode('node_op', 'op_sub',
                                     this.createNode('node_op', 'op_mul',
-                                        this.derivative(node.children[0], variable, order),
+                                        this.derivative(node.children[0], varname, order),
                                         node.children[1]
                                     ),
                                     this.createNode('node_op', 'op_mul',
                                         node.children[0],
-                                        this.derivative(node.children[1], variable, order)
+                                        this.derivative(node.children[1], varname, order)
                                     )
                                 ),
                                 this.createNode('node_op', 'op_mul',
@@ -1976,24 +1976,24 @@ define([
                     newNode = this.createNode('node_op', 'op_add',
                                 this.createNode('node_op', 'op_mul',
                                     node.children[0],
-                                    this.derivative(node.children[1], variable, order)),
+                                    this.derivative(node.children[1], varname, order)),
                                 this.createNode('node_op', 'op_mul',
-                                    this.derivative(node.children[0], variable, order),
+                                    this.derivative(node.children[0], varname, order),
                                     node.children[1])
                             );
                     break;
 
                 case 'op_neg':
                     newNode = this.createNode('node_op', 'op_neg',
-                                this.derivative(node.children[0], variable, order)
+                                this.derivative(node.children[0], varname, order)
                             );
                     break;
 
                 case 'op_add':
                 case 'op_sub':
                     newNode = this.createNode('node_op', node.value,
-                                this.derivative(node.children[0], variable, order),
-                                this.derivative(node.children[1], variable, order)
+                                this.derivative(node.children[0], varname, order),
+                                this.derivative(node.children[1], varname, order)
                             );
                     break;
 
@@ -2003,14 +2003,14 @@ define([
                                 node,
                                 this.createNode('node_op', 'op_add',
                                     this.createNode('node_op', 'op_mul',
-                                        this.derivative(node.children[0], variable, order),
+                                        this.derivative(node.children[0], varname, order),
                                         this.createNode('node_op', 'op_div',
                                             node.children[1],
                                             node.children[0]
                                         )
                                     ),
                                     this.createNode('node_op', 'op_mul',
-                                        this.derivative(node.children[1], variable, order),
+                                        this.derivative(node.children[1], varname, order),
                                         this.createNode('node_op', 'op_execfun',
                                             this.createNode('node_var', 'log'),
                                             [node.children[0]]
@@ -2024,7 +2024,7 @@ define([
 
             case 'node_var':
                 //console.log('node_var', node);
-                if (node.value === variable) {
+                if (node.value === varname) {
                     newNode = this.createNode('node_const', 1.0);
                 } else {
                     newNode = this.createNode('node_const', 0.0);
@@ -2059,7 +2059,7 @@ define([
          */
         expandDerivatives: function(node, parent, ast) {
             var len, i, j, mapNode, codeNode, ret, node2, newNode,
-                mapName, vName, vArray, order;
+                mapName, varname, vArray, order;
 
             ret = 0;
             if (!node) {
@@ -2099,9 +2099,9 @@ define([
 
                             // Variable name for differentiation
                             if (node.children[1].length >= 2) {
-                                vName = node.children[1][1].value;
+                                varname = node.children[1][1].value;
                             } else {
-                                vName = mapNode.children[0][0]; // Usually it's 'x'
+                                varname = mapNode.children[0][0]; // Usually it's 'x'
                             }
                             codeNode = mapNode.children[1];
                         } else {
@@ -2111,9 +2111,9 @@ define([
 
                             // Variable name for differentiation and order
                             if (node.children[1].length >= 2) {
-                                vName = node.children[1][1].value;
+                                varname = node.children[1][1].value;
                             } else {
-                                vName = 'x';
+                                varname = 'x';
                             }
                         }
 
@@ -2125,7 +2125,7 @@ define([
                         }
 
                         // Create node which contains the derivative
-                        newNode = this.derivative(codeNode, vName, order);
+                        newNode = this.derivative(codeNode, varname, order);
 
                         // Replace the node containing e.g. D(f,x) by the derivative.
                         if (parent.type == 'node_op' && parent.value == 'op_assign') {
