@@ -1707,7 +1707,7 @@ define([
                 newNode = this.createNode('node_op', 'op_div',
                             this.createNode('node_const', 1.0),
                             this.createNode('node_op', 'op_exp',
-                                this.createNode('node_op', 'op_exexcfun',
+                                this.createNode('node_op', 'op_execfun',
                                     this.createNode('node_var', 'cos'),
                                     arg
                                 ),
