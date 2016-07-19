@@ -2236,6 +2236,24 @@ define([
                     this.mayNotBeSimplified = true;
                     return node;
                 }
+                // (1 / a) * b -> a / b
+                if (n0.value == 'op_div' &&
+                    n0.children[0].type == 'node_const' && n0.children[0].value == 1.0) {
+                    node.type == 'node_op';
+                    node.value = 'op_div';
+                    node.children = [n1, n0.children[1]];
+                    this.mayNotBeSimplified = true;
+                    return node;
+                }
+                // a * (1 / b) -> a / b
+                if (n1.value == 'op_div' &&
+                    n1.children[0].type == 'node_const' && n1.children[0].value == 1.0) {
+                    node.type == 'node_op';
+                    node.value = 'op_div';
+                    node.children = [n0, n1.children[1]];
+                    this.mayNotBeSimplified = true;
+                    return node;
+                }
 
                 // Order children
                 if (n0.type != 'node_const' && n1.type == 'node_const') {
