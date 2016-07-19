@@ -2340,30 +2340,85 @@ define([
                 }
                 break;
 
-            case 'execfun':
-                //node = this.simplifyElementary(node);
+            case 'op_execfun':
+                return this.simplifyElementary(node);
                 break;
             }
 
             return node;
         },
-        /*
+
         simplifyElementary: function(node) {
             var fun = node.children[0].value,
                 arg = node.children[1],
                 newNode;
 
             console.log(arg);
-            return node;
-            newNode = node;
+
             switch (fun) {
+            // sin(0) -> 0
+            // sin(PI) -> 0
+            // sin (int * PI) -> 0
+            // sin (PI * int) -> 0
+            // Same for tan()
             case 'sin':
+            case 'tan':
+                if (arg[0].type == 'node_const' && arg[0].value == 0) {
+                    node.type = 'node_const';
+                    node.value = 0.0;
+                    return node;
+                }
+                if (arg[0].type == 'node_var' && arg[0].value == 'PI') {
+                    node.type = 'node_const';
+                    node.value = 0.0;
+                    return node;
+                }
+                if (arg[0].type == 'node_op' && arg[0].value == 'op_mul' &&
+                    ((arg[0].children[0].type == 'node_const' && arg[0].children[0].value % 1 === 0 &&
+                     arg[0].children[1].type == 'node_var' && arg[0].children[1].value == 'PI') ||
+                     (arg[0].children[1].type == 'node_const' && arg[0].children[1].value % 1 === 0 &&
+                      arg[0].children[0].type == 'node_var' && arg[0].children[0].value == 'PI'))) {
+                    node.type = 'node_const';
+                    node.value = 0.0;
+                    return node;
+                }
                 break;
+
+            // cos(0) -> 1.0
+            // cos(PI) -> -1.0
+            // cos(int * PI) -> +/- 1.0
+            // cos(PI * int) -> +/- 1.0
+            case 'cos':
+                if (arg[0].type == 'node_const' && arg[0].value == 0) {
+                    node.type = 'node_const';
+                    node.value = 1.0;
+                    return node;
+                }
+                if (arg[0].type == 'node_var' && arg[0].value == 'PI') {
+                    //return this.createNode('node_op', 'op_neg',
+                    //    this.createNode('node_const', 1.0));
+                    node.type = 'node_op';
+                    node.value = 'op_neg';
+                    node.children = [this.createNode('node_const', 1.0)];
+                    return node;
+                }
+                /*
+                if (arg[0].type == 'node_op' && arg[0].value == 'op_mul' &&
+                    ((arg[0].children[0].type == 'node_const' && arg[0].children[0].value % 1 === 0 &&
+                     arg[0].children[1].type == 'node_var' && arg[0].children[1].value == 'PI') ||
+                     (arg[0].children[1].type == 'node_const' && arg[0].children[1].value % 1 === 0 &&
+                      arg[0].children[0].type == 'node_var' && arg[0].children[0].value == 'PI'))) {
+                    node.type = 'node_const';
+                    node.value = 1.0;
+                    return node;
+                }
+                */
+                break;
+
             }
 
-            return newNode;
+            return node;
         },
-        */
 
         /**
          * This is used as the global X() function.
