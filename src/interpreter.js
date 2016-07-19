@@ -1943,7 +1943,7 @@ define([
                         newNode = this.deriveElementary(node, varname, order);
                     } else {
                         newNode = this.createNode('node_op', 'op_mul',
-                                    this.derivElementary(node, varname, order),
+                                    this.deriveElementary(node, varname, order),
                                     // Warning: single variable mode
                                     this.derivative(node.children[1][0], varname, order)
                                 );
@@ -2364,7 +2364,7 @@ define([
             return newNode;
         },
         */
-        
+
         /**
          * This is used as the global X() function.
          * @param {JXG.Point|JXG.Text} e
