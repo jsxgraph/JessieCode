@@ -2303,6 +2303,15 @@ define([
                     n0.value = 0.0;
                     return n0;
                 }
+
+                // Risky: 0 / (something != 0) -> 0.0
+                if (n0.type == 'node_const' && n0.value == 0 &&
+                    (n1.type == 'node_op' || n1.type == 'node_var')) {
+                    node.type = 'node_const';
+                    node.value = 0.0;
+                    return node;
+                }
+
                 if (n0.type == 'node_var' && n1.type == 'node_var' &&
                     n0.value == n1.value) {
                     return this.createNode('node_const', 1.0);
@@ -2316,6 +2325,31 @@ define([
                     }
                     return n0;
                 }
+
+                // (-a) / (-b) -> a/b
+                if (n0.type == 'node_op' && n0.value == 'op_neg' &&
+                    n1.type == 'node_op' && n1.value == 'op_neg' ) {
+                    node.children = [n0.children[0], n1.children[0]];
+                    this.mayNotBeSimplified = true;
+                    return node;
+                }
+                // (-a) / b -> -(a/b)
+                if (n0.value == 'op_neg' && n1.value != 'op_neg' ) {
+                    node.type == 'node_op';
+                    node.value = 'op_neg';
+                    node.children = [this.createNode('node_op', 'op_div', n0.children[0], n1)];
+                    this.mayNotBeSimplified = true;
+                    return node;
+                }
+                // a / (-b) -> -(a/b)
+                if (n0.value != 'op_neg' && n1.value == 'op_neg' ) {
+                    node.type == 'node_op';
+                    node.value = 'op_neg';
+                    node.children = [this.createNode('node_op', 'op_div', n0, n1.children[0])];
+                    this.mayNotBeSimplified = true;
+                    return node;
+                }
+
                 break;
 
             // a^0 = 1
@@ -2403,7 +2437,7 @@ define([
                 arg = node.children[1],
                 newNode;
 
-            console.log(arg);
+            //console.log(arg);
 
             switch (fun) {
             // sin(0) -> 0
