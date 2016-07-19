@@ -2339,11 +2339,32 @@ define([
                     return node;
                 }
                 break;
+
+            case 'execfun':
+                //node = this.simplifyElementary(node);
+                break;
             }
 
             return node;
         },
+        /*
+        simplifyElementary: function(node) {
+            var fun = node.children[0].value,
+                arg = node.children[1],
+                newNode;
 
+            console.log(arg);
+            return node;
+            newNode = node;
+            switch (fun) {
+            case 'sin':
+                break;
+            }
+
+            return newNode;
+        },
+        */
+        
         /**
          * This is used as the global X() function.
          * @param {JXG.Point|JXG.Text} e
