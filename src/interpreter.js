@@ -2167,7 +2167,11 @@ define([
 
             len = node.children.length;
             for (i = 0; i < len; ++i) {
-                node.children[i] = this.removeTrivialNodes(node.children[i]);
+                this.mayNotBeSimplified = false;
+                do {
+                    node.children[i] = this.removeTrivialNodes(node.children[i]);
+                } while (this.mayNotBeSimplified);
+
             }
 
             switch (node.value) {
@@ -2188,6 +2192,8 @@ define([
             // a * 1 = a
             // a * 0 = 0
             // 0 * a = 0
+            // - * - = +
+            // Order children
             case 'op_mul':
                 n0 = node.children[0];
                 n1 = node.children[1];
@@ -2203,6 +2209,47 @@ define([
                 if (n1.type == 'node_const' && n1.value == 0.0) {
                     return n1;
                 }
+                if (n1.type == 'node_const' && n1.value == 0.0) {
+                    return n1;
+                }
+
+                // (-a) * (-b) -> a*b
+                if (n0.type == 'node_op' && n0.value == 'op_neg' &&
+                    n1.type == 'node_op' && n1.value == 'op_neg' ) {
+                    node.children = [n0.children[0], n1.children[0]];
+                    this.mayNotBeSimplified = true;
+                    return node;
+                }
+                // (-a) * b -> -(a*b)
+                if (n0.value == 'op_neg' && n1.value != 'op_neg' ) {
+                    node.type == 'node_op';
+                    node.value = 'op_neg';
+                    node.children = [this.createNode('node_op', 'op_mul', n0.children[0], n1)];
+                    this.mayNotBeSimplified = true;
+                    return node;
+                }
+                // a * (-b) -> -(a*b)
+                if (n0.value != 'op_neg' && n1.value == 'op_neg' ) {
+                    node.type == 'node_op';
+                    node.value = 'op_neg';
+                    node.children = [this.createNode('node_op', 'op_mul', n0, n1.children[0])];
+                    this.mayNotBeSimplified = true;
+                    return node;
+                }
+
+                // Order children
+                if (n0.type != 'node_const' && n1.type == 'node_const') {
+                    node.children = [n1, n0];
+                    this.mayNotBeSimplified = true;
+                    return node;
+                }
+                if (n0.type != 'node_const' && n1.type == 'node_op' &&
+                    n1.value == 'op_neg' && n1.children[0].type == 'node_const') {
+                    node.children = [n1, n0];
+                    this.mayNotBeSimplified = true;
+                    return node;
+                }
+
                 break;
 
             // 0 - a -> -a
@@ -2319,12 +2366,14 @@ define([
                     node.value = 'op_sub';
                     node.children[0] = n1;
                     node.children[1] = n0.children[0];
+                    this.mayNotBeSimplified = true;
                     return node;
                 }
 
                 if (n1.type == 'node_op' && n1.value == 'op_neg') {
                     node.value = 'op_sub';
                     node.children[1] = n1.children[0];
+                    this.mayNotBeSimplified = true;
                     return node;
                 }
                 break;
@@ -2336,6 +2385,7 @@ define([
                 if (n1.type == 'node_op' && n1.value == 'op_neg') {
                     node.value = 'op_add';
                     node.children[1] = n1.children[0];
+                    this.mayNotBeSimplified = true;
                     return node;
                 }
                 break;
@@ -2374,10 +2424,8 @@ define([
                     return node;
                 }
                 if (arg[0].type == 'node_op' && arg[0].value == 'op_mul' &&
-                    ((arg[0].children[0].type == 'node_const' && arg[0].children[0].value % 1 === 0 &&
-                     arg[0].children[1].type == 'node_var' && arg[0].children[1].value == 'PI') ||
-                     (arg[0].children[1].type == 'node_const' && arg[0].children[1].value % 1 === 0 &&
-                      arg[0].children[0].type == 'node_var' && arg[0].children[0].value == 'PI'))) {
+                    arg[0].children[0].type == 'node_const' && arg[0].children[0].value % 1 === 0 &&
+                     arg[0].children[1].type == 'node_var' && arg[0].children[1].value == 'PI') {
                     node.type = 'node_const';
                     node.value = 0.0;
                     return node;
@@ -2395,8 +2443,6 @@ define([
                     return node;
                 }
                 if (arg[0].type == 'node_var' && arg[0].value == 'PI') {
-                    //return this.createNode('node_op', 'op_neg',
-                    //    this.createNode('node_const', 1.0));
                     node.type = 'node_op';
                     node.value = 'op_neg';
                     node.children = [this.createNode('node_const', 1.0)];
@@ -2413,6 +2459,24 @@ define([
                     return node;
                 }
                 */
+                break;
+
+            // exp(0) -> 1
+            case 'exp':
+                if (arg[0].type == 'node_const' && arg[0].value == 0) {
+                    node.type = 'node_const';
+                    node.value = 1.0;
+                    return node;
+                }
+                break;
+
+            // pow(a, 0) -> 1
+            case 'pow':
+                if (arg[1].type == 'node_const' && arg[1].value == 0) {
+                    node.type = 'node_const';
+                    node.value = 1.0;
+                    return node;
+                }
                 break;
 
             }
