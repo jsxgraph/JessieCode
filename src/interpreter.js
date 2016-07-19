@@ -1653,7 +1653,7 @@ define([
             }
         },
 
-        diffElementary: function(node, varname, order) {
+        deriveElementary: function(node, varname, order) {
             var fun = node.children[0].value,
                 arg = node.children[1],
                 newNode;
@@ -1940,10 +1940,10 @@ define([
                 case 'op_execfun':
                     // f'(g(x))g'(x)
                     if (node.children[0].value == 'pow') {
-                        newNode = this.diffElementary(node, varname, order);
+                        newNode = this.deriveElementary(node, varname, order);
                     } else {
                         newNode = this.createNode('node_op', 'op_mul',
-                                    this.diffElementary(node, varname, order),
+                                    this.derivElementary(node, varname, order),
                                     // Warning: single variable mode
                                     this.derivative(node.children[1][0], varname, order)
                                 );
