@@ -2186,8 +2186,8 @@ define([
 
             // 1 * a = a
             // a * 1 = a
-            // a * 0 = 0 ???
-            // 0 * a = 0 ???
+            // a * 0 = 0
+            // 0 * a = 0
             case 'op_mul':
                 n0 = node.children[0];
                 n1 = node.children[1];
@@ -2228,15 +2228,21 @@ define([
                 break;
 
             // -0 -> 0
+            // -(-b) = b
             case 'op_neg':
                 n0 = node.children[0];
                 if (n0.type == 'node_const' && n0.value == 0.0) {
                     return n0;
                 }
+                if (n0.type == 'node_op' && n0.value == 'op_neg') {
+                    return n0.children[0];
+                }
                 break;
 
             // a / a -> 1, a != 0
             // 0 / a -> 0, a != 0
+            // a / 0 -> Infinity, a != 0
+            // 0 / 0 -> NaN, a == 0
             case 'op_div':
                 n0 = node.children[0];
                 n1 = node.children[1];
@@ -2254,7 +2260,15 @@ define([
                     n0.value == n1.value) {
                     return this.createNode('node_const', 1.0);
                 }
-
+                if (n0.type == 'node_const' && n0.value != 0 &&
+                    n1.type == 'node_const' && n1.value == 0) {
+                    if (n0.value > 0.0) {
+                        n0.value = Infinity;
+                    } else {
+                        n0.value = -Infinity; // Do we ever need this?
+                    }
+                    return n0;
+                }
                 break;
 
             // a^0 = 1
@@ -2282,6 +2296,7 @@ define([
             }
 
             switch (node.value) {
+            // const_1 + const_2 -> (const_1 + const_2)
             // a + a -> 2*a
             // a + (-b) = a - b
             case 'op_add':
@@ -2324,15 +2339,6 @@ define([
                     return node;
                 }
                 break;
-
-            // -(-b) = b
-            case 'op_neg':
-                n0 = node.children[0];
-                if (n0.type == 'node_op' && n0.value == 'op_neg') {
-                    return n0.children[0];
-                }
-                break;
-
             }
 
             return node;
