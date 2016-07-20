@@ -742,6 +742,7 @@ define([
 
                 code = cleaned.join('\n');
                 ast = parser.parse(code);
+                //console.log(ast);
                 ast = this.expandDerivatives(ast, null, ast);
                 ast = this.removeTrivialNodes(ast);
                 console.log(this.compile(ast));
@@ -1026,7 +1027,6 @@ define([
                     break;
                 case 'op_assign':
                     v = this.getLHS(node.children[0]);
-
                     this.lhs[this.scope.id] = v[1];
 
                     if (v.o.type && v.o.elementClass && v.o.methodMap && v.what === 'label') {
@@ -1041,7 +1041,6 @@ define([
                         // this is just a local variable inside JessieCode
                         this.letvar(v.what, ret);
                     }
-
                     this.lhs[this.scope.id] = 0;
                     break;
                 case 'op_if':
@@ -2175,6 +2174,21 @@ define([
             }
 
             switch (node.value) {
+            // Allow maps of the form
+            //  map (x) -> x;
+            case 'op_map':
+                n0 = node.children[0];
+                n1 = node.children[1];
+                if (n1.type == 'node_var') {
+                    for (i = 0; i < n0.length; ++i) {
+                        if (n0[i] == n1.value) {
+                            n1.isMath = true;
+                            break;
+                        }
+                    }
+                }
+                break;
+
             // a + 0 -> a
             // 0 + a -> a
             case 'op_add':
