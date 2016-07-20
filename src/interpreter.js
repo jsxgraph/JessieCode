@@ -787,7 +787,7 @@ define([
                 code = cleaned.join('\n');
                 ast = parser.parse(code);
                 ast = this.expandDerivatives(ast, null, ast);
-                console.log(this.compile(ast));
+                //console.log(this.compile(ast));
                 ast = this.removeTrivialNodes(ast);
                 return this.compile(ast);
             } catch (e) {  // catch is mandatory in old IEs
