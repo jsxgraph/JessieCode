@@ -2346,6 +2346,7 @@ define([
                 n0 = node.children[0];
                 n1 = node.children[1];
                 if (n0.type == 'node_const' && n0.value == 0.0) {
+                    this.mayNotBeSimplified = true;
                     return this.createNode('node_op', 'op_neg', n1);
                 }
                 if (n1.type == 'node_const' && n1.value == 0.0) {
