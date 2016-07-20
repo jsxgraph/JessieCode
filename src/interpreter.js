@@ -758,6 +758,48 @@ define([
             return result;
         },
 
+        manipulate: function (code, geonext, dontstore) {
+            var i, setTextBackup, ast, result,
+                ccode = code.replace(/\r\n/g, '\n').split('\n'),
+                cleaned = [];
+
+            if (!dontstore) {
+                this.code += code + '\n';
+            }
+
+            if (Text) {
+                setTextBackup = Text.Text.prototype.setText;
+                Text.Text.prototype.setText = Text.Text.prototype.setTextJessieCode;
+            }
+
+            try {
+                if (!Type.exists(geonext)) {
+                    geonext = false;
+                }
+
+                for (i = 0; i < ccode.length; i++) {
+                    if (geonext) {
+                        ccode[i] = JXG.GeonextParser.geonext2JS(ccode[i], this.board);
+                    }
+                    cleaned.push(ccode[i]);
+                }
+
+                code = cleaned.join('\n');
+                ast = parser.parse(code);
+                ast = this.expandDerivatives(ast, null, ast);
+                ast = this.removeTrivialNodes(ast);
+                return this.compile(ast);
+            } catch (e) {  // catch is mandatory in old IEs
+            } finally {
+                // make sure the original text method is back in place
+                if (Text) {
+                    Text.Text.prototype.setText = setTextBackup;
+                }
+            }
+
+            return result;
+        },
+
         /**
          * Parses a JessieCode snippet, e.g. "3+4", and wraps it into a function, if desired.
          * @param {String} code A small snippet of JessieCode. Must not be an assignment.
