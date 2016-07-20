@@ -2158,15 +2158,21 @@ define([
                             }
                         }
 
-                        // Differentiation order (unused)
-                        if (false && node.children[1].length >= 3) {
+                        // Differentiation order
+                        if (node.children[1].length >= 3) {
                             order = node.children[1][2].value;
                         } else {
                             order = 1;
                         }
 
                         // Create node which contains the derivative
-                        newNode = this.derivative(codeNode, varname, order);
+                        newNode = codeNode;
+                        if (order >= 1) {
+                            while (order >= 1) {
+                                newNode = this.derivative(newNode, varname, order);
+                                order--;
+                            }
+                        }
 
                         // Replace the node containing e.g. D(f,x) by the derivative.
                         if (parent.type == 'node_op' && parent.value == 'op_assign') {
