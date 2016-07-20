@@ -2202,6 +2202,13 @@ define([
         removeTrivialNodes: function(node) {
             var i, len, n0, n1;
 
+            // In case of 'op_execfun' the children[1] node is an array.
+            if (Type.isArray(node)) {
+                len = node.length;
+                for (i = 0; i < len; ++i) {
+                    node[i] = this.removeTrivialNodes(node[i]);
+                }
+            }
             if (node.type != 'node_op' || !node.children) {
                 return node;
             }
