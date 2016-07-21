@@ -2171,6 +2171,7 @@ define([
                         if (order >= 1) {
                             while (order >= 1) {
                                 newNode = this.derivative(newNode, varname, order);
+                                newNode = this.removeTrivialNodes(newNode);
                                 order--;
                             }
                         }
@@ -2207,7 +2208,7 @@ define([
         },
 
         removeTrivialNodes: function(node) {
-            var i, len, n0, n1;
+            var i, len, n0, n1, swap;
 
             // In case of 'op_execfun' the children[1] node is an array.
             if (Type.isArray(node)) {
@@ -2254,6 +2255,12 @@ define([
                     return n1;
                 }
                 if (n1.type == 'node_const' && n1.value == 0.0) {
+                    return n0;
+                }
+
+                // const + const -> const
+                if (n0.type == 'node_const' && n1.type == 'node_const') {
+                    n0.value += n1.value;
                     return n0;
                 }
                 break;
@@ -2326,18 +2333,69 @@ define([
                 }
 
                 // Order children
+                // a * const -> const * a
                 if (n0.type != 'node_const' && n1.type == 'node_const') {
                     node.children = [n1, n0];
                     this.mayNotBeSimplified = true;
                     return node;
                 }
+                // a + (-const) -> -const * a
                 if (n0.type != 'node_const' && n1.type == 'node_op' &&
                     n1.value == 'op_neg' && n1.children[0].type == 'node_const') {
                     node.children = [n1, n0];
                     this.mayNotBeSimplified = true;
                     return node;
                 }
+                // a * var -> var * a
+                // a * fun -> fun * a
+                if (n0.type == 'node_op' && n0.value != 'op_execfun' &&
+                    (n1.type == 'node_var' || (n1.type == 'node_op' && n1.value == 'op_execfun'))) {
+                    node.children = [n1, n0];
+                    this.mayNotBeSimplified = true;
+                    return node;
+                }
+                // a + (-var) -> -var * a
+                if (n0.type != 'node_op' && n1.type == 'node_op' &&
+                    n1.value == 'op_neg' && n1.children[0].type == 'node_var') {
+                    node.children = [n1, n0];
+                    this.mayNotBeSimplified = true;
+                    return node;
+                }
+                // a * (const * b) -> const * (a*b)
+                // a * (const / b) -> const * (a/b)
+                if (n0.type != 'node_const' && n1.type == 'node_op' &&
+                    (n1.value == 'op_mul' || n1.value == 'op_div') &&
+                    n1.children[0].type == 'node_const') {
+                    swap = n1.children[0];
+                    n1.children[0] = n0;
+                    node.children = [swap, n1];
+                    this.mayNotBeSimplified = true;
+                    return node;
+                }
 
+                // const * const -> const
+                if (n0.type == 'node_const' && n1.type == 'node_const') {
+                    n0.value *= n1.value;
+                    return n0;
+                }
+
+                // a * a^b -> a^(b+1)
+                if (n1.type == 'node_op' && n1.value == 'op_exp') {
+                    if (!n0.hash) {
+                        n0.hash = this.compile(n0);
+                    }
+                    if (!n1.children[0].hash) {
+                        n1.children[0].hash = this.compile(n1.children[0]);
+                    }
+                    if (n0.hash === n1.children[0].hash) {
+                        n1.children[1] = this.createNode('node_op', 'op_add',
+                            n1.children[1],
+                            this.createNode('node_const', 1.0)
+                        );
+                        this.mayNotBeSimplified = true;
+                        return n1;
+                    }
+                }
                 break;
 
             // 0 - a -> -a
@@ -2365,6 +2423,13 @@ define([
                     n0.value == n1.value) {
                     return this.createNode('node_const', 0.0);
                 }
+
+                // const - const -> const
+                if (n0.type == 'node_const' && n1.type == 'node_const') {
+                    n0.value -= n1.value;
+                    return n0;
+                }
+
                 break;
 
             // -0 -> 0
@@ -2445,6 +2510,26 @@ define([
                     return node;
                 }
 
+                /*
+                // a^b / a -> a^(b-1)
+                if (n0.type == 'node_op' && n0.value == 'op_exp') {
+                    if (!n1.hash) {
+                        n1.hash = this.compile(n1);
+                    }
+                    if (!n0.children[0].hash) {
+                        n0.children[0].hash = this.compile(n0.children[0]);
+                    }
+                    console.log(this.compile(node));
+                    if (n1.hash === n0.children[0].hash) {
+                        n0.children[1] = this.createNode('node_op', 'op_sub',
+                            n0.children[1],
+                            this.createNode('node_const', 1.0)
+                        );
+                        this.mayNotBeSimplified = true;
+                        return n0;
+                    }
+                }
+                */
                 break;
 
             // a^0 = 1
@@ -3058,3 +3143,5 @@ define([
 
     return JXG.JessieCode;
 });
+
+
