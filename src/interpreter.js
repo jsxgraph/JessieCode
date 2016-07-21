@@ -2168,6 +2168,7 @@ define([
 
                         // Create node which contains the derivative
                         newNode = codeNode;
+                        //newNode = this.removeTrivialNodes(newNode);
                         if (order >= 1) {
                             while (order >= 1) {
                                 newNode = this.derivative(newNode, varname, order);
