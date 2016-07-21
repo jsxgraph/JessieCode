@@ -1971,7 +1971,7 @@ define([
                 case 'op_map':
                     if (true) {
                         newNode = this.createNode('node_op', 'op_map',
-                                node.children[0],
+                                Type.deepCopy(node.children[0]),
                                 this.derivative(node.children[1], varname, order)
                             );
                     } else {
@@ -1999,16 +1999,16 @@ define([
                                 this.createNode('node_op', 'op_sub',
                                     this.createNode('node_op', 'op_mul',
                                         this.derivative(node.children[0], varname, order),
-                                        node.children[1]
+                                        Type.deepCopy(node.children[1])
                                     ),
                                     this.createNode('node_op', 'op_mul',
-                                        node.children[0],
+                                        Type.deepCopy(node.children[0]),
                                         this.derivative(node.children[1], varname, order)
                                     )
                                 ),
                                 this.createNode('node_op', 'op_mul',
-                                    node.children[1],
-                                    node.children[1]
+                                    Type.deepCopy(node.children[1]),
+                                    Type.deepCopy(node.children[1])
                                 )
                             );
                     break;
@@ -2017,11 +2017,11 @@ define([
                     // fg' + f'g
                     newNode = this.createNode('node_op', 'op_add',
                                 this.createNode('node_op', 'op_mul',
-                                    node.children[0],
+                                    Type.deepCopy(node.children[0]),
                                     this.derivative(node.children[1], varname, order)),
                                 this.createNode('node_op', 'op_mul',
                                     this.derivative(node.children[0], varname, order),
-                                    node.children[1])
+                                    Type.deepCopy(node.children[1]))
                             );
                     break;
 
@@ -2042,20 +2042,20 @@ define([
                 case 'op_exp':
                     // (f^g)' = f^g*(f'g/f + g' log(f))
                     newNode = this.createNode('node_op', 'op_mul',
-                                node,
+                                Type.deepCopy(node),
                                 this.createNode('node_op', 'op_add',
                                     this.createNode('node_op', 'op_mul',
                                         this.derivative(node.children[0], varname, order),
                                         this.createNode('node_op', 'op_div',
-                                            node.children[1],
-                                            node.children[0]
+                                            Type.deepCopy(node.children[1]),
+                                            Type.deepCopy(node.children[0])
                                         )
                                     ),
                                     this.createNode('node_op', 'op_mul',
                                         this.derivative(node.children[1], varname, order),
                                         this.createNode('node_op', 'op_execfun',
                                             this.createNode('node_var', 'log'),
-                                            [node.children[0]]
+                                            [Type.deepCopy(node.children[0])]
                                         )
                                     )
                                 )
