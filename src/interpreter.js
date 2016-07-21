@@ -2346,7 +2346,6 @@ define([
                     this.mayNotBeSimplified = true;
                     return node;
                 }
-                // a * var -> var * a
                 // a * fun -> fun * a
                 if (n0.type == 'node_op' && n0.value != 'op_execfun' &&
                     (n1.type == 'node_var' || (n1.type == 'node_op' && n1.value == 'op_execfun'))) {
@@ -2379,7 +2378,8 @@ define([
                     return n0;
                 }
 
-                // a * a^b -> a^(b+1)
+                // a * a^b -> a^(n+1)
+                /*
                 if (n1.type == 'node_op' && n1.value == 'op_exp') {
                     if (!n0.hash) {
                         n0.hash = this.compile(n0);
@@ -2396,6 +2396,7 @@ define([
                         return n1;
                     }
                 }
+                */
                 break;
 
             // 0 - a -> -a
@@ -2510,26 +2511,6 @@ define([
                     return node;
                 }
 
-                /*
-                // a^b / a -> a^(b-1)
-                if (n0.type == 'node_op' && n0.value == 'op_exp') {
-                    if (!n1.hash) {
-                        n1.hash = this.compile(n1);
-                    }
-                    if (!n0.children[0].hash) {
-                        n0.children[0].hash = this.compile(n0.children[0]);
-                    }
-                    console.log(this.compile(node));
-                    if (n1.hash === n0.children[0].hash) {
-                        n0.children[1] = this.createNode('node_op', 'op_sub',
-                            n0.children[1],
-                            this.createNode('node_const', 1.0)
-                        );
-                        this.mayNotBeSimplified = true;
-                        return n0;
-                    }
-                }
-                */
                 break;
 
             // a^0 = 1
@@ -3143,5 +3124,3 @@ define([
 
     return JXG.JessieCode;
 });
-
-
