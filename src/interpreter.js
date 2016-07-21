@@ -2381,6 +2381,15 @@ define([
                     return n0;
                 }
 
+                // const * (const * a) -> const * a
+                // const * (const / a) -> const / a
+                if (n0.type == 'node_const' && n1.type == 'node_op' && 
+                    (n1.value == 'op_mul' || n1.value == 'op_div') &&
+                    n1.children[0].type == 'node_const') {
+                    n1.children[0].value *= n0.value;
+                    return n1;
+                }
+
                 // a * a^b -> a^(b+1)
                 if (n1.type == 'node_op' && n1.value == 'op_exp') {
                     if (!n0.hash) {
