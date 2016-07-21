@@ -1709,8 +1709,8 @@ define([
                         this.createNode('node_op', 'op_execfun',
                             this.createNode('node_var', 'sqrt'),
                             [this.createNode('node_op', 'op_mul',
-                                arg[0],
-                                arg[0]
+                                Type.deepCopy(arg[0]),
+                                Type.deepCopy(arg[0])
                             )]
                         )
                     );
@@ -1722,8 +1722,8 @@ define([
                         this.createNode('node_op', 'op_mul',
                             this.createNode('node_const', 2.0),
                             this.createNode(node.type, node.value,
-                                node.children[0],
-                                node.children[1]
+                                Type.deepCopy(node.children[0]),
+                                Type.deepCopy(node.children[1])
                             )
                         )
                     );
@@ -1732,7 +1732,7 @@ define([
             case 'sin':
                 newNode = this.createNode('node_op', 'op_execfun',
                         this.createNode('node_var', 'cos'),
-                        arg
+                        Type.deepCopy(arg)
                     );
                 break;
 
@@ -1740,7 +1740,7 @@ define([
                 newNode = this.createNode('node_op', 'op_neg',
                             this.createNode('node_op', 'op_execfun',
                                 this.createNode('node_var', 'sin'),
-                                arg
+                                Type.deepCopy(arg)
                             )
                         );
                 break;
@@ -1751,7 +1751,7 @@ define([
                             this.createNode('node_op', 'op_exp',
                                 this.createNode('node_op', 'op_execfun',
                                     this.createNode('node_var', 'cos'),
-                                    arg
+                                    Type.deepCopy(arg)
                                 ),
                                 this.createNode('node_const', 2)
                             )
@@ -1760,8 +1760,8 @@ define([
 
             case 'exp':
                 newNode = this.createNode(node.type, node.value,
-                            node.children[0],
-                            node.children[1]
+                            Type.deepCopy(node.children[0]),
+                            Type.deepCopy(node.children[1])
                         );
                 break;
 
@@ -1769,22 +1769,22 @@ define([
                 // (f^g)' = f^g*(f'g/f + g' log(f))
                 newNode = this.createNode('node_op', 'op_mul',
                         this.createNode('node_op', 'op_execfun',
-                            node.children[0],
-                            node.children[1]
+                            Type.deepCopy(node.children[0]),
+                            Type.deepCopy(node.children[1])
                         ),
                         this.createNode('node_op', 'op_add',
                             this.createNode('node_op', 'op_mul',
                                 this.derivative(node.children[1][0], varname, order),
                                 this.createNode('node_op', 'op_div',
-                                    node.children[1][1],
-                                    node.children[1][0]
+                                    Type.deepCopy(node.children[1][1]),
+                                    Type.deepCopy(node.children[1][0])
                                 )
                             ),
                             this.createNode('node_op', 'op_mul',
                                 this.derivative(node.children[1][1], varname, order),
                                 this.createNode('node_op', 'op_execfun',
                                     this.createNode('node_var', 'log'),
-                                    [node.children[1][0]]
+                                    [Type.deepCopy(node.children[1][0])]
                                 )
                             )
                         )
@@ -1796,7 +1796,7 @@ define([
                 newNode = this.createNode('node_op', 'op_div',
                             this.createNode('node_const', 1.0),
                             // Attention: single variable mode
-                            arg[0]
+                            Type.deepCopy(arg[0])
                         );
                 break;
 
@@ -1807,7 +1807,7 @@ define([
                             this.createNode('node_op', 'op_div',
                                 this.createNode('node_const', 1.0),
                                 // Attention: single variable mode
-                                arg[0]
+                                Type.deepCopy(arg[0])
                             ),
                             this.createNode('node_const', 1.4426950408889634)  // 1/log(2)
                         );
@@ -1819,7 +1819,7 @@ define([
                             this.createNode('node_op', 'op_div',
                                 this.createNode('node_const', 1.0),
                                 // Attention: single variable mode
-                                arg[0]
+                                Type.deepCopy(arg[0])
                             ),
                             this.createNode('node_const', 0.43429448190325176)  // 1/log(10)
                         );
@@ -1834,8 +1834,8 @@ define([
                                     this.createNode('node_op', 'op_sub',
                                         this.createNode('node_const', 1.0),
                                         this.createNode('node_op', 'op_mul',
-                                            arg[0],
-                                            arg[0]
+                                            Type.deepCopy(arg[0]),
+                                            Type.deepCopy(arg[0])
                                         )
                                     )
                                 ]
@@ -1853,8 +1853,8 @@ define([
                                     this.createNode('node_op', 'op_sub',
                                         this.createNode('node_const', 1.0),
                                         this.createNode('node_op', 'op_mul',
-                                            arg[0],
-                                            arg[0]
+                                            Type.deepCopy(arg[0]),
+                                            Type.deepCopy(arg[0])
                                         )
                                     )
                                 ]
@@ -1869,8 +1869,8 @@ define([
                             this.createNode('node_op', 'op_add',
                                 this.createNode('node_const', 1.0),
                                 this.createNode('node_op', 'op_mul',
-                                    arg[0],
-                                    arg[0]
+                                    Type.deepCopy(arg[0]),
+                                    Type.deepCopy(arg[0])
                                 )
                             )
                         );
@@ -1880,14 +1880,14 @@ define([
             case 'sinh':
                 newNode = this.createNode('node_op', 'op_execfun',
                             this.createNode('node_var', 'cosh'),
-                            [arg[0]]
+                            [Type.deepCopy(arg[0])]
                         );
                 break;
 
             case 'cosh':
                 newNode = this.createNode('node_op', 'op_execfun',
                             this.createNode('node_var', 'sinh'),
-                            [arg[0]]
+                            [Type.deepCopy(arg[0])]
                         );
                 break;
 
@@ -1897,7 +1897,7 @@ define([
                             this.createNode('node_op', 'op_exp',
                                 this.createNode('node_op', 'op_execfun',
                                     this.createNode('node_var', 'tanh'),
-                                    [arg[0]]
+                                    [Type.deepCopy(arg[0])]
                                 ),
                                 this.createNode('node_const', 2.0)
                             )
@@ -1912,8 +1912,8 @@ define([
                                 [
                                     this.createNode('node_op', 'op_add',
                                         this.createNode('node_op', 'op_mul',
-                                            arg[0],
-                                            arg[0]
+                                            Type.deepCopy(arg[0]),
+                                            Type.deepCopy(arg[0])
                                         ),
                                         this.createNode('node_const', 1.0)
                                     )
@@ -1930,8 +1930,8 @@ define([
                                 [
                                     this.createNode('node_op', 'op_sub',
                                         this.createNode('node_op', 'op_mul',
-                                            arg[0],
-                                            arg[0]
+                                            Type.deepCopy(arg[0]),
+                                            Type.deepCopy(arg[0])
                                         ),
                                         this.createNode('node_const', 1.0)
                                     )
@@ -1946,8 +1946,8 @@ define([
                             this.createNode('node_op', 'op_sub',
                                 this.createNode('node_const', 1.0),
                                 this.createNode('node_op', 'op_mul',
-                                    arg[0],
-                                    arg[0]
+                                    Type.deepCopy(arg[0]),
+                                    Type.deepCopy(arg[0])
                                 )
                             )
                         );
@@ -2346,13 +2346,16 @@ define([
                     this.mayNotBeSimplified = true;
                     return node;
                 }
+                // a * var -> var * a
                 // a * fun -> fun * a
+                /*
                 if (n0.type == 'node_op' && n0.value != 'op_execfun' &&
                     (n1.type == 'node_var' || (n1.type == 'node_op' && n1.value == 'op_execfun'))) {
                     node.children = [n1, n0];
                     this.mayNotBeSimplified = true;
                     return node;
                 }
+                */
                 // a + (-var) -> -var * a
                 if (n0.type != 'node_op' && n1.type == 'node_op' &&
                     n1.value == 'op_neg' && n1.children[0].type == 'node_var') {
