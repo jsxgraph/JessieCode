@@ -792,7 +792,7 @@ define([
                 ast = parser.parse(code);
                 if (this.CA) {
                     ast = this.CA.expandDerivatives(ast, null, ast);
-                    //console.log(this.compile(ast));
+                    console.log(this.compile(ast));
                     ast = this.CA.removeTrivialNodes(ast);
                 }
                 return this.compile(ast);
