@@ -1067,6 +1067,21 @@
                      return node;
                  }
 
+                 // a^b / a^c -> a^(b-c)
+                 if (n0.type == 'node_op' && n0.value == 'op_exp' &&
+                     n1.type == 'node_op' && n1.value == 'op_exp') {
+                     n0.children[0].hash = this.parser.compile(n0.children[0]);
+                     n1.children[0].hash = this.parser.compile(n1.children[0]);
+                     if (n0.children[0].hash === n1.children[0].hash) {
+                         n0.children[1] = this.createNode('node_op', 'op_sub',
+                             n0.children[1],
+                             n1.children[1]
+                         );
+                         this.mayNotBeSimplified = true;
+                         return n0;
+                     }
+                 }
+
 
                  break;
 
