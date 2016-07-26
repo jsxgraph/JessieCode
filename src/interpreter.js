@@ -41,9 +41,11 @@
  */
 
 /**
- * @fileoverview JessieCode is a scripting language designed to provide a simple scripting language to build constructions
- * with JSXGraph. It is similar to JavaScript, but prevents access to the DOM. Hence, it can be used in community driven
- * Math portals which want to use JSXGraph to display interactive math graphics.
+ * @fileoverview JessieCode is a scripting language designed to provide a
+ * simple scripting language to build constructions
+ * with JSXGraph. It is similar to JavaScript, but prevents access to the DOM.
+ * Hence, it can be used in community driven math portals which want to use
+ * JSXGraph to display interactive math graphics.
  */
 
 define([
@@ -187,6 +189,7 @@ define([
         this.line = 1;
         this.col = 1;
 
+        this.CA = new JXG.CA(this.createNode);
         this.code = '';
 
         if (typeof code === 'string') {
