@@ -503,13 +503,9 @@
          /**
           * f = map (x) -> x*sin(x);
           * Usages:
-          * h = D(f,x);
-          * h = map (x) -> D(f,x);
+          * h = D(f, x);
+          * h = map (x) -> D(f, x);
           *
-          * @param  {[type]} node   [description]
-          * @param  {[type]} parent [description]
-          * @param  {[type]} ast    [description]
-          * @return {[type]}        [description]
           */
          expandDerivatives: function(node, parent, ast) {
              var len, i, j, mapNode, codeNode, ret, node2, newNode,
@@ -544,9 +540,12 @@
                  case 'op_execfun':
                      if (node.children[0] && node.children[0].value === 'D') {
                          if (node.children[1][0].type == 'node_var') {
-                             // Derive map, that is compute  D(f,x)
-                             // where e.g. f = map (x) -> x^2
-                             // First, find node where the map is defined
+                             /*
+                              * Derive map, that is compute D(f,x)
+                              * where e.g. f = map (x) -> x^2
+                              *
+                              * First step: find node where the map is defined
+                              */
                              mapName = node.children[1][0].value;
                              mapNode = this.findMapNode(mapName, ast);
                              vArray = mapNode.children[0];
@@ -559,7 +558,10 @@
                              }
                              codeNode = mapNode.children[1];
                          } else {
-                             // Derive expression, e.g. D(2*x,x)
+                             /*
+                              * Derive expression, e.g.
+                              *     D(2*x, x)
+                              */
                              codeNode = node.children[1][0];
                              vArray = ['x'];
 
@@ -788,6 +790,18 @@
                      return node;
                  }
 
+                 // (const * a) * b -> const * (a * b)
+                 if (n1.type != 'node_const' && n0.type == 'node_op' &&
+                     n0.value == 'op_mul' &&
+                     n0.children[0].type == 'node_const') {
+                     node.children = [
+                         n0.children[0],
+                         this.createNode('node_op', 'op_mul', n0.children[1], n1)
+                     ];
+                     this.mayNotBeSimplified = true;
+                     return node;
+                 }
+
                  // const * const -> const
                  if (n0.type == 'node_const' && n1.type == 'node_const') {
                      n0.value *= n1.value;
@@ -836,6 +850,22 @@
                          return n1;
                      }
                  }
+
+                 // a^b * a^c -> a^(b+c)
+                 if (n0.type == 'node_op' && n0.value == 'op_exp' &&
+                     n1.type == 'node_op' && n1.value == 'op_exp') {
+                     n0.children[0].hash = this.parser.compile(n0.children[0]);
+                     n1.children[0].hash = this.parser.compile(n1.children[0]);
+                     if (n0.children[0].hash === n1.children[0].hash) {
+                         n0.children[1] = this.createNode('node_op', 'op_add',
+                             n0.children[1],
+                             n1.children[1]
+                         );
+                         this.mayNotBeSimplified = true;
+                         return n0;
+                     }
+                 }
+
                  break;
 
              // 0 - a -> -a
@@ -1024,6 +1054,20 @@
                      }
                  }
 
+                 // (const * a) / b -> const * (a / b)
+                 if (n1.type != 'node_const' && n0.type == 'node_op' &&
+                     n0.value == 'op_mul' &&
+                     n0.children[0].type == 'node_const') {
+                     node.value = 'op_mul';
+                     node.children = [
+                         n0.children[0],
+                         this.createNode('node_op', 'op_div', n0.children[1], n1)
+                     ];
+                     this.mayNotBeSimplified = true;
+                     return node;
+                 }
+
+
                  break;
 
              // a^0 = 1
@@ -1046,6 +1090,17 @@
                  if (n0.type == 'node_const' && n0.value === 0.0 &&
                      n1.type == 'node_const' && n1.value !== 0.0) {
                      return n0;
+                 }
+
+                 // (a^b)^c -> a^(b*c)
+                 if (n0.type == 'node_op' && n0.value == 'op_exp') {
+                     node.children = [
+                         n0.children[0],
+                         this.createNode('node_op', 'op_mul',
+                            n0.children[1],
+                            n1)
+                     ];
+                     return node;
                  }
                  break;
              }
