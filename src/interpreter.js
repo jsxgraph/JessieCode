@@ -746,8 +746,10 @@ define([
 
                 code = cleaned.join('\n');
                 ast = parser.parse(code);
-                ast = this.CA.expandDerivatives(ast, null, ast);
-                ast = this.CA.removeTrivialNodes(ast);
+                if (this.CA) {
+                    ast = this.CA.expandDerivatives(ast, null, ast);
+                    ast = this.CA.removeTrivialNodes(ast);
+                }
                 result = this.execute(ast);
             } catch (e) {  // catch is mandatory in old IEs
             } finally {
@@ -788,9 +790,11 @@ define([
 
                 code = cleaned.join('\n');
                 ast = parser.parse(code);
-                ast = this.CA.expandDerivatives(ast, null, ast);
-                //console.log(this.compile(ast));
-                ast = this.CA.removeTrivialNodes(ast);
+                if (this.CA) {
+                    ast = this.CA.expandDerivatives(ast, null, ast);
+                    //console.log(this.compile(ast));
+                    ast = this.CA.removeTrivialNodes(ast);
+                }
                 return this.compile(ast);
             } catch (e) {  // catch is mandatory in old IEs
             } finally {
