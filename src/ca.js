@@ -186,14 +186,14 @@
                          ),
                          this.createNode('node_op', 'op_add',
                              this.createNode('node_op', 'op_mul',
-                                 this.derivative(node.children[1][0], varname, order),
+                                 this.derivative(node.children[1][0], varname),
                                  this.createNode('node_op', 'op_div',
                                      Type.deepCopy(node.children[1][1]),
                                      Type.deepCopy(node.children[1][0])
                                  )
                              ),
                              this.createNode('node_op', 'op_mul',
-                                 this.derivative(node.children[1][1], varname, order),
+                                 this.derivative(node.children[1][1], varname),
                                  this.createNode('node_op', 'op_execfun',
                                      this.createNode('node_var', 'log'),
                                      [Type.deepCopy(node.children[1][0])]
@@ -373,7 +373,7 @@
              return newNode;
          },
 
-         derivative: function(node, varname, order) {
+         derivative: function(node, varname) {
              var i, len, newNode;
 
              switch (node.type) {
@@ -384,10 +384,10 @@
                      if (true) {
                          newNode = this.createNode('node_op', 'op_map',
                                  Type.deepCopy(node.children[0]),
-                                 this.derivative(node.children[1], varname, order)
+                                 this.derivative(node.children[1], varname)
                              );
                      } else {
-                         newNode = this.derivative(node.children[1], varname, order);
+                         newNode = this.derivative(node.children[1], varname);
                      }
                      break;
                  */
@@ -399,7 +399,7 @@
                          newNode = this.createNode('node_op', 'op_mul',
                                      this.deriveElementary(node, varname, order),
                                      // Warning: single variable mode
-                                     this.derivative(node.children[1][0], varname, order)
+                                     this.derivative(node.children[1][0], varname)
                                  );
 
                      }
@@ -410,12 +410,12 @@
                      newNode = this.createNode('node_op', 'op_div',
                                  this.createNode('node_op', 'op_sub',
                                      this.createNode('node_op', 'op_mul',
-                                         this.derivative(node.children[0], varname, order),
+                                         this.derivative(node.children[0], varname),
                                          Type.deepCopy(node.children[1])
                                      ),
                                      this.createNode('node_op', 'op_mul',
                                          Type.deepCopy(node.children[0]),
-                                         this.derivative(node.children[1], varname, order)
+                                         this.derivative(node.children[1], varname)
                                      )
                                  ),
                                  this.createNode('node_op', 'op_mul',
@@ -430,24 +430,24 @@
                      newNode = this.createNode('node_op', 'op_add',
                                  this.createNode('node_op', 'op_mul',
                                      Type.deepCopy(node.children[0]),
-                                     this.derivative(node.children[1], varname, order)),
+                                     this.derivative(node.children[1], varname)),
                                  this.createNode('node_op', 'op_mul',
-                                     this.derivative(node.children[0], varname, order),
+                                     this.derivative(node.children[0], varname),
                                      Type.deepCopy(node.children[1]))
                              );
                      break;
 
                  case 'op_neg':
                      newNode = this.createNode('node_op', 'op_neg',
-                                 this.derivative(node.children[0], varname, order)
+                                 this.derivative(node.children[0], varname)
                              );
                      break;
 
                  case 'op_add':
                  case 'op_sub':
                      newNode = this.createNode('node_op', node.value,
-                                 this.derivative(node.children[0], varname, order),
-                                 this.derivative(node.children[1], varname, order)
+                                 this.derivative(node.children[0], varname),
+                                 this.derivative(node.children[1], varname)
                              );
                      break;
 
@@ -457,14 +457,14 @@
                                  Type.deepCopy(node),
                                  this.createNode('node_op', 'op_add',
                                      this.createNode('node_op', 'op_mul',
-                                         this.derivative(node.children[0], varname, order),
+                                         this.derivative(node.children[0], varname),
                                          this.createNode('node_op', 'op_div',
                                              Type.deepCopy(node.children[1]),
                                              Type.deepCopy(node.children[0])
                                          )
                                      ),
                                      this.createNode('node_op', 'op_mul',
-                                         this.derivative(node.children[1], varname, order),
+                                         this.derivative(node.children[1], varname),
                                          this.createNode('node_op', 'op_execfun',
                                              this.createNode('node_var', 'log'),
                                              [Type.deepCopy(node.children[0])]
@@ -583,7 +583,7 @@
                          //newNode = this.removeTrivialNodes(newNode);
                          if (order >= 1) {
                              while (order >= 1) {
-                                 newNode = this.derivative(newNode, varname, order);
+                                 newNode = this.derivative(newNode, varname);
                                  newNode = this.removeTrivialNodes(newNode);
                                  order--;
                              }
