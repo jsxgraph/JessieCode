@@ -877,12 +877,9 @@
                 if (n0.type == 'node_const' && n0.value === 0.0) {
                      node.value = 'op_neg';
                      node.children[0] = n1;
-                     this.mayNotBeSimplified = true;
                      return node;
-                     //return this.createNode('node_op', 'op_neg', n1);
                  }
                  if (n1.type == 'node_const' && n1.value === 0.0) {
-                     this.mayNotBeSimplified = true;
                      return n0;
                  }
                  if (n0.type == 'node_const' && n1.type == 'node_const' &&
