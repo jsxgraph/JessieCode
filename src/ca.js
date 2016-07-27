@@ -107,7 +107,7 @@
              }
          },
 
-         deriveElementary: function(node, varname, order) {
+         deriveElementary: function(node, varname) {
              var fun = node.children[0].value,
                  arg = node.children[1],
                  newNode;
@@ -394,10 +394,10 @@
                  case 'op_execfun':
                      // f'(g(x))g'(x)
                      if (node.children[0].value == 'pow') {
-                         newNode = this.deriveElementary(node, varname, order);
+                         newNode = this.deriveElementary(node, varname);
                      } else {
                          newNode = this.createNode('node_op', 'op_mul',
-                                     this.deriveElementary(node, varname, order),
+                                     this.deriveElementary(node, varname),
                                      // Warning: single variable mode
                                      this.derivative(node.children[1][0], varname)
                                  );
