@@ -793,7 +793,7 @@ define([
                 if (this.CA) {
                     ast = this.CA.expandDerivatives(ast, null, ast);
                     console.log(this.compile(ast));
-                    ast = this.CA.removeTrivialNodes(ast);
+                    //ast = this.CA.removeTrivialNodes(ast);
                 }
                 return this.compile(ast);
             } catch (e) {  // catch is mandatory in old IEs
