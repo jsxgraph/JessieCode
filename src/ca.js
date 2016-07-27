@@ -653,6 +653,7 @@
                  n1 = node.children[1];
                  if (n1.type == 'node_var') {
                      for (i = 0; i < n0.length; ++i) {
+                         // Allow maps of the form map(x) -> x
                          if (n0[i] == n1.value) {
                              n1.isMath = true;
                              break;
@@ -960,11 +961,9 @@
              case 'op_neg':
                  n0 = node.children[0];
                  if (n0.type == 'node_const' && n0.value === 0.0) {
-                     this.mayNotBeSimplified = true;
                      return n0;
                  }
                  if (n0.type == 'node_op' && n0.value == 'op_neg') {
-                     this.mayNotBeSimplified = true;
                      return n0.children[0];
                  }
                  break;

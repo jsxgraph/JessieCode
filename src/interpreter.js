@@ -230,6 +230,10 @@ define([
                 n.children.push(arguments[i]);
             }
 
+            if (n.type == 'node_const' && Type.isNumber(n.value)) {
+                n.isMath = true;
+            }
+            
             n.line = this.parCurLine;
             n.col = this.parCurColumn;
 
