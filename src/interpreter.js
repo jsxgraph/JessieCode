@@ -233,7 +233,7 @@ define([
             if (n.type == 'node_const' && Type.isNumber(n.value)) {
                 n.isMath = true;
             }
-            
+
             n.line = this.parCurLine;
             n.col = this.parCurColumn;
 
@@ -717,7 +717,10 @@ define([
         },
 
         /**
-         * Parses JessieCode
+         * Parses JessieCode.
+         * This consists of generating an AST with parser.parse, apply simplifying rules
+         * from CA and executing the ast by calling this.execute(ast).
+         *
          * @param {String} code
          * @param {Boolean} [geonext=false] Geonext compatibility mode.
          * @param {Boolean} dontstore
@@ -750,6 +753,7 @@ define([
 
                 code = cleaned.join('\n');
                 ast = parser.parse(code);
+                
                 if (this.CA) {
                     ast = this.CA.expandDerivatives(ast, null, ast);
                     ast = this.CA.removeTrivialNodes(ast);
@@ -766,6 +770,16 @@ define([
             return result;
         },
 
+        /**
+         * Manipulate JessieCode.
+         * This consists of generating an AST with parser.parse, apply simlifying rules from CA
+         * and compile the ast back to JessieCode.
+         *
+         * @param {String} code
+         * @param {Boolean} [geonext=false] Geonext compatibility mode.
+         * @param {Boolean} dontstore
+         * @return {String}  Simplified code
+         */
         manipulate: function (code, geonext, dontstore) {
             var i, setTextBackup, ast, result,
                 ccode = code.replace(/\r\n/g, '\n').split('\n'),
@@ -794,9 +808,10 @@ define([
 
                 code = cleaned.join('\n');
                 ast = parser.parse(code);
+
                 if (this.CA) {
                     ast = this.CA.expandDerivatives(ast, null, ast);
-                    console.log(this.compile(ast));
+                    //console.log(this.compile(ast));
                     ast = this.CA.removeTrivialNodes(ast);
                 }
                 return this.compile(ast);
