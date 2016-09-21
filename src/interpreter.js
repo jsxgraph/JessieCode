@@ -1255,8 +1255,8 @@ define([
 
                     // interpret ALL the parameters
                     for (i = 0; i < list.length; i++) {
-                        //parents[i] = this.execute(list[i]);
-                        parents[i] = Type.evalSlider(this.execute(list[i]));
+                        parents[i] = this.execute(list[i]);
+                        //parents[i] = Type.evalSlider(this.execute(list[i]));
                         this.dpstack[this.pscope].push({
                             line: node.children[1][i].line,
                             // SketchBin currently works only if the last column of the
