@@ -636,7 +636,7 @@ define([
         },
 
         /**
-         * Merge all atribute values given with an element creator into one object.
+         * Merge all attribute values given with an element creator into one object.
          * @param {Object} o An arbitrary number of objects
          * @returns {Object} All given objects merged into one. If properties appear in more (case sensitive) than one
          * object the last value is taken.
@@ -1255,7 +1255,8 @@ define([
 
                     // interpret ALL the parameters
                     for (i = 0; i < list.length; i++) {
-                        parents[i] = this.execute(list[i]);
+                        //parents[i] = this.execute(list[i]);
+                        parents[i] = Type.evalSlider(this.execute(list[i]));
                         this.dpstack[this.pscope].push({
                             line: node.children[1][i].line,
                             // SketchBin currently works only if the last column of the
@@ -1546,7 +1547,6 @@ define([
                     if (js && node.children[0].value === '$') {
                         ret = '$jc$.board.objects[' + this.compile(node.children[1][0], js) + ']';
                     }
-
                     break;
                 case 'op_property':
                     if (js && node.children[1] !== 'X' && node.children[1] !== 'Y') {
