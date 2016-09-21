@@ -189,7 +189,9 @@ define([
         this.line = 1;
         this.col = 1;
 
-        this.CA = new JXG.CA(this.node, this.createNode, this);
+        if (JXG.CA) {
+            this.CA = new JXG.CA(this.node, this.createNode, this);
+        }
 
         this.code = '';
 
@@ -753,13 +755,13 @@ define([
 
                 code = cleaned.join('\n');
                 ast = parser.parse(code);
-                
                 if (this.CA) {
                     ast = this.CA.expandDerivatives(ast, null, ast);
                     ast = this.CA.removeTrivialNodes(ast);
                 }
                 result = this.execute(ast);
             } catch (e) {  // catch is mandatory in old IEs
+                console.log(e);
             } finally {
                 // make sure the original text method is back in place
                 if (Text) {
@@ -816,6 +818,7 @@ define([
                 }
                 return this.compile(ast);
             } catch (e) {  // catch is mandatory in old IEs
+                console.log(e);
             } finally {
                 // make sure the original text method is back in place
                 if (Text) {
@@ -1193,8 +1196,8 @@ define([
                     }
                     break;
                 case 'op_map':
-                    if (!node.children[1].isMath) {
-                        this._error('In a map only function calls and mathematical expressions are allowed.');
+                    if (!node.children[1].isMath && node.children[1].type !== 'node_var') {
+                        this._error('execute: In a map only function calls and mathematical expressions are allowed.');
                     }
 
                     fun = this.defineFunction(node);
@@ -1367,7 +1370,7 @@ define([
                     ret = this.pow(this.execute(node.children[0]),  this.execute(node.children[1]));
                     break;
                 case 'op_neg':
-                    ret = this.execute(node.children[0]) * -1;
+                    ret = Type.evalSlider(this.execute(node.children[0])) * (-1);
                     break;
                 }
                 break;
@@ -1398,7 +1401,7 @@ define([
         /**
          * Compiles a parse tree back to JessieCode.
          * @param {Object} node
-         * @param {Boolean} [js=false] Currently ignored. Compile either to JavaScript or back to JessieCode (required for the UI).
+         * @param {Boolean} [js=false] Compile either to JavaScript or back to JessieCode (required for the UI).
          * @returns Something
          * @private
          */
@@ -1494,8 +1497,8 @@ define([
                     ret = ' return ' + this.compile(node.children[0], js) + ';\n';
                     break;
                 case 'op_map':
-                    if (!node.children[1].isMath) {
-                        this._error('In a map only function calls and mathematical expressions are allowed.');
+                    if (!node.children[1].isMath && node.children[1].type !== 'node_var') {
+                        this._error('compile: In a map only function calls and mathematical expressions are allowed.');
                     }
 
                     list = node.children[0];
