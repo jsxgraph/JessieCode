@@ -996,6 +996,10 @@ define([
                 }
             }
 
+            if (Type.isFunction(e)) {
+                this._error('Accessing function properties is not allowed.');
+            }
+
             if (!Type.exists(e)) {
                 this._error(e + ' is not an object');
             }

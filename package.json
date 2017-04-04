@@ -41,7 +41,7 @@
         "jshint": "0.9.x",
         "jslint": "0.1.x",
         "jstestdriver": "1.0.x",
-	"jison": "0.4.x"
+        "jison": "0.4.x"
     },
     "engines": {
         "node": ">= 0.6.0"
