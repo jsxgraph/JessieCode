@@ -1,7 +1,7 @@
 /*
  JessieCode Interpreter and Compiler
 
-    Copyright 2011-2016
+    Copyright 2011-2018
         Michael Gerhaeuser,
         Alfred Wassermann
 
@@ -579,6 +579,7 @@ define([
 
                 this.replaceNames(node.children[1]);
 
+                /** @ignore */
                 fun = (function ($jc$) {
                     var fun,
                         str = 'var f = ' + $jc$.functionCodeJS(node) + '; f;';
@@ -601,6 +602,7 @@ define([
                 // clean up scope
                 this.popScope();
             } else {
+                /** @ignore */
                 fun = (function (_pstack, that, id) {
                     return function () {
                         var r, oldscope;
@@ -1204,6 +1206,7 @@ define([
                         this._error('execute: In a map only function calls and mathematical expressions are allowed.');
                     }
 
+                    /** @ignore */
                     fun = this.defineFunction(node);
                     fun.isMap = true;
 
@@ -1213,6 +1216,7 @@ define([
                     // parse the parameter list
                     // after this, the parameters are in pstack
 
+                    /** @ignore */
                     fun = this.defineFunction(node);
                     fun.isMap = false;
 
