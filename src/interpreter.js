@@ -952,7 +952,15 @@ define([
          * @param {Object} result An object where the referenced elements will be stored. Access key is their id.
          */
         collectDependencies: function (node, result) {
-            var i, v, e;
+            var i, v, e, le;
+
+            if (Type.isArray(node)) {
+                le = node.length;
+                for (i = 0; i < le; i++) {
+                    this.collectDependencies(node[i], result);
+                }
+                return;
+            }
 
             v = node.value;
 
@@ -964,7 +972,10 @@ define([
             }
 
             // the $()-function-calls are special because their parameter is given as a string, not as a node_var.
-            if (node.type === 'node_op' && node.value === 'op_execfun' && node.children.length > 1 && node.children[0].value === '$' && node.children[1].length > 0) {
+            if (node.type === 'node_op' && node.value === 'op_execfun' && 
+                node.children.length > 1 && node.children[0].value === '$' && 
+                node.children[1].length > 0) {
+
                 e = node.children[1][0].value;
                 result[e] = this.board.objects[e];
             }
