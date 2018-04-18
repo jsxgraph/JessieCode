@@ -2072,6 +2072,8 @@ define([
                     ld: Mat.log2,
                     cosh: Mat.cosh,
                     sinh: Mat.sinh,
+                    gcd: Mat.gcd,
+                    lcm: Mat.lcm,
                     IfThen: that.ifthen,
                     'import': that.importModule,
                     'use': that.use,
@@ -2108,6 +2110,8 @@ define([
             builtIn.ld.src = 'JXG.Math.log2';
             builtIn.cosh.src = 'JXG.Math.cosh';
             builtIn.sinh.src = 'JXG.Math.sinh';
+            builtIn.gcd.src = 'JXG.Math.gcd';
+            builtIn.lcm.src = 'JXG.Math.lcm';
             builtIn['import'].src = '$jc$.importModule';
             builtIn.use.src = '$jc$.use';
             builtIn.remove.src = '$jc$.del';
