@@ -13,7 +13,7 @@ JessieCode is a scripting language designed to provide a interface to JSXGraph. 
 similar to JavaScript, but prevents access to the DOM. Hence, it can be used in community
 driven web sites which want to use JSXGraph to display interactive math graphics.
 
-JSXGraph (http://jsxgraph.org) is required to use JessieCode. See [SketchBin](http://bin.sketchometry.com)
+JSXGraph (https://jsxgraph.org) is required to use JessieCode. See [SketchBin](https://bin.sketchometry.com)
 for a live editor.
 
 Compile
