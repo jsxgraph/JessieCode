@@ -25,8 +25,8 @@ Required tools:
 * yuglify
 * Jison
 
-Use the make.py script to compile the .bnf file into a javascript parser and to concatenate
-the parser and interpreter into a single .js file.
+Use `make` to compile the .bnf file into a javascript parser and to concatenate
+the parser and interpreter into a single .js file, see `Makefile`.
 
 License
 -------
