@@ -1942,7 +1942,7 @@ define([
             a = Type.evalSlider(a);
             b = Type.evalSlider(b);
 
-            return Math.pow(a, b);
+            return Mat.pow(a, b);
         },
 
         DDD: function(f) {
@@ -2071,6 +2071,7 @@ define([
                     ld: Mat.log2,
                     cosh: Mat.cosh,
                     sinh: Mat.sinh,
+                    pow: Mat.pow,
                     gcd: Mat.gcd,
                     lcm: Mat.lcm,
                     IfThen: that.ifthen,
@@ -2109,6 +2110,7 @@ define([
             builtIn.ld.src = 'JXG.Math.log2';
             builtIn.cosh.src = 'JXG.Math.cosh';
             builtIn.sinh.src = 'JXG.Math.sinh';
+            builtIn.pow.src = 'JXG.Math.pow';
             builtIn.gcd.src = 'JXG.Math.gcd';
             builtIn.lcm.src = 'JXG.Math.lcm';
             builtIn['import'].src = '$jc$.importModule';
