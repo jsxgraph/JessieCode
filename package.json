@@ -3,39 +3,36 @@
     "description": "JessieCode is a small DSL that acts as a middle layer between the user and JSXGraph.",
     "homepage": "http://jsxgraph.org",
     "version": "0.97.0",
-
     "author": "Michael Gerhaeuser",
-    "maintainers": [{
-        "name": "Michael Gerhaeuser",
-        "email": "michael.gerhaeuser@gmail.com"
-    }],
+    "maintainers": [
+        {
+            "name": "Michael Gerhaeuser",
+            "email": "michael.gerhaeuser@gmail.com"
+        }
+    ],
     "contributors": [],
-
     "bugs": {
         "url": "https://github.com/jsxgraph/JessieCode/issues"
     },
-
     "directories": {
         "lib": "src"
     },
-
     "repository": {
         "type": "git",
         "url": "git@github.com:jsxgraph/JessieCode.git"
     },
-
-    "licenses": [{
-        "type": "MIT",
-        "url": "http://opensource.org/licenses/MIT"
-    }, {
-        "type": "LGPL-3.0",
-        "url": "http://opensource.org/licenses/LGPL-3.0"
-    }],
-
-    "dependencies": {
-    },
-    "optionalDependencies": {
-    },
+    "licenses": [
+        {
+            "type": "MIT",
+            "url": "http://opensource.org/licenses/MIT"
+        },
+        {
+            "type": "LGPL-3.0",
+            "url": "http://opensource.org/licenses/LGPL-3.0"
+        }
+    ],
+    "dependencies": {},
+    "optionalDependencies": {},
     "devDependencies": {
         "uglify-js": ">= 2.2.x",
         "jshint": ">= 0.9.x",
@@ -46,9 +43,6 @@
     "engines": {
         "node": ">= 0.6.0"
     },
-
-    "scripts": {
-    },
-
+    "scripts": {},
     "private": true
 }

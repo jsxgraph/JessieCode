@@ -777,7 +777,10 @@ define([
                         result = false;
                 }
             } catch (e) {  // catch is mandatory in old IEs
-                console.log(e);
+                // console.log(e);
+                // We throw the error again,
+                // so the user can catch it.
+                throw e;
             } finally {
                 // make sure the original text method is back in place
                 if (Text) {
@@ -971,8 +974,8 @@ define([
             }
 
             // the $()-function-calls are special because their parameter is given as a string, not as a node_var.
-            if (node.type === 'node_op' && node.value === 'op_execfun' && 
-                node.children.length > 1 && node.children[0].value === '$' && 
+            if (node.type === 'node_op' && node.value === 'op_execfun' &&
+                node.children.length > 1 && node.children[0].value === '$' &&
                 node.children[1].length > 0) {
 
                 e = node.children[1][0].value;
