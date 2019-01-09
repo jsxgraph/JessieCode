@@ -971,8 +971,8 @@ define([
             }
 
             // the $()-function-calls are special because their parameter is given as a string, not as a node_var.
-            if (node.type === 'node_op' && node.value === 'op_execfun' && 
-                node.children.length > 1 && node.children[0].value === '$' && 
+            if (node.type === 'node_op' && node.value === 'op_execfun' &&
+                node.children.length > 1 && node.children[0].value === '$' &&
                 node.children[1].length > 0) {
 
                 e = node.children[1][0].value;
@@ -2071,9 +2071,12 @@ define([
                     ld: Mat.log2,
                     cosh: Mat.cosh,
                     sinh: Mat.sinh,
+                    nthroot: Mat.nthroot,
+                    cbrt: Mat.cbrt,
                     pow: Mat.pow,
                     gcd: Mat.gcd,
                     lcm: Mat.lcm,
+                    binomial: Mat.binomial,
                     IfThen: that.ifthen,
                     'import': that.importModule,
                     'use': that.use,
@@ -2110,9 +2113,12 @@ define([
             builtIn.ld.src = 'JXG.Math.log2';
             builtIn.cosh.src = 'JXG.Math.cosh';
             builtIn.sinh.src = 'JXG.Math.sinh';
+            builtIn.nthroot.src = 'JXG.Math.nthroot';
+            builtIn.cbrt.src = 'JXG.Math.cbrt';
             builtIn.pow.src = 'JXG.Math.pow';
             builtIn.gcd.src = 'JXG.Math.gcd';
             builtIn.lcm.src = 'JXG.Math.lcm';
+            builtIn.binomial.src = 'JXG.Math.binomial';
             builtIn['import'].src = '$jc$.importModule';
             builtIn.use.src = '$jc$.use';
             builtIn.remove.src = '$jc$.del';
