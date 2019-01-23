@@ -37,7 +37,7 @@
 /*  Grammar definition of JessieCode                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/* Copyright 2011-2016                                               */
+/* Copyright 2011-2019                                               */
 /*   Michael Gerhaeuser,                                             */
 /*   Alfred Wassermann                                               */
 /*                                                                   */

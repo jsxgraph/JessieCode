@@ -1,7 +1,7 @@
 JessieCode - A script language for JSXGraph
 ===========================================
 
-(c) 2011-2013
+(c) 2011-2019
     Michael Gerhäuser, michael.gerhaeuser@gmail.com
     Alfred Wassermann, alfred.wassermann@uni-bayreuth.de
 
