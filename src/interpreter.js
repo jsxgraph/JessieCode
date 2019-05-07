@@ -2074,6 +2074,9 @@ define([
                     ld: Mat.log2,
                     cosh: Mat.cosh,
                     sinh: Mat.sinh,
+                    cot: Mat.cot,
+                    acot: Mat.acot,
+
                     nthroot: Mat.nthroot,
                     cbrt: Mat.cbrt,
                     pow: Mat.pow,
@@ -2116,6 +2119,8 @@ define([
             builtIn.ld.src = 'JXG.Math.log2';
             builtIn.cosh.src = 'JXG.Math.cosh';
             builtIn.sinh.src = 'JXG.Math.sinh';
+            builtIn.cot.src = 'JXG.Math.cot';
+            builtIn.acot.src = 'JXG.Math.acot';
             builtIn.nthroot.src = 'JXG.Math.nthroot';
             builtIn.cbrt.src = 'JXG.Math.cbrt';
             builtIn.pow.src = 'JXG.Math.pow';
