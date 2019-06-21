@@ -512,17 +512,36 @@ define([
                 return 'Math.' + vname;
             }
 
+            // if (!local) {
+            //     if (Type.isId(this.board, vname)) {
+            //         r = '$jc$.board.objects[\'' + vname + '\']';
+            //     } else if (Type.isName(this.board, vname)) {
+            //         r = '$jc$.board.elementsByName[\'' + vname + '\']';
+            //     } else if (Type.isGroup(this.board, vname)) {
+            //         r = '$jc$.board.groups[\'' + vname + '\']';
+            //     }
+
+            //     return r;
+            // }
             if (!local) {
                 if (Type.isId(this.board, vname)) {
                     r = '$jc$.board.objects[\'' + vname + '\']';
+                    if (this.board.objects[vname].elType === 'slider') {
+                        r += '.Value()';
+                    }
                 } else if (Type.isName(this.board, vname)) {
                     r = '$jc$.board.elementsByName[\'' + vname + '\']';
+                    if (this.board.elementsByName[vname].elType === 'slider') {
+                        r += '.Value()';
+                    }
                 } else if (Type.isGroup(this.board, vname)) {
                     r = '$jc$.board.groups[\'' + vname + '\']';
                 }
 
                 return r;
             }
+
+
 
             return '';
         },
