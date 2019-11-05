@@ -200,7 +200,6 @@ define([
         }
     };
 
-
     JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
         /**
          * Create a new parse tree node.
@@ -1859,7 +1858,6 @@ define([
             return res;
         },
 
-
         /**
          * Multiplication of vectors and numbers
          * @param {Number|Array} a
@@ -2207,7 +2205,6 @@ define([
     });
 
     //#include "parser.js"
-
 
     // Work around an issue with browsers that don't support Object.getPrototypeOf()
     parser.yy.parseError = parser.parseError;
