@@ -2097,6 +2097,7 @@ define([
                     nthroot: Mat.nthroot,
                     cbrt: Mat.cbrt,
                     pow: Mat.pow,
+                    ratpow: Mat.ratpow,
                     gcd: Mat.gcd,
                     lcm: Mat.lcm,
                     binomial: Mat.binomial,
@@ -2141,6 +2142,7 @@ define([
             builtIn.nthroot.src = 'JXG.Math.nthroot';
             builtIn.cbrt.src = 'JXG.Math.cbrt';
             builtIn.pow.src = 'JXG.Math.pow';
+            builtIn.ratpow.src = 'JXG.Math.ratpow';
             builtIn.gcd.src = 'JXG.Math.gcd';
             builtIn.lcm.src = 'JXG.Math.lcm';
             builtIn.binomial.src = 'JXG.Math.binomial';
