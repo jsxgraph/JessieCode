@@ -49,8 +49,8 @@
  */
 
 define([
-    'jxg', 'base/constants', 'base/text', 'math/math', 'math/geometry', 'math/statistics', 'utils/type', 'utils/uuid', 'utils/env'
-], function (JXG, Const, Text, Mat, Geometry, Statistics, Type, UUID, Env) {
+    'jxg', 'base/constants', 'base/text', 'math/math', 'math/ia', 'math/geometry', 'math/statistics', 'utils/type', 'utils/uuid', 'utils/env'
+], function (JXG, Const, Text, Mat, Interval, Geometry, Statistics, Type, UUID, Env) {
 
     "use strict";
 
@@ -478,7 +478,7 @@ define([
          * @param {Boolean} [withProps=false]
          */
         getvarJS: function (vname, local, withProps) {
-            var s, r = '';
+            var s, r = '', re;
 
             local = Type.def(local, false);
             withProps = Type.def(withProps, false);
@@ -503,12 +503,38 @@ define([
             }
 
             if (this.isBuiltIn(vname)) {
-                // if src does not exist, it is a number. in that case, just return the value.
-                return this.builtIn[vname].src || this.builtIn[vname];
+                // If src does not exist, it is a number. In that case, just return the value.
+                r = this.builtIn[vname].src || this.builtIn[vname];
+
+                // Get the "real" name of the function
+                if (Type.isNumber(r)) {
+                    return r;
+                }
+                vname = r.split('.').pop();
+
+                if (Type.exists(this.board.mathLib)) {
+                    // Handle builtin case: ln(x) -> Math.log
+                    re = new RegExp('^Math\.' + vname);
+                    if (re.exec(r) !== null) {
+                        return r.replace(re, '$jc$.board.mathLib.' + vname);
+                    }
+                }
+                if (Type.exists(this.board.mathLibJXG)) {
+                    // Handle builtin case: factorial(x) -> JXG.Math.factorial
+                    re = new RegExp('^JXG\.Math\.');
+                    if (re.exec(r) !== null) {
+                        return r.replace(re, '$jc$.board.mathLibJXG.');
+                    }
+                    return r;
+                }
+                return r;
+
+                // return this.builtIn[vname].src || this.builtIn[vname];
             }
 
             if (this.isMathMethod(vname)) {
-                return 'Math.' + vname;
+                return '$jc$.board.mathLib.' + vname;
+//                return 'Math.' + vname;
             }
 
             // if (!local) {
@@ -1628,16 +1654,32 @@ define([
                     ret = '(' + this.compile(node.children[0], js) + ' ~= ' + this.compile(node.children[1], js) + ')';
                     break;
                 case 'op_grt':
-                    ret = '(' + this.compile(node.children[0], js) + ' > ' + this.compile(node.children[1], js) + ')';
+                    if (js) {
+                        ret = '$jc$.gt(' + this.compile(node.children[0], js) + ', ' + this.compile(node.children[1], js) + ')';
+                    } else {
+                        ret = '(' + this.compile(node.children[0], js) + ' > ' + this.compile(node.children[1], js) + ')';
+                    }
                     break;
                 case 'op_lot':
-                    ret = '(' + this.compile(node.children[0], js) + ' < ' + this.compile(node.children[1], js) + ')';
+                    if (js) {
+                        ret = '$jc$.lt(' + this.compile(node.children[0], js) + ', ' + this.compile(node.children[1], js) + ')';
+                    } else {
+                        ret = '(' + this.compile(node.children[0], js) + ' < ' + this.compile(node.children[1], js) + ')';
+                    }
                     break;
                 case 'op_gre':
-                    ret = '(' + this.compile(node.children[0], js) + ' >= ' + this.compile(node.children[1], js) + ')';
+                    if (js) {
+                        ret = '$jc$.geq(' + this.compile(node.children[0], js) + ', ' + this.compile(node.children[1], js) + ')';
+                    } else {
+                        ret = '(' + this.compile(node.children[0], js) + ' >= ' + this.compile(node.children[1], js) + ')';
+                    }
                     break;
                 case 'op_loe':
-                    ret = '(' + this.compile(node.children[0], js) + ' <= ' + this.compile(node.children[1], js) + ')';
+                    if (js) {
+                        ret = '$jc$.leq(' + this.compile(node.children[0], js) + ', ' + this.compile(node.children[1], js) + ')';
+                    } else {
+                        ret = '(' + this.compile(node.children[0], js) + ' <= ' + this.compile(node.children[1], js) + ')';
+                    }
                     break;
                 case 'op_or':
                     ret = '(' + this.compile(node.children[0], js) + ' || ' + this.compile(node.children[1], js) + ')';
@@ -1790,7 +1832,9 @@ define([
             a = Type.evalSlider(a);
             b = Type.evalSlider(b);
 
-            if (Type.isArray(a) && Type.isArray(b)) {
+            if (Interval.isInterval(a) || Interval.isInterval(b)) {
+                res = Interval.add(a, b);
+            } else if (Type.isArray(a) && Type.isArray(b)) {
                 len = Math.min(a.length, b.length);
                 res = [];
 
@@ -1820,7 +1864,9 @@ define([
             a = Type.evalSlider(a);
             b = Type.evalSlider(b);
 
-            if (Type.isArray(a) && Type.isArray(b)) {
+            if (Interval.isInterval(a) || Interval.isInterval(b)) {
+                res = Interval.sub(a, b);
+            } else if (Type.isArray(a) && Type.isArray(b)) {
                 len = Math.min(a.length, b.length);
                 res = [];
 
@@ -1846,7 +1892,9 @@ define([
 
             a = Type.evalSlider(a);
 
-            if (Type.isArray(a)) {
+            if (Interval.isInterval(a)) {
+                res = Interval.negative(a);
+            } else if (Type.isArray(a)) {
                 len = a.length;
                 res = [];
 
@@ -1881,7 +1929,9 @@ define([
                 b = a;
             }
 
-            if (Type.isArray(a) && Type.isArray(b)) {
+            if (Interval.isInterval(a) || Interval.isInterval(b)) {
+                res = Interval.mul(a, b);
+            } else if (Type.isArray(a) && Type.isArray(b)) {
                 len = Math.min(a.length, b.length);
                 res = Mat.innerProduct(a, b, len);
             } else if (Type.isNumber(a) && Type.isArray(b)) {
@@ -1912,7 +1962,9 @@ define([
             a = Type.evalSlider(a);
             b = Type.evalSlider(b);
 
-            if (Type.isArray(a) && Type.isNumber(b)) {
+            if (Interval.isInterval(a) || Interval.isInterval(b)) {
+                res = Interval.div(a, b);
+            } else if (Type.isArray(a) && Type.isNumber(b)) {
                 len = a.length;
                 res = [];
 
@@ -1940,7 +1992,9 @@ define([
             a = Type.evalSlider(a);
             b = Type.evalSlider(b);
 
-            if (Type.isArray(a) && Type.isNumber(b)) {
+            if (Interval.isInterval(a) || Interval.isInterval(b)) {
+                return Interval.fmod(a, b);
+            } else if (Type.isArray(a) && Type.isNumber(b)) {
                 len = a.length;
                 res = [];
 
@@ -1966,7 +2020,35 @@ define([
             a = Type.evalSlider(a);
             b = Type.evalSlider(b);
 
+            if (Interval.isInterval(a) || Interval.isInterval(b)) {
+                return Interval.pow(a, b);
+            }
             return Mat.pow(a, b);
+        },
+
+        lt: function(a, b) {
+            if (Interval.isInterval(a) || Interval.isInterval(b)) {
+                return Interval.lt(a, b);
+            }
+            return a < b;
+        },
+        leq: function(a, b) {
+            if (Interval.isInterval(a) || Interval.isInterval(b)) {
+                return Interval.leq(a, b);
+            }
+            return a <= b;
+        },
+        gt: function(a, b) {
+            if (Interval.isInterval(a) || Interval.isInterval(b)) {
+                return Interval.gt(a, b);
+            }
+            return a > b;
+        },
+        geq: function(a, b) {
+            if (Interval.isInterval(a) || Interval.isInterval(b)) {
+                return Intervalt.geq(a, b);
+            }
+            return a >= b;
         },
 
         DDD: function(f) {
@@ -2133,6 +2215,7 @@ define([
             builtIn.deg.src = 'JXG.Math.Geometry.trueAngle';
             builtIn.factorial.src = 'JXG.Math.factorial';
             builtIn.trunc.src = 'JXG.trunc';
+            builtIn.log.src = 'JXG.Math.log';
             builtIn.ln.src = 'Math.log';
             builtIn.log10.src = 'JXG.Math.log10';
             builtIn.lg.src = 'JXG.Math.log10';
