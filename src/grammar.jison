@@ -275,17 +275,17 @@ LogicalANDExpression
 
 EqualityExpression
     : RelationalExpression %prec EMPTY                                      { $$ = $1; }
-    | EqualityExpression "==" RelationalExpression                          { $$ = AST.createNode(lc(@1), 'node_op', 'op_equ', $1, $3); $$.isMath = false; }
+    | EqualityExpression "==" RelationalExpression                          { $$ = AST.createNode(lc(@1), 'node_op', 'op_eq', $1, $3); $$.isMath = false; }
     | EqualityExpression "!=" RelationalExpression                          { $$ = AST.createNode(lc(@1), 'node_op', 'op_neq', $1, $3); $$.isMath = false; }
     | EqualityExpression "~=" RelationalExpression                          { $$ = AST.createNode(lc(@1), 'node_op', 'op_approx', $1, $3); $$.isMath = false; }
     ;
 
 RelationalExpression
     : AdditiveExpression %prec EMPTY                                        { $$ = $1; }
-    | RelationalExpression "<" AdditiveExpression                           { $$ = AST.createNode(lc(@1), 'node_op', 'op_lot', $1, $3); $$.isMath = false; }
-    | RelationalExpression ">" AdditiveExpression                           { $$ = AST.createNode(lc(@1), 'node_op', 'op_grt', $1, $3); $$.isMath = false; }
-    | RelationalExpression "<=" AdditiveExpression                          { $$ = AST.createNode(lc(@1), 'node_op', 'op_loe', $1, $3); $$.isMath = false; }
-    | RelationalExpression ">=" AdditiveExpression                          { $$ = AST.createNode(lc(@1), 'node_op', 'op_gre', $1, $3); $$.isMath = false; }
+    | RelationalExpression "<" AdditiveExpression                           { $$ = AST.createNode(lc(@1), 'node_op', 'op_lt', $1, $3); $$.isMath = false; }
+    | RelationalExpression ">" AdditiveExpression                           { $$ = AST.createNode(lc(@1), 'node_op', 'op_gt', $1, $3); $$.isMath = false; }
+    | RelationalExpression "<=" AdditiveExpression                          { $$ = AST.createNode(lc(@1), 'node_op', 'op_leq', $1, $3); $$.isMath = false; }
+    | RelationalExpression ">=" AdditiveExpression                          { $$ = AST.createNode(lc(@1), 'node_op', 'op_geq', $1, $3); $$.isMath = false; }
     ;
 
 AdditiveExpression
