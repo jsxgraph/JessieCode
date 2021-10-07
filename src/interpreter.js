@@ -317,7 +317,7 @@ define([
                             } else {
                                 attr = {};
                             }
-                            if(attr.name === undefined && attr.id === undefined) {
+                            if (attr.name === undefined && attr.id === undefined) {
                                 attr.name = (that.lhs[that.scope.id] !== 0 ? that.lhs[that.scope.id] : '');
                             }
                             return that.board.create(vname, parameters, attr);
