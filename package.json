@@ -8,6 +8,10 @@
         {
             "name": "Michael Gerhaeuser",
             "email": "michael.gerhaeuser@gmail.com"
+        },
+        {
+            "name": "Alfred Wassermann",
+            "email": "alfred.wassermann@uni-bayreuth.de"
         }
     ],
     "contributors": [],
@@ -31,14 +35,11 @@
             "url": "http://opensource.org/licenses/LGPL-3.0"
         }
     ],
-    "dependencies": {},
-    "optionalDependencies": {},
     "devDependencies": {
-        "uglify-js": ">= 2.2.x",
-        "jshint": ">= 0.9.x",
+        "jison": ">= 0.4.18",
+        "jshint": ">=2.13.0",
         "jslint": ">= 0.1.x",
-        "jstestdriver": ">= 1.0.x",
-        "jison": ">= 0.4.x"
+        "uglify-js": ">= 2.2.x"
     },
     "engines": {
         "node": ">= 0.6.0"
