@@ -13,17 +13,17 @@ JessieCode is a scripting language designed to provide a interface to JSXGraph. 
 similar to JavaScript, but prevents access to the DOM. Hence, it can be used in community
 driven web sites which want to use JSXGraph to display interactive math graphics.
 
-JSXGraph (https://jsxgraph.org) is required to use JessieCode. See [SketchBin](https://bin.sketchometry.com)
-for a live editor.
+JSXGraph (https://jsxgraph.org) is required to use JessieCode. 
+<!--See [SketchBin](https://bin.sketchometry.com) for a live editor.-->
 
 Compile
 -------
 
-Required tools:
+Required npm tools:
 
-* Rhino
-* yuglify
-* Jison
+- Jison
+- uglify-js
+- jshint, jslint (optional)
 
 Use `make` to compile the .bnf file into a javascript parser and to concatenate
 the parser and interpreter into a single .js file, see `Makefile`.
