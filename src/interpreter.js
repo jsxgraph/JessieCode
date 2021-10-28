@@ -848,7 +848,7 @@ define([
          * @param {String} code             JessieCode code to be parsed
          * @param {Boolean} [geonext=false] Geonext compatibility mode.
          * @param {Boolean} dontstore       If false, the code string is stored in this.code.
-         * @return {Object}                 Parse JessieCode code and execute it..
+         * @return {Object}                 Parse JessieCode code and execute it.
          */
         parse: function (code, geonext, dontstore) {
             return this._genericParse(code, 'parse', geonext, dontstore);
