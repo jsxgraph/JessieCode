@@ -92,7 +92,7 @@ define([
 
         /**
          * The global scope.
-         * @type {Object}
+         * @type Object
          */
         this.scope = {
             id: 0,
@@ -105,7 +105,7 @@ define([
 
         /**
          * Keeps track of all possible scopes every required.
-         * @type {Array}
+         * @type Array
          */
         this.scopes = [];
         this.scopes.push(this.scope);
@@ -162,7 +162,7 @@ define([
 
         /**
          * Store $log messages in case there's no console.
-         * @type {Array}
+         * @type Array
          */
         this.$log = [];
 
