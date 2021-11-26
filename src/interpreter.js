@@ -910,14 +910,14 @@ define([
             var i, v;
 
             if (node.replaced) {
-                // these children exist, if node.replaced is set.
+                // These children exist, if node.replaced is set.
                 v = this.board.objects[node.children[1][0].value];
 
                 if (Type.exists(v) && v.name !== "") {
                     node.type = 'node_var';
                     node.value = v.name;
 
-                    // maybe it's not necessary, but just to be sure that everything is cleaned up we better delete all
+                    // Maybe it's not necessary, but just to be sure that everything is cleaned up we better delete all
                     // children and the replaced flag
                     node.children.length = 0;
                     delete node.replaced;
@@ -954,8 +954,8 @@ define([
 
             v = node.value;
 
-            // we are interested only in nodes of type node_var and node_op > op_lhs.
-            // currently, we are not checking if the id is a local variable. in this case, we're stuck anyway.
+            // We are interested only in nodes of type node_var and node_op > op_lhs.
+            // Currently, we are not checking if the id is a local variable. in this case, we're stuck anyway.
 
             if (node.type === 'node_op' && v === 'op_lhs' && node.children.length === 1) {
                 this.isLHS = true;
@@ -974,7 +974,7 @@ define([
             }
 
             if (node.children) {
-                // assignments are first evaluated on the right hand side
+                // Assignments are first evaluated on the right hand side
                 for (i = node.children.length; i > 0; i--) {
                     if (Type.exists(node.children[i - 1])) {
                         node.children[i - 1] = this.replaceNames(node.children[i - 1]);
