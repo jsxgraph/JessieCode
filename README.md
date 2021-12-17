@@ -1,7 +1,7 @@
 JessieCode - A script language for JSXGraph
 ===========================================
 
-(c) 2011-2019
+(c) 2011-2021
     Michael Gerhäuser, michael.gerhaeuser@gmail.com
     Alfred Wassermann, alfred.wassermann@uni-bayreuth.de
 
@@ -199,6 +199,9 @@ for (<assignment>; <expression>; <assignment>) {
 
 ### Math functions
 
+Supported are all functions from the JavaScript `Math` object, like `sin`, `cos`, `abs, `random`, ...
+Additionally supported are numerical JSXGraph functions from `JXG.Math`, see <https://jsxgraph.org/docs/symbols/JXG.Math.html>.
+
 | Function           | Description                                                      |
 |:-------------------|:-----------------------------------------------------------------|
 | cos(x)             | Cosine of x                                                      |
@@ -225,7 +228,7 @@ for (<assignment>; <expression>; <assignment>) {
 | floor(x)           | Returns the biggest integer n with n \< x.                       |
 | acos(x)            | arccosine of x                                                   |
 | atan(x)            | arctangent of x                                                  |
-| acot(x)            | arccotangent of x                                                  |
+| acot(x)            | arccotangent of x                                                |
 | sin(x)             | sine of x                                                        |
 | sinh(x)            | Hyperbolic sine of x                                             |
 | factorial(n)       | Calculates n!                                                    |
@@ -315,7 +318,7 @@ or any higher scope. See **Id** above for an example.
 
 ## Element reference
 
-<https://jsxgraph.uni-bayreuth.de/docs/>
+See <https://jsxgraph.org/docs/>
 
 ### Attributes
 
@@ -344,7 +347,7 @@ their attributes in`board.create`.
 
 ### Methods
 
-Not all methods of an element class are accessible in Jessie. Currently these
+Not all methods of an element class are accessible in JessieCode. Currently these
 methods are available:
 
 - all elements
