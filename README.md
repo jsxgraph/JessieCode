@@ -270,7 +270,7 @@ A = point(1, 2) << strokeColor: 'red', face: '[]', size: 7, fillColor: 'black' >
 ```
 
 For a possibly incomplete list including documentation, see [the JSXGraph
-docs](//jsxgraph.uni-bayreuth.de/docs/); For a complete list see the
+docs](//jsxgraph.org/docs/); For a complete list see the
 **Element reference** section below.
 
 ## Accessing elements
