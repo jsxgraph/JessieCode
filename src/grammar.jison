@@ -418,7 +418,8 @@ FunctionExpression
     ;
 
 MapExpression
-    : "MAP" "(" ParameterDefinitionList ")" "->" Expression                 { $$ = AST.createNode(lc(@1), 'node_op', 'op_map', $3, $6); }
+    : "MAP" "(" ")" "->" Expression                                         { $$ = AST.createNode(lc(@1), 'node_op', 'op_map', [], $5); }
+    | "MAP" "(" ParameterDefinitionList ")" "->" Expression                 { $$ = AST.createNode(lc(@1), 'node_op', 'op_map', $3, $6); }
     ;
 
 ParameterDefinitionList
