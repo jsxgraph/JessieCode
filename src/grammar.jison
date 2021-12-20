@@ -97,6 +97,7 @@
 "Infinity"                          return 'INFINITY'
 /*"\u221E"                            return 'INFINITY'*/
 "->"                                return '->'
+"=>"                                return '->'
 "<<"                                return '<<'
 ">>"                                return '>>'
 "{"                                 return '{'
