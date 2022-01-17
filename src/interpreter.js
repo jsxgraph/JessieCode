@@ -1565,7 +1565,11 @@ define([
                 break;
 
             case 'node_const':
-                ret = Number(node.value);
+                if(node.value === null) {
+                    ret = null;
+                } else {
+                    ret = Number(node.value);
+                }
                 break;
 
             case 'node_const_bool':
