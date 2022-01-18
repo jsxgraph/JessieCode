@@ -440,8 +440,8 @@ define([
                 return s.locals[vname];
             }
 
-            // Handle the - so far only - two constants by hard coding them.
-            if (vname === 'EULER' || vname === 'PI') {
+            // Handle the - so far only - three constants by hard coding them.
+            if (vname === 'EULER' || vname === 'PI' || vname === '$board') {
                 return this.builtIn[vname];
             }
 
