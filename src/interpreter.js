@@ -173,6 +173,12 @@ define([
         this.builtIn = this.defineBuiltIn();
 
         /**
+         * List of all possible operands in JessieCode (except of JSXGraph objects).
+         * @type Object
+         */
+        this.operands = this.getPossibleOperands();
+
+        /**
          * The board which currently is used to create and look up elements.
          * @type JXG.Board
          */
@@ -2462,6 +2468,108 @@ define([
             builtIn.$log.src = '$jc$.log';
 
             return builtIn;
+        },
+
+        /**
+         * Returns information about the possible functions and constants.
+         * @returns {Object}
+         */
+        getPossibleOperands: function () {
+            var FORBIDDEN = ['E'],
+                jessiecode = this.defineBuiltIn(),
+                math = Math;
+
+            var jc, ma, merge,
+                i, j, p,
+                funcs, funcsJC, consts, operands;
+
+            let sort = function (a, b) {
+                return a.toLowerCase().localeCompare(b.toLowerCase());
+            };
+
+            let pack = function (name, origin) {
+                var that = null;
+
+                if (origin === 'jc') that = jessiecode[name];
+                else if (origin === 'Math') that = math[name];
+                else return;
+
+                if (FORBIDDEN.includes(name)) {
+                    return;
+                } else if (JXG.isFunction(that)) {
+                    return {
+                        name: name,
+                        type: 'function',
+                        numParams: that.length,
+                        origin: origin,
+                    };
+                } else if (JXG.isNumber(that)) {
+                    return {
+                        name: name,
+                        type: 'constant',
+                        value: that,
+                        origin: origin,
+                    };
+                } else if (that !== undefined) {
+                    console.error('undefined type', that);
+                }
+            };
+
+            jc = Object.getOwnPropertyNames(jessiecode).sort(sort);
+            ma = Object.getOwnPropertyNames(math).sort(sort);
+            merge = [];
+            i = 0;
+            j = 0;
+
+            while (i < jc.length || j < ma.length) {
+
+                if (jc[i] === ma[j]) {
+
+                    p = pack(ma[j], 'Math');
+                    if (JXG.exists(p)) merge.push(p);
+                    i++;
+                    j++;
+
+                } else if (!JXG.exists(ma[j]) || jc[i].toLowerCase().localeCompare(ma[j].toLowerCase()) < 0) {
+
+                    p = pack(jc[i], 'jc');
+                    if (JXG.exists(p)) merge.push(p);
+                    i++;
+
+                } else {
+
+                    p = pack(ma[j], 'Math');
+                    if (JXG.exists(p)) merge.push(p);
+                    j++;
+
+                }
+            }
+
+            funcs = [];
+            funcsJC = [];
+            consts = [];
+            operands = {};
+            for (i of merge) {
+                switch (i.type) {
+                    case 'function':
+                        funcs.push(i.name);
+                        if (i.origin === 'jc')
+                            funcsJC.push(i.name);
+                        break;
+                    case 'constant':
+                        consts.push(i.name);
+                        break;
+                }
+                operands[i.name] = i;
+            }
+
+            return {
+                all: operands,
+                list: merge,
+                functions: funcs,
+                functions_jessiecode: funcsJC,
+                constants: consts,
+            };
         },
 
         /**
