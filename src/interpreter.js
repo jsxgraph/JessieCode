@@ -2477,17 +2477,17 @@ define([
         getPossibleOperands: function () {
             var FORBIDDEN = ['E'],
                 jessiecode = this.defineBuiltIn(),
-                math = Math;
+                math = Math,
+                jc, ma, merge,
+                i, j, p, len, e,
+                funcs, funcsJC, consts, operands,
+                sort, pack;
 
-            var jc, ma, merge,
-                i, j, p,
-                funcs, funcsJC, consts, operands;
-
-            let sort = function (a, b) {
+            sort = function (a, b) {
                 return a.toLowerCase().localeCompare(b.toLowerCase());
             };
 
-            let pack = function (name, origin) {
+            pack = function (name, origin) {
                 var that = null;
 
                 if (origin === 'jc') that = jessiecode[name];
@@ -2522,26 +2522,19 @@ define([
             j = 0;
 
             while (i < jc.length || j < ma.length) {
-
                 if (jc[i] === ma[j]) {
-
                     p = pack(ma[j], 'Math');
                     if (JXG.exists(p)) merge.push(p);
                     i++;
                     j++;
-
                 } else if (!JXG.exists(ma[j]) || jc[i].toLowerCase().localeCompare(ma[j].toLowerCase()) < 0) {
-
                     p = pack(jc[i], 'jc');
                     if (JXG.exists(p)) merge.push(p);
                     i++;
-
                 } else {
-
                     p = pack(ma[j], 'Math');
                     if (JXG.exists(p)) merge.push(p);
                     j++;
-
                 }
             }
 
@@ -2549,18 +2542,20 @@ define([
             funcsJC = [];
             consts = [];
             operands = {};
-            for (i of merge) {
-                switch (i.type) {
+            len = merge.length;
+            for (i = 0; i < len; i++) {
+                e = merge[i];
+                switch (e.type) {
                     case 'function':
-                        funcs.push(i.name);
-                        if (i.origin === 'jc')
-                            funcsJC.push(i.name);
+                        funcs.push(e.name);
+                        if (e.origin === 'jc')
+                            funcsJC.push(e.name);
                         break;
                     case 'constant':
-                        consts.push(i.name);
+                        consts.push(e.name);
                         break;
                 }
-                operands[i.name] = i;
+                operands[e.name] = e;
             }
 
             return {
