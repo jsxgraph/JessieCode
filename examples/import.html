@@ -21,12 +21,17 @@
 
 <textarea id="code" cols="110" rows="31">
     geo = import('Math/Geometry');
+    num = import('Math/Numerics');
 
     A = point(3, 1);
     B = point(1, 1);
     C = point(1, 3);
+    D = point(-1, 2);
 
-    a = geo.rad(A, B, C);
+    // a = map () -> geo.rad(A, B, C);
+    // text(-1, -2, a);
+    arr = num.bezier([A, B, C, D]);
+    path = curve(arr[0], arr[1], arr[2]);
 </textarea>
 
 <script type="text/javascript">
