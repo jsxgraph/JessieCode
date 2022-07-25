@@ -133,7 +133,7 @@ supported right now.
 
 | Operator | Description |
 |:---------|:------------|
-| bool ? expr1 : expr2   | Conditional operator    |
+| bool ? expr1 : expr2   | expr1 if bool is true, expr2 otherwise   |
 
 ### String operators
 
