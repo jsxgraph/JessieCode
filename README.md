@@ -129,6 +129,12 @@ supported right now.
 | !=       | Not equal                                                     |
 | \~=      | Approximately equal, can be used to compare two float values. |
 
+### Conditional operator
+
+| Operator | Description |
+|:---------|:------------|
+| bool ? expr1 : expr2   | Conditional operator    |
+
 ### String operators
 
 | Operator | Description          |
