@@ -49,7 +49,7 @@ core: parser $(INTERPRETER)
 
 parser: $(GRAMMAR)
 	$(MKDIR) $(MKDIRFLAGS) $(OUTPUT)
-	$(JISON) $^ -o $(OUTPUT)/parser.js
+	$(JISON) $^ -o $(OUTPUT)/parser.js -m js
 
 test-server:
 	$(JSTESTDRIVER) --port $(JSTESTPORT)
