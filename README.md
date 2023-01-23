@@ -47,8 +47,8 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public License and
-the MIT License along with JessieCode. If not, see <http://www.gnu.org/licenses/>
-and <http://opensource.org/licenses/MIT/>.
+the MIT License along with JessieCode. If not, see <https://www.gnu.org/licenses/>
+and <https://opensource.org/licenses/MIT/>.
 
 # JessieCode language reference
 
