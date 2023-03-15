@@ -1990,6 +1990,19 @@ define([
         },
 
         /**
+         * This is used as the global perimeter() function.
+         * @param {JXG.Circle|JXG.Polygon} obj
+         * @returns {Number}
+         */
+        perimeter: function (obj) {
+            if (!Type.exists(obj) || !Type.exists(obj.Perimeter)) {
+                this._error('Error: Can\'t calculate perimeter.');
+            }
+
+            return obj.Perimeter();
+        },
+
+        /**
          * This is used as the global dist() function.
          * @param {JXG.Point} p1
          * @param {JXG.Point} p2
@@ -2378,6 +2391,7 @@ define([
                     deg: Geometry.trueAngle,
                     A: that.area,
                     area: that.area,
+                    perimeter: that.perimeter,
                     dist: that.dist,
                     R: that.radius,
                     radius: that.radius,
@@ -2443,6 +2457,7 @@ define([
             builtIn.erfi.src = 'JXG.Math.erfi';
             builtIn.A.src = '$jc$.area';
             builtIn.area.src = '$jc$.area';
+            builtIn.perimeter.src = '$jc$.perimeter';
             builtIn.dist.src = '$jc$.dist';
             builtIn.R.src = '$jc$.radius';
             builtIn.radius.src = '$jc$.radius';
