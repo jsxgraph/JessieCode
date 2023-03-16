@@ -1,5 +1,5 @@
 /*
-    Copyright 2011-2012
+    Copyright 2011-2023
         Michael Gerhaeuser,
         Alfred Wassermann,
 

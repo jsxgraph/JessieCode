@@ -1,8 +1,8 @@
 {
     "name": "JessieCode",
     "description": "JessieCode is a small DSL that acts as a middle layer between the user and JSXGraph.",
-    "homepage": "http://jsxgraph.org",
-    "version": "0.97.0",
+    "homepage": "https://jsxgraph.org",
+    "version": "1.5.0",
     "author": "Michael Gerhaeuser",
     "maintainers": [
         {
@@ -28,18 +28,19 @@
     "licenses": [
         {
             "type": "MIT",
-            "url": "http://opensource.org/licenses/MIT"
+            "url": "https://opensource.org/licenses/MIT"
         },
         {
             "type": "LGPL-3.0",
-            "url": "http://opensource.org/licenses/LGPL-3.0"
+            "url": "https://opensource.org/licenses/LGPL-3.0"
         }
     ],
     "devDependencies": {
+        "eslint": "^8.4.1",
         "jison": ">= 0.4.18",
         "jshint": ">=2.13.0",
         "jslint": ">= 0.1.x",
-        "uglify-js": ">= 2.2.x"
+        "terser": "^5.10.0"
     },
     "engines": {
         "node": ">= 0.6.0"

@@ -1,4 +1,4 @@
-.PHONY: test test-server clean
+.PHONY: core deploy test test-server clean
 
 # directories
 OUTPUT=bin
@@ -7,9 +7,11 @@ BIN=./node_modules/.bin
 JSXGRAPH=../JSXGraph
 
 # build tools
-REQUIREJS=$(BIN)/r.js
-UGLIFYJS=$(BIN)/uglifyjs
+# REQUIREJS=$(BIN)/r.js
+# UGLIFYJS=$(BIN)/uglifyjs
+MINIFYER=./node_modules/terser/bin/terser
 LINT=$(BIN)/jslint
+ESLINT=./node_modules/eslint/bin/eslint.js
 HINT=$(BIN)/jshint
 JSTESTDRIVER=java -jar ./node_modules/jstestdriver/lib/jstestdriver.jar
 JISON=$(BIN)/jison
@@ -42,14 +44,14 @@ all: core
 deploy: core
 	$(CP) $(OUTPUT)/jessiecode.js ../JSXGraph/src/parser/jessiecode.js
 
-core: parser $(INTERPRETER)
+core: parser.js $(INTERPRETER)
 	$(SED) -e '/#include "parser\.js"/{r '"$(OUTPUT)"'/parser.js' -e 'd}' $(INTERPRETER) > $(OUTPUT)/jessiecode.js
 	$(SED) -i -e 's/"use strict"//' $(OUTPUT)/jessiecode.js
-	$(UGLIFYJS) $(OUTPUT)/jessiecode.js > $(OUTPUT)/jessiecode.min.js
+	$(MINIFYER) $(OUTPUT)/jessiecode.js -c -m -o $(OUTPUT)/jessiecode.min.js
 
-parser: $(GRAMMAR)
+parser.js: $(GRAMMAR)
 	$(MKDIR) $(MKDIRFLAGS) $(OUTPUT)
-	$(JISON) $^ -o $(OUTPUT)/parser.js
+	$(JISON) $^ -o $(OUTPUT)/parser.js -m js
 
 test-server:
 	$(JSTESTDRIVER) --port $(JSTESTPORT)
