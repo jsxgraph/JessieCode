@@ -2485,7 +2485,31 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
         }
         builtIn.$log.src = '$jc$.log';
 
+        builtIn = JXG.merge(builtIn, that._addedBuiltIn);
+
         return builtIn;
+    },
+
+    _addedBuiltIn: {},
+
+    addBuiltIn: function (name, func) {
+        if (Type.exists(this.builtIn)) {
+            if (Type.exists(this.builtIn[name])) {
+                return;
+            }
+            this.builtIn[name] = func;
+            this.builtIn[name].src = '$jc$.' + name;
+        }
+
+        if (Type.exists(this._addedBuiltIn[name])) {
+            return;
+        }
+        this._addedBuiltIn[name] = func;
+        this._addedBuiltIn[name].src = '$jc$.' + name;
+
+        JXG.JessieCode.prototype[name] = func;
+
+        console.log('added', name, func)
     },
 
     /**
@@ -2494,7 +2518,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
      */
     getPossibleOperands: function () {
         var FORBIDDEN = ['E'],
-            jessiecode = this.defineBuiltIn(),
+            jessiecode = this.builtIn || this.defineBuiltIn(),
             math = Math,
             jc, ma, merge,
             i, j, p, len, e,
@@ -2528,6 +2552,8 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                     value: that,
                     origin: origin,
                 };
+            } else if (name.startsWith('$')) {
+                // do nothing
             } else if (that !== undefined) {
                 console.error('undefined type', that);
             }
