@@ -1740,7 +1740,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         }
                         ret = this.compile(node.children[0], js) + '(' + list.join(', ') + (node.children[2] && js ? ', ' + e : '') + ')' + (node.children[2] && !js ? ' ' + e : '');
                         if (js) {
-                            // Inserting a newline here allows simulataneously
+                            // Inserting a newline here allows simultaneously
                             // - procedural calls like Q.moveTo(...); and
                             // - function calls in expressions like log(x) + 1;
                             // Problem: procedural calls will not be ended by a semicolon.
