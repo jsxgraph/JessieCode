@@ -1486,7 +1486,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                         ret = this.resolveProperty(e, v, false);
 
                         // set the scope, in case this is a method the user wants to call
-                        if (Type.exists(ret)) {
+                        if (Type.exists(ret) && ['number', 'string', 'boolean'].indexOf(typeof ret) < 0) {
                             ret.sc = e;
                         }
 
