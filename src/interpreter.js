@@ -1904,10 +1904,13 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
         }
 
         if (node.needsBrackets) {
+            ret = '{\n' + ret + ' }\n';
+        }
+        if (node.needsAngleBrackets) {
             if (js) {
-                ret = '{\n' + ret + '\n}\n';
+                ret = '{\n' + ret + ' }\n';
             } else {
-                ret = '<< ' + ret + ' >>';
+                ret = '<< ' + ret + ' >>\n';
             }
         }
 

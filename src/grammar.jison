@@ -367,8 +367,8 @@ ArrayLiteral
     ;
 
 ObjectLiteral
-    : "<<" ">>"                                                             { $$ = AST.createNode(lc(@1), 'node_op', 'op_emptyobject', {}); $$.needsBrackets = true; }
-    | "<<" PropertyList ">>"                                                { $$ = AST.createNode(lc(@1), 'node_op', 'op_proplst_val', $2); $$.needsBrackets = true; }
+    : "<<" ">>"                                                             { $$ = AST.createNode(lc(@1), 'node_op', 'op_emptyobject', {}); $$.needsAngleBrackets = true; }
+    | "<<" PropertyList ">>"                                                { $$ = AST.createNode(lc(@1), 'node_op', 'op_proplst_val', $2); $$.needsAngleBrackets = true; }
     ;
 
 PropertyList
