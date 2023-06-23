@@ -698,7 +698,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
         fun.toJS = fun.toString;
         fun.toString = (function (_that) {
             return function () {
-                return _that.compile(_that.replaceIDs(Type.deepCopy(node)), true);
+                return _that.compile(_that.replaceIDs(Type.deepCopy(node)));
             };
         }(this));
 
