@@ -701,18 +701,9 @@ JXG.extend(
          *
          */
         expandDerivatives: function (node, parent, ast) {
-            var len,
-                i,
-                j,
-                mapNode,
-                codeNode,
-                ret,
-                node2,
-                newNode,
-                mapName,
-                varname,
-                vArray,
-                order;
+            var len, i, j, mapNode, codeNode,
+                ret, node2, newNode, mapName,
+                varname, vArray, order;
 
             ret = 0;
             if (!node) {
