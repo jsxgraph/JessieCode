@@ -39,7 +39,7 @@ GRAMMAR=src/grammar.jison
 INTERPRETER=src/interpreter.js
 
 # rules
-all: core
+all: core deploy
 
 deploy: core
 	$(CP) $(OUTPUT)/jessiecode.js ../JSXGraph/src/parser/jessiecode.js
