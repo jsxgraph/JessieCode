@@ -2425,7 +2425,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                 getName: that.getName,
                 name: that.getName,
                 '$board': that.board,
-                '$log': that.log,
+                '$log': that.log
             };
 
         // special scopes for factorial, deg, and rad
