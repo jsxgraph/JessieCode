@@ -42,7 +42,7 @@ INTERPRETER=src/interpreter.js
 all: core deploy
 
 deploy: core
-	$(CP) $(OUTPUT)/jessiecode.js ../JSXGraph/src/parser/jessiecode.js
+	$(CP) $(OUTPUT)/jessiecode.js ../jsxgraph/src/parser/jessiecode.js
 
 core: parser.js $(INTERPRETER)
 	$(SED) -e '/#include "parser\.js"/{r '"$(OUTPUT)"'/parser.js' -e 'd}' $(INTERPRETER) > $(OUTPUT)/jessiecode.js
