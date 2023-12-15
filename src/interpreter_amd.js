@@ -779,7 +779,7 @@ define([
                     o[what] = value;
                 } else if (typeof value === 'string') {
                     o.isDraggable = false;
-                    o[what] = Type.createFunction(value, this.board, null, true);
+                    o[what] = Type.createFunction(value, this.board);
                     o[what + 'jc'] = value;
                 }
 
