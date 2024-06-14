@@ -33,8 +33,8 @@
  * @fileoverview Here, the computer algebra algorithms are implemented.
  */
 
-import JXG from "../jxg";
-import Type from "../utils/type";
+import JXG from "../jxg.js";
+import Type from "../utils/type.js";
 // import Const from "../base/constants";
 // import Text from "../base/text";
 // import Mat from "../math/math";
