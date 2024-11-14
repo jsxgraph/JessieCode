@@ -37,7 +37,7 @@
 /*  Grammar definition of JessieCode                                 */
 /* ----------------------------------------------------------------- */
 /*                                                                   */
-/* Copyright 2011-2019                                               */
+/* Copyright 2011-2024                                               */
 /*   Michael Gerhaeuser,                                             */
 /*   Alfred Wassermann                                               */
 /*                                                                   */
@@ -70,8 +70,9 @@
 %%
 
 \s+                                 /* ignore */
-[0-9]+\.[0-9]*|[0-9]*\.[0-9]+\b     return 'NUMBER'
-[0-9]+                              return 'NUMBER'
+[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)    return 'NUMBER'  /* New 123.1234e+-12 */
+[0-9]+\.[0-9]*|[0-9]*\.[0-9]+\b     return 'NUMBER'  /* Old 123.1234 or .1234 */
+[0-9]+                              return 'NUMBER'  /* Old 123 */
 
 
 '"'("\\"["]|[^"])*'"'				{ return 'STRING'; }
