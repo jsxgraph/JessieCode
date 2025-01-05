@@ -858,7 +858,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                 options.form = options.form || "fractions";
                 options.steps = options.steps || [];
                 options.iterations = options.iterations || 1000;
-                // ast = this.CAS._simplify_aux(ast, options);
+                ast = this.CAS._simplify_aux(ast, options);
             }
             switch (cmd) {
                 case 'parse':
@@ -1696,6 +1696,9 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                             ret += this.compile(node.children[1], js);
                         }
                         break;
+                    case 'op_block':
+                        ret = '{\n' + this.compile(node.children[0], js) + ' }\n';
+                        break;
                     case 'op_assign':
                         //e = this.compile(node.children[0], js);
                         if (js) {
@@ -1974,9 +1977,6 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                 break;
         }
 
-        if (node.needsBrackets) {
-            ret = '{\n' + ret + ' }\n';
-        }
         if (node.needsAngleBrackets) {
             if (js) {
                 ret = '{\n' + ret + ' }\n';

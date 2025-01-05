@@ -228,7 +228,7 @@ EmptyStatement
     ;
 
 StatementBlock
-    : "{" StatementList "}"                                                 { $$ = $2; $$.needsBrackets = true; }
+    : "{" StatementList "}"                                                 { $$ = AST.createNode(lc(@1), 'node_op', 'op_block', $2); }
     ;
 
 StatementList
