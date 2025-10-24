@@ -154,7 +154,7 @@ define([
         this.isLHS = false;
 
         /**
-         * The id of an HTML node in which innerHTML all warnings are stored (if no <tt>console</tt> object is available).
+         * The id of an HTML node in which innerText all warnings are stored (if no <tt>console</tt> object is available).
          * @type String
          * @default 'jcwarn'
          */
@@ -2580,7 +2580,7 @@ define([
 
         /**
          * Output a debugging message. Uses debug console, if available. Otherwise an HTML element with the
-         * id "debug" and an innerHTML property is used.
+         * id "debug" and an innerText property is used.
          * @param {String} log
          * @private
          */
@@ -2588,7 +2588,7 @@ define([
             if (typeof console === 'object') {
                 console.log(log);
             } else if (Env.isBrowser && document && document.getElementById('debug') !== null) {
-                document.getElementById('debug').innerHTML += log + '<br />';
+                document.getElementById('debug').innerText += log + '\n';
             }
         },
 
@@ -2610,7 +2610,7 @@ define([
             if (typeof console === 'object') {
                 console.log('Warning(' + this.line + '): ' + msg);
             } else if (Env.isBrowser && document && document.getElementById(this.warnLog) !== null) {
-                document.getElementById(this.warnLog).innerHTML += 'Warning(' + this.line + '): ' + msg + '<br />';
+                document.getElementById(this.warnLog).innerText += 'Warning(' + this.line + '): ' + msg + '\n';
             }
         },
 
