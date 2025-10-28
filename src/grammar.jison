@@ -72,6 +72,7 @@
 \s+                                 /* ignore */
 [0-9]+\.[0-9]*|[0-9]*\.[0-9]+\b     return 'NUMBER'
 [0-9]+                              return 'NUMBER'
+[eE]"-"?[0-9]+                        return 'EXPONENT'
 
 
 '"'("\\"["]|[^"])*'"'				{ return 'STRING'; }
@@ -357,6 +358,7 @@ StringLiteral
 
 NumberLiteral
     : "NUMBER"                                                              { $$ = AST.createNode(lc(@1), 'node_const', parseFloat($1)); }
+    | "NUMBER" "EXPONENT"                                                   { $$ = AST.createNode(lc(@1), 'node_const', parseFloat($1 + $2)); }
     | "NAN"                                                                 { $$ = AST.createNode(lc(@1), 'node_const', NaN); }
     | "INFINITY"                                                            { $$ = AST.createNode(lc(@1), 'node_const', Infinity); }
     ;
