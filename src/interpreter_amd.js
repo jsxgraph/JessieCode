@@ -1778,7 +1778,7 @@ define([
                     ret += node.children[0].toString() + '\');';
                     break;
                 case 'op_delete':
-                    this._warn('Use of the \'delete\' operator is deprecated. Please use the remove() function.');
+                    this._warn('Use of the \'delete\' operator is deprecated. Please use the function \'remove(obj)\'.');
                     if (js) {
                         ret = '$jc$.del(';
                     } else {
