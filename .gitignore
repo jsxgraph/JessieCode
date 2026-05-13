@@ -1,3 +1,9 @@
 bin
-node_modules
 .idea/
+.DS_Store
+node_modules
+package-lock.json
+.vscode
+**/.vscode
+**/.vscode/*
+src/.vscode
