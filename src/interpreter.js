@@ -944,8 +944,6 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
      * and compile the AST back to JessieCode with minimal number of parentheses.
      *
      * @param {String} code             JessieCode code to be parsed
-     * @param {Boolean} [geonext=false] Geonext compatibility mode.
-     * @param {Boolean} [dontstore=false] If false, the code string is stored in this.code.
      * @return {String}                 Simplified JessieCode code
      */
     simplify: function (code) {
