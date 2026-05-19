@@ -836,12 +836,8 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
         }
 
         try {
-            if (!Type.exists(options.geonext)) {
-                options.geonext = false;
-            }
-
             for (i = 0; i < ccode.length; i++) {
-                if (options.geonext) {
+                if (!!options.geonext) {
                     ccode[i] = JXG.GeonextParser.geonext2JS(ccode[i], this.board);
                 }
                 cleaned.push(ccode[i]);
