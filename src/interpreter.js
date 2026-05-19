@@ -949,23 +949,13 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
      * Format JessieCode.
      * This consists of generating an AST with parser.parse,
      * and compile the AST back to JessieCode with options.
-     * This function might return not a re-parsable JessieCode code!
      *
-     * @param {String} code             JessieCode code to be parsed
-     * @param {Object} options          <ul>
-     *     <li>{Boolean} [minParentheses=false]         Use minimal number of parentheses.</li>
-     *     <li>{Number|Function} [constToFixed=false]   Format constant numbers with fixed amount of digits.</li>
-     *     </ul>
-     * @return {String}                 Manipulated JessieCode string. This is no necessarily a parsable JessieCode code!
+     * @param {String} code      JessieCode code to be parsed.
+     * @param {Object} options   For possible options see param "format" in {@link JXG.JessieCode#compile}.
+     * @return {String}          Manipulated JessieCode string. This is no necessarily a parsable JessieCode code!
      */
     format: function (code, options) {
-        var opt = {};
-
-        // For security. Remove the following lines to allow every options object.
-        opt.minParentheses = options.minParentheses;
-        opt.constToFixed = options.constToFixed;
-
-        return this._genericParse(code, 'format', opt);
+        return this._genericParse(code, 'format', options);
     },
 
     /**
