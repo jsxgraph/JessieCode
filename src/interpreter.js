@@ -1714,6 +1714,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
      * @param {Object} [format] Options for formatting the output. Depending on some options, the function might return a not re-parsable string. This format options have only effect on JessieCode output.<ul>
      *     <li>{Boolean} [minParentheses=false]               Use minimal amount of parentheses?</li>
      *     <li>{Boolean|Number|Function} [constToFixed=false] Use this number or function to format constant values.</li>
+     *     <li>{Boolean} [printable=false]                    Adds additional signs or parentheses, e.g. x^0.5 --> x^{0.5}.</li>
      *     </ul>
      * @returns Something
      * @private
@@ -1729,7 +1730,8 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
         }
         format = Type.deepCopy({
             minParentheses: false,
-            constToFixed: false
+            constToFixed: false,
+            printable: false
         }, format);
 
         // node_const/node_var >> op_execfun >> op_neg >> op_exp >> op_mul/op_div >> op_add/op_sub >> op_map >> op_assign
@@ -2095,19 +2097,19 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                             break;
                         case 'op_exp':
                             if (js) {
-                                ret = '$jc$.pow(' + compile(node.children[0], "op_exp") + ', ' + compile(node.children[1], "op_exp") + ')';
+                                ret = '$jc$.pow(' + compile(node.children[0], "op_exp", 0) + ', ' + compile(node.children[1], "op_exp", 1) + ')';
                             } else if (!format.minParentheses) {
-                                ret = '(' + compile(node.children[0], "op_exp") + '^' + compile(node.children[1], "op_exp") + ')';
+                                ret = '(' + compile(node.children[0], "op_exp", 0) + '^' + compile(node.children[1], "op_exp", 1) + ')';
                             } else {
                                 prioParent = prio(node);
 
-                                e = compile(node.children[0], "op_exp");
+                                e = compile(node.children[0], "op_exp", 0);
                                 prioChild = prio(node.children[0]);
                                 ret = prioParent >= prioChild ? "(" + e + ")" : e;
 
                                 ret += '^';
 
-                                e = compile(node.children[1], "op_exp");
+                                e = compile(node.children[1], "op_exp", 1);
                                 prioChild = prio(node.children[1]);
                                 ret += prioParent > prioChild ? "(" + e + ")" : e;
                             }
@@ -2146,7 +2148,11 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                     }
 
                     c = node.value;
-                    if (format.constToFixed !== false && Type.isNumber(c) && (prevOp !== "op_exp" || Math.round(c) - c !== 0)) {
+                    if (
+                        format.constToFixed !== false &&
+                        Type.isNumber(c) &&
+                        !(prevOp === "op_exp" && position === 1) // exponents will not be formatted
+                    ) {
                         c = parseFloat(c);
                         if (Type.isNumber(format.constToFixed)) {
                             c = Type.toFixed(c, format.constToFixed);
@@ -2178,6 +2184,14 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                 } else {
                     ret = '<< ' + ret + ' >>\n';
                 }
+            }
+
+            if (format.printable && prevOp === "op_exp" && position === 1) {
+                ret = '{' + ret + '}';
+            }
+
+            if (format.printable && Type.isString(ret)) {
+                ret = ret.replaceAll('\n', '');
             }
 
             return ret;
