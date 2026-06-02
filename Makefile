@@ -66,7 +66,7 @@ test: jsxgraph
 	$(JSTESTDRIVER) $(JSTESTSERVER) $(JSTESTFLAGS) --basePath ./ --config test/jsTestDriver.conf
 
 jsxgraph: deploy
-	$(CD) ../JSXGraph; make OUTPUT=../JessieCode/bin core-min; git checkout -- src/parser/jessiecode.js
+	$(CD) ../jsxgraph; make OUTPUT=../JessieCode/bin core-min; git checkout -- src/parser/jessiecode.js
 
 clean:
 	rm -f bin/*
