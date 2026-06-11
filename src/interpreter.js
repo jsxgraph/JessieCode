@@ -1729,6 +1729,8 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
             format = {};
         }
         format = Type.deepCopy({
+            evalSliders: false,
+            evalPIandE: false,
             minParentheses: false,
             constToFixed: false,
             printable: false
@@ -1775,7 +1777,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
         }
 
         function compile(node, prevOp, position = -1) {
-            var e, i, c, list, scope, prioParent, prioChild,
+            var e, i, c, o, list, scope, prioParent, prioChild,
                 ret = '';
 
             if (!node) {
@@ -2099,19 +2101,26 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                             if (js) {
                                 ret = '$jc$.pow(' + compile(node.children[0], "op_exp", 0) + ', ' + compile(node.children[1], "op_exp", 1) + ')';
                             } else if (!format.minParentheses) {
-                                ret = '(' + compile(node.children[0], "op_exp", 0) + '^' + compile(node.children[1], "op_exp", 1) + ')';
+                                ret = '('
+                                    + compile(node.children[0], "op_exp", 0)
+                                    + '^' + compile(node.children[1], "op_exp", 1)
+                                    + ')';
                             } else {
                                 prioParent = prio(node);
 
                                 e = compile(node.children[0], "op_exp", 0);
                                 prioChild = prio(node.children[0]);
-                                ret = (prioParent >= prioChild) ? "(" + e + ")" : e;
+                                ret = (prioParent >= prioChild)
+                                    ? "(" + e + ")"
+                                    : e;
 
                                 ret += '^';
 
                                 e = compile(node.children[1], "op_exp", 1);
                                 prioChild = prio(node.children[1]);
-                                ret += (prioParent > prioChild) ? "(" + e + ")" : e;
+                                ret += (prioParent > prioChild && !(format.printable && e[0] === '{' && e[e.length - 1] === '}'))
+                                    ? "(" + e + ")"
+                                    : e;
                             }
                             break;
                         case 'op_neg':
@@ -2136,8 +2145,49 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                 case 'node_var':
                     if (js) {
                         ret = that.getvarJS(node.value, false, node.withProps);
-                    } else {
-                        ret = node.value;
+                        break;
+                    }
+
+                    ret = node.value;
+                    if (format.evalSliders || format.evalPIandE) {
+                        o = that.execute(that.replaceNames(node, false));
+                        c = that.execute(that.replaceNames(node, true));
+
+                        if (!(
+                            !Type.exists(o) ||
+                            (!format.evalSliders && o.elType === "slider") ||
+                            (!format.evalPIandE && (ret === "PI" || ret === "EULER" || Type.isNumber(o))) ||
+                            !Type.isNumber(c)
+                        )) {
+                            if (
+                                format.constToFixed !== false &&
+                                Type.isNumber(c) &&
+                                !(prevOp === "op_exp" && position === 1) // exponents will not be formatted
+                            ) {
+                                c = parseFloat(c);
+                                if (Type.isNumber(format.constToFixed)) {
+                                    c = Type.toFixed(c, format.constToFixed);
+                                } else if (Type.isFunction(format.constToFixed)) {
+                                    c = format.constToFixed(c);
+                                } else {
+                                    c = node.value;
+                                }
+                            }
+                            if (format.minParentheses && parseFloat(c) < 0 && prevOp !== "op_execfun" && position !== 0) {
+                                ret = "(" + c + ")";
+                            } else {
+                                ret = c;
+                            }
+                        }
+                    }
+
+                    if (format.printable) {
+                        if (ret === "PI") {
+                            ret = "&pi;";
+                        }
+                        if (ret === "EULER") {
+                            ret = "e";
+                        }
                     }
                     break;
 
