@@ -2,7 +2,7 @@
     "name": "JessieCode",
     "description": "JessieCode is a small DSL that acts as a middle layer between the user and JSXGraph.",
     "homepage": "https://jsxgraph.org",
-    "version": "1.5.0",
+    "version": "1.5.1",
     "author": "Michael Gerhaeuser",
     "maintainers": [
         {
@@ -36,14 +36,14 @@
         }
     ],
     "devDependencies": {
-        "eslint": "^8.4.1",
-        "jison": ">= 0.4.18",
-        "jshint": ">=2.13.0",
-        "jslint": ">= 0.1.x",
-        "terser": "^5.10.0"
+        "eslint": ">=10.0.3",
+        "jison": "^0.3.12",
+        "jshint": "^0.5.9",
+        "jslint": "^0.12.1",
+        "terser-webpack-plugin": ">=5.6.1"
     },
     "engines": {
-        "node": ">= 0.6.0"
+        "node": ">=20.19.0"
     },
     "scripts": {},
     "private": true
