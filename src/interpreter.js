@@ -1384,6 +1384,9 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
                             ret = this.execute(node.children[1]);
                         }
                         break;
+                    case 'op_block':
+                        ret = this.execute(node.children[0]);
+                        break;
                     case 'op_assign':
                         v = this.getLHS(node.children[0]);
                         this.lhs[this.scope.id] = v.what;
