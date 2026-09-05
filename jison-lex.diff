@@ -1,0 +1,12 @@
+257c257,259
+<         return (past.length > 20 ? '...':'') + past.substr(-20).replace(/\n/g, "");
+---
+>         return (past.length > 20 ? '...':'') + past.substr(-20).replace(/\n/g, "").replace(/[&<>]/g, function (c) {
+>             return c === '&' ? '&amp;' : (c === '<' ? '&lt;' : '&gt;');
+>         });
+266c268,270
+<         return (next.substr(0,20)+(next.length > 20 ? '...':'')).replace(/\n/g, "");
+---
+>         return (next.substr(0,20)+(next.length > 20 ? '...':'')).replace(/\n/g, "").replace(/[&<>]/g, function (c) {
+>             return c === '&' ? '&amp;' : (c === '<' ? '&lt;' : '&gt;');
+>         });

@@ -47,13 +47,22 @@ deploy: core
 core: parser.js $(INTERPRETER)
 	$(SED) -e '/#include "parser\.js"/{r '"$(OUTPUT)"'/parser.js' -e 'd}' $(INTERPRETER) > $(OUTPUT)/jessiecode.js
 	$(SED) -i -e 's/"use strict"//' $(OUTPUT)/jessiecode.js
+
 	# Remove trailing whitespace:
 	$(SED) -i -e 's/[[:space:]]$$//' $(OUTPUT)/jessiecode.js
 	$(MINIFYER) $(OUTPUT)/jessiecode.js -c -m -o $(OUTPUT)/jessiecode.min.js
 
 parser.js: $(GRAMMAR)
 	$(MKDIR) $(MKDIRFLAGS) $(OUTPUT)
+
+    # Security patch to jison
+	patch -b node_modules/jison-lex/regexp-lexer.js <jison-lex.diff
+
 	$(JISON) $^ -o $(OUTPUT)/parser.js -m js
+
+    # Undo patch to jison
+	mv node_modules/jison-lex/regexp-lexer.js.orig node_modules/jison-lex/regexp-lexer.js
+
 	$(SED) -i 's/var parser =/\/**\n * @class\n * @ignore\n *\/\nvar parser =/g' $(OUTPUT)/parser.js
 	$(SED) -i 's/^performAction:/\/**\n * @class\n * @ignore\n *\/\nperformAction:/g' $(OUTPUT)/parser.js
 	$(SED) -i 's/^parse:/\/**\n * @class\n * @ignore\n *\/\nparse:/g' $(OUTPUT)/parser.js
