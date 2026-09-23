@@ -36,11 +36,11 @@
         }
     ],
     "devDependencies": {
-        "eslint": ">=10.0.3",
-        "jison": "^0.3.12",
-        "jshint": "^0.5.9",
-        "jslint": "^0.12.1",
-        "terser": ">=5.49.0"
+        "eslint": "10.0.3",
+        "jison": "0.3.12",
+        "jshint": "0.5.9",
+        "jslint": "0.12.1",
+        "terser": "5.49.0"
     },
     "engines": {
         "node": ">=20.19.0"
