@@ -72,12 +72,16 @@ var priv = {
 };
 
 /**
- * A JessieCode object provides an interface to the parser and stores all variables and objects used within a JessieCode script.
- * The optional argument `code` is interpreted after initializing. To evaluate more code after initializing a JessieCode instance
+ * @class A JessieCode object provides an interface to the parser and stores all variables and
+ * objects used within a JessieCode script.
+ * The optional argument `code` is interpreted after initializing.
+ * To evaluate more code after initializing a JessieCode instance
  * please use {@link JXG.JessieCode#parse}. For code snippets like single expressions use {@link JXG.JessieCode#snippet}.
  * @constructor
  * @param {String} [code] Code to parse.
  * @param {Boolean} [geonext=false] Geonext compatibility mode.
+ *
+ * @see {@link https://github.com/jsxgraph/JessieCode}
  */
 JXG.JessieCode = function (code, geonext) {
     // Control structures
@@ -812,10 +816,10 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
      * @param  {String} code      JessieCode code to be parsed
      * @param  {String} cmd       Type of manipulation to be done with AST
      * @param {Object} [options]  Object with attributes
-     * 
+     *
      * - {Boolean} [geonext=false]     Geonext compatibility mode.
      * - {Boolean} [dontstore=false]   If false, the code string is stored in this.code, i.e. in the JessieCode object, e.g. in `board.jc`.
-     *     
+     *
      * @return {Object} Returns result of computation as directed in cmd.
      */
     _genericParse: function (code, cmd, options) {
@@ -1716,7 +1720,7 @@ JXG.extend(JXG.JessieCode.prototype, /** @lends JXG.JessieCode.prototype */ {
      * @param {Object} ast
      * @param {Boolean} [js=false] Compile either to JavaScript or back to JessieCode (required for the UI).
      * @param {Object} [format] Options for formatting the output. Depending on some options, the function might return a not re-parsable string. This format options have only effect on JessieCode output.
-     * 
+     *
      * - {Boolean} [minParentheses=false]               Use minimal amount of parentheses?
      * - {Boolean|Number|Function} [constToFixed=false] Use this number or function to format constant values.
      * - {Boolean} [printable=false]                    Adds additional signs or parentheses, e.g. x^0.5 --> x^{0.5}.

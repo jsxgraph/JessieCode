@@ -56,7 +56,7 @@ parser.js: $(GRAMMAR)
 	$(MKDIR) $(MKDIRFLAGS) $(OUTPUT)
 
     # Security patch to jison
-	patch -b node_modules/jison-lex/regexp-lexer.js <jison-lex.diff
+	# patch -N -r -b node_modules/jison-lex/regexp-lexer.js <jison-lex.diff
 
 	$(JISON) $^ -o $(OUTPUT)/parser.js -m js
 
